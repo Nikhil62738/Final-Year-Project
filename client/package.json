@@ -1,0 +1,12 @@
+{
+  "name": "fda-safewatch-client",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "echo Client is served by the Express server at http://localhost:5000",
+    "build": "echo No client build step is required"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

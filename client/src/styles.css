@@ -1,0 +1,391 @@
+:root {
+  --ink: #12382f;
+  --ink-2: #285448;
+  --paper: #fbfbf5;
+  --line: #b9c3b7;
+  --wash: #eef2e9;
+  --mustard: #b38a10;
+  --rust: #a3442a;
+  --resolved: #25734f;
+  --focus: #0f766e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", Arial, sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 16px clamp(16px, 4vw, 56px);
+  border-bottom: 2px solid var(--ink);
+  background: #fffef8;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.brand small,
+.eyebrow,
+.mono,
+time,
+label {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.brand strong {
+  display: block;
+  font-size: 1.15rem;
+}
+
+.brand small {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0;
+}
+
+.seal {
+  border: 2px solid var(--ink);
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 700;
+}
+
+nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button {
+  min-height: 40px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  padding: 8px 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+button:hover {
+  background: var(--wash);
+}
+
+.primary {
+  background: var(--ink);
+  color: white;
+}
+
+.primary:hover {
+  background: var(--ink-2);
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 28px);
+}
+
+.narrow {
+  max-width: 560px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.75fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 7vw, 5.6rem);
+  line-height: 0.95;
+  margin: 0 0 22px;
+  max-width: 850px;
+}
+
+h2 {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  margin: 0 0 12px;
+}
+
+.lede p {
+  max-width: 720px;
+  font-size: 1.12rem;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.stamp-panel {
+  border-left: 3px solid var(--ink);
+  padding-left: 24px;
+}
+
+.stamp {
+  width: max-content;
+  margin: 10px 0 24px;
+  padding: 10px 18px;
+  border: 4px double var(--rust);
+  color: var(--rust);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transform: rotate(-5deg);
+}
+
+.process-list,
+.timeline {
+  padding-left: 22px;
+}
+
+.process-list li,
+.timeline li {
+  margin-bottom: 18px;
+}
+
+.process-list span,
+.case-row small,
+.match small,
+time {
+  display: block;
+  color: var(--ink-2);
+}
+
+.report-form,
+.track-form,
+.update-form {
+  display: grid;
+  gap: 16px;
+  max-width: 840px;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fffefa;
+  color: var(--ink);
+  padding: 11px 12px;
+  border-radius: 0;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.location-row {
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+}
+
+.checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-transform: none;
+  font-family: "IBM Plex Sans", Arial, sans-serif;
+  font-size: 1rem;
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.duplicate-box,
+.tracker,
+.case-detail {
+  margin-top: 28px;
+  border-top: 2px solid var(--ink);
+  padding-top: 22px;
+}
+
+.match {
+  border-left: 5px solid var(--mustard);
+  padding: 14px 16px;
+  margin: 14px 0;
+  background: var(--wash);
+}
+
+.match.strong {
+  border-color: var(--rust);
+}
+
+.notice {
+  border-left: 5px solid var(--ink);
+  padding: 12px 14px;
+  background: var(--wash);
+  max-width: 780px;
+}
+
+.tracker {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.45fr) 1fr;
+  gap: 32px;
+}
+
+.dashboard-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 18px;
+}
+
+.dashboard-head h1 {
+  font-size: clamp(2rem, 6vw, 4.5rem);
+}
+
+.dashboard-head p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+  gap: 28px;
+}
+
+.complaint-list {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.case-row {
+  display: grid;
+  justify-content: stretch;
+  text-align: left;
+  gap: 4px;
+  background: #fffefa;
+}
+
+.evidence-grid {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.evidence-grid a {
+  border: 1px solid var(--line);
+  padding: 9px 10px;
+  display: inline-flex;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.update-form {
+  max-width: none;
+}
+
+@media (max-width: 760px) {
+  .site-header,
+  .dashboard-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-grid,
+  .tracker,
+  .split,
+  .field-row,
+  .location-row,
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 14vw, 3.8rem);
+  }
+
+  nav,
+  nav button {
+    width: 100%;
+  }
+}

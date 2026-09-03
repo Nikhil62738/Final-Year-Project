@@ -22,12 +22,12 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "blob:"],
+        imgSrc: ["'self'", "data:", "blob:", "https://maps.gstatic.com", "https://maps.googleapis.com"],
         mediaSrc: ["'self'", "blob:"],
-        connectSrc: ["'self'"]
+        connectSrc: ["'self'", "https://maps.googleapis.com"]
       }
     },
     crossOriginResourcePolicy: { policy: "cross-origin" }
@@ -37,6 +37,13 @@ app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(",") || "*", credentials
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
+app.get("/config.js", (_req, res) => {
+  res.type("application/javascript").send(
+    `window.SAFEWATCH_GOOGLE_MAPS_API_KEY=${JSON.stringify(process.env.GOOGLE_MAPS_API_KEY || "")};`
+  );
+});
+
 app.use(express.static(clientDir));
 
 app.get("/api/health", (_req, res) => {

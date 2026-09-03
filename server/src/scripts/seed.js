@@ -12,15 +12,15 @@ const passwordHash = await bcrypt.hash("Admin@12345", 12);
 await Officer.findOneAndUpdate(
   { phone: "9999999999" },
   {
-    name: "District Admin",
+    name: "Super Admin",
     phone: "9999999999",
     passwordHash,
-    role: "admin",
-    district: "Pune",
+    role: "super_admin",
+    district: "Maharashtra",
     active: true
   },
   { upsert: true, new: true }
 );
 
-console.log("Seeded admin officer: 9999999999 / Admin@12345");
+console.log("Seeded super admin officer: 9999999999 / Admin@12345");
 process.exit(0);

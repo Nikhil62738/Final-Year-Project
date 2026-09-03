@@ -97,7 +97,7 @@ export async function listComplaints(req, res) {
   if (category) query.category = category;
   if (district) query.district = district;
 
-  if (req.officer.role !== "admin") {
+  if (req.officer.role !== "super_admin") {
     query.district = req.officer.district;
   }
 
@@ -107,7 +107,7 @@ export async function listComplaints(req, res) {
 
 export async function getComplaint(req, res) {
   const query = { _id: req.params.id };
-  if (req.officer.role !== "admin") {
+  if (req.officer.role !== "super_admin") {
     query.district = req.officer.district;
   }
 
@@ -121,7 +121,7 @@ export async function getComplaint(req, res) {
 
 export async function updateComplaintStatus(req, res) {
   const query = { _id: req.params.id };
-  if (req.officer.role !== "admin") {
+  if (req.officer.role !== "super_admin") {
     query.district = req.officer.district;
   }
 

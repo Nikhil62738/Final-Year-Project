@@ -1,0 +1,12 @@
+node_modules/
+client/node_modules/
+client/node_modules.broken.*/
+server/node_modules/
+
+.env
+server/.env
+client/.env
+
+uploads/
+server/uploads/
+*.log

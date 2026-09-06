@@ -22,12 +22,12 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com", "https://cdnjs.cloudflare.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "blob:", "https://maps.gstatic.com", "https://maps.googleapis.com"],
         mediaSrc: ["'self'", "blob:"],
-        connectSrc: ["'self'", "https://maps.googleapis.com"]
+        connectSrc: ["'self'", "https://maps.googleapis.com", "https://cdnjs.cloudflare.com"]
       }
     },
     crossOriginResourcePolicy: { policy: "cross-origin" }

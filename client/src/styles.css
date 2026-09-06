@@ -132,6 +132,44 @@ nav {
   align-items: center;
 }
 
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.login-prompt {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--brand);
+  background: var(--brand-softer);
+  color: var(--brand-dark);
+  font-weight: 600;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.admin-entry .back-public {
+  margin-top: 12px;
+  width: 100%;
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.dashboard-actions button {
+  min-width: 120px;
+}
+
 button {
   min-height: 44px;
   border: 1px solid var(--line);
@@ -1255,12 +1293,38 @@ textarea {
 }
 
 @media (max-width: 900px) {
-  .site-header,
+  .site-header {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  nav {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 8px;
+  }
+
+  nav.open {
+    display: flex;
+  }
+
   .dashboard-head,
   .panel-title,
   .workbench-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .dashboard-actions {
+    align-items: flex-start;
+    width: 100%;
   }
 
   .home-grid,
@@ -1292,7 +1356,6 @@ textarea {
     font-size: clamp(2.2rem, 12vw, 3.9rem);
   }
 
-  nav,
   nav button,
   .panel-title .primary,
   .track-form button,

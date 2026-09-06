@@ -1,6 +1,13 @@
 # FDA SafeWatch
 
-Public food-safety complaint reporting and action tracking platform built with React, Node.js/Express, MongoDB, JWT auth, and Multer uploads.
+Public food-safety complaint reporting and action tracking platform built with **React**, **Node.js/Express**, **MongoDB**, JWT auth, and Multer uploads.
+
+## Public site behavior
+
+- **Home page** opens by default at `http://localhost:5000`
+- **Report an Issue** requires citizen login/registration first
+- **Track Issue** is public — anyone with a tracking code can check status
+- **Admin panel is not linked** on the public site. Officers use the hidden URL: `http://localhost:5000/#admin`
 
 ## Run locally
 
@@ -15,7 +22,7 @@ Public food-safety complaint reporting and action tracking platform built with R
 
 3. Start MongoDB locally, or set `MONGO_URI` to an Atlas connection string.
 
-4. Seed an officer account:
+4. Seed officer accounts:
 
    ```bash
    npm run seed
@@ -27,13 +34,40 @@ Public food-safety complaint reporting and action tracking platform built with R
    npm run dev
    ```
 
-Default URLs:
+Default URL: `http://localhost:5000` (Express serves the React frontend and API together)
 
-- Client: `http://localhost:5173`
-- API: `http://localhost:5000`
+## Demo credentials
 
-Seeded admin:
+**Super admin**
 
 - Phone: `9999999999`
 - Password: `Admin@12345`
-"# Final-Year-Project" 
+- Admin URL: `http://localhost:5000/#admin`
+
+**Citizens**
+
+- Register at `http://localhost:5000/#login` before submitting a complaint
+
+## Stack
+
+| Layer    | Technology                          |
+|----------|-------------------------------------|
+| Frontend | React 18 (CDN, no build step)       |
+| Backend  | Node.js + Express                   |
+| Database | MongoDB + Mongoose                  |
+| Auth     | JWT (citizens + officers)           |
+| Uploads  | Multer (evidence photos/videos)     |
+
+## API routes
+
+| Method | Route                              | Access   |
+|--------|------------------------------------|----------|
+| POST   | `/api/auth/users/register`         | Public   |
+| POST   | `/api/auth/users/login`            | Public   |
+| POST   | `/api/auth/login`                  | Officer  |
+| POST   | `/api/complaints/check-duplicates` | Citizen  |
+| POST   | `/api/complaints`                  | Citizen  |
+| GET    | `/api/complaints/track/:code`      | Public   |
+| GET    | `/api/complaints`                  | Officer  |
+| GET    | `/api/complaints/:id`              | Officer  |
+| PATCH  | `/api/complaints/:id/status`       | Officer  |

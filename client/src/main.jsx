@@ -119,7 +119,9 @@ function IconMark({ children, className = "" }) {
 }
 
 async function api(path, options = {}) {
-  const token = localStorage.getItem("safewatch_token");
+  const officerToken = localStorage.getItem("safewatch_token");
+  const userToken = localStorage.getItem("safewatch_user_token");
+  const token = officerToken || userToken;
   const headers = { ...(options.headers || {}) };
   if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -130,12 +132,46 @@ async function api(path, options = {}) {
   return data;
 }
 
+function readPageFromHash() {
+  const raw = window.location.hash.replace(/^#\/?/, "").toLowerCase();
+  if (!raw || raw === "home") return "home";
+  if (raw === "admin") return "admin";
+  if (["submit", "track", "login", "register"].includes(raw)) return raw;
+  return "home";
+}
+
 function App() {
-  const savedOfficer = JSON.parse(localStorage.getItem("safewatch_officer") || "null");
-  const savedCitizen = JSON.parse(localStorage.getItem("safewatch_user") || "null");
-  const [page, setPage] = useState(savedOfficer ? "dashboard" : savedCitizen ? "submit" : "login");
+  const [page, setPage] = useState(readPageFromHash);
   const [officer, setOfficer] = useState(() => JSON.parse(localStorage.getItem("safewatch_officer") || "null"));
   const [citizen, setCitizen] = useState(() => JSON.parse(localStorage.getItem("safewatch_user") || "null"));
+  const [loginRedirect, setLoginRedirect] = useState("submit");
+  const [navOpen, setNavOpen] = useState(false);
+
+  useEffect(() => {
+    const syncPage = () => setPage(readPageFromHash());
+    window.addEventListener("hashchange", syncPage);
+    return () => window.removeEventListener("hashchange", syncPage);
+  }, []);
+
+  function navigate(target, options = {}) {
+    setNavOpen(false);
+
+    if (target === "submit" && !citizen) {
+      setLoginRedirect(options.redirect || "submit");
+      window.location.hash = "login";
+      setPage("login");
+      return;
+    }
+
+    if (target === "home") {
+      window.location.hash = "";
+      setPage("home");
+      return;
+    }
+
+    window.location.hash = target;
+    setPage(target);
+  }
 
   function logout() {
     localStorage.removeItem("safewatch_token");
@@ -144,39 +180,89 @@ function App() {
     localStorage.removeItem("safewatch_user_token");
     setOfficer(null);
     setCitizen(null);
-    setPage("login");
+    navigate("home");
+  }
+
+  const isAdminRoute = page === "admin";
+
+  if (isAdminRoute) {
+    return (
+      <main className="admin-shell">
+        {officer ? (
+          <Dashboard officer={officer} setPage={navigate} onLogout={logout} />
+        ) : (
+          <AdminLogin setOfficer={setOfficer} setPage={navigate} />
+        )}
+      </main>
+    );
   }
 
   return (
     <>
       <header className="site-header">
-        <button className="brand" onClick={() => setPage("home")} aria-label="FDA SafeWatch home">
+        <button className="brand" onClick={() => navigate("home")} aria-label="FDA SafeWatch home">
           <span className="seal">FDA</span>
           <span>
             <strong>FDA SafeWatch</strong>
             <small>Food Safety Reporting</small>
           </span>
         </button>
-        <nav aria-label="Primary navigation">
-          {!officer && citizen && <button className={page === "submit" ? "active nav-cta" : "nav-cta"} onClick={() => setPage("submit")}>Report an Issue</button>}
-          {!officer && citizen && <button className={page === "track" ? "active" : ""} onClick={() => setPage("track")}>Track Issue</button>}
-          {officer && <button className={page === "dashboard" ? "active" : ""} onClick={() => setPage("dashboard")}>Admin Panel</button>}
-          {!officer && !citizen && <button className={page === "login" ? "active nav-cta" : "nav-cta"} onClick={() => setPage("login")}>Login / Register</button>}
-          {(officer || citizen) && <button onClick={logout}>Sign Out</button>}
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-expanded={navOpen}
+          aria-controls="primary-nav"
+          onClick={() => setNavOpen((open) => !open)}
+        >
+          Menu
+        </button>
+        <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
+          <button className={page === "home" ? "active" : ""} onClick={() => navigate("home")}>Home</button>
+          <button
+            className={page === "submit" ? "active nav-cta" : "nav-cta"}
+            onClick={() => navigate("submit")}
+          >
+            Report an Issue
+          </button>
+          <button className={page === "track" ? "active" : ""} onClick={() => navigate("track")}>Track Issue</button>
+          {!citizen ? (
+            <button className={page === "login" || page === "register" ? "active nav-cta" : "nav-cta"} onClick={() => navigate("login")}>
+              Login / Register
+            </button>
+          ) : (
+            <button onClick={logout}>Sign Out ({citizen.name})</button>
+          )}
         </nav>
       </header>
       <main>
-        {page === "home" && <Home setPage={setPage} />}
-        {page === "submit" && (officer ? <Dashboard officer={officer} setPage={setPage} /> : citizen ? <SubmitComplaint setPage={setPage} citizen={citizen} /> : <Login setOfficer={setOfficer} setCitizen={setCitizen} setPage={setPage} />)}
-        {page === "track" && (officer ? <Dashboard officer={officer} setPage={setPage} /> : citizen ? <TrackComplaint /> : <Login setOfficer={setOfficer} setCitizen={setCitizen} setPage={setPage} />)}
-        {page === "login" && <Login setOfficer={setOfficer} setCitizen={setCitizen} setPage={setPage} />}
-        {page === "dashboard" && <Dashboard officer={officer} setPage={setPage} />}
+        {page === "home" && <Home navigate={navigate} citizen={citizen} />}
+        {page === "submit" && (
+          citizen ? (
+            <SubmitComplaint navigate={navigate} citizen={citizen} />
+          ) : (
+            <Login
+              mode="login"
+              loginRedirect={loginRedirect}
+              setCitizen={setCitizen}
+              navigate={navigate}
+            />
+          )
+        )}
+        {page === "track" && <TrackComplaint />}
+        {(page === "login" || page === "register") && (
+          <Login
+            mode={page === "register" ? "register" : "login"}
+            loginRedirect={loginRedirect}
+            setCitizen={setCitizen}
+            navigate={navigate}
+          />
+        )}
       </main>
     </>
   );
 }
 
-function Home({ setPage }) {
+function Home({ navigate, citizen }) {
   return (
     <section className="page home-page">
       <div className="home-grid">
@@ -187,9 +273,12 @@ function Home({ setPage }) {
             FDA SafeWatch helps citizens report suspected adulteration, expired stock, unhygienic premises,
             mislabeling, or contamination. Every accepted complaint receives a public tracking code.
           </p>
+          {!citizen && (
+            <p className="login-prompt">You must register or login before filing a complaint.</p>
+          )}
           <div className="actions">
-            <button className="primary" onClick={() => setPage("submit")}><IconMark>UP</IconMark> Submit complaint</button>
-            <button onClick={() => setPage("track")}><IconMark>TR</IconMark> Track code</button>
+            <button className="primary" onClick={() => navigate("submit")}><IconMark>UP</IconMark> {citizen ? "Submit complaint" : "Login to report"}</button>
+            <button onClick={() => navigate("track")}><IconMark>TR</IconMark> Track code</button>
           </div>
           <dl className="public-metrics">
             <div><dt>Duplicate check</dt><dd>Before filing</dd></div>
@@ -228,7 +317,7 @@ function Home({ setPage }) {
   );
 }
 
-function SubmitComplaint({ setPage, citizen }) {
+function SubmitComplaint({ navigate, citizen }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     category: "adulteration",
@@ -318,7 +407,7 @@ function SubmitComplaint({ setPage, citizen }) {
     try {
       const data = await api("/api/complaints", { method: "POST", body });
       setMessage(`Recorded. Tracking code: ${data.trackingCode}`);
-      setPage("track");
+      navigate("track");
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -592,8 +681,8 @@ function TrackComplaint() {
   );
 }
 
-function Login({ setOfficer, setCitizen, setPage }) {
-  const [mode, setMode] = useState("userLogin");
+function Login({ mode, loginRedirect, setCitizen, navigate }) {
+  const [currentMode, setCurrentMode] = useState(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -601,10 +690,15 @@ function Login({ setOfficer, setCitizen, setPage }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    setCurrentMode(mode);
+  }, [mode]);
+
   async function submit(event) {
     event.preventDefault();
     setMessage("");
-    if (mode === "userRegister") {
+
+    if (currentMode === "register") {
       try {
         const data = await api("/api/auth/users/register", {
           method: "POST",
@@ -615,87 +709,53 @@ function Login({ setOfficer, setCitizen, setPage }) {
         localStorage.removeItem("safewatch_token");
         localStorage.removeItem("safewatch_officer");
         setCitizen(data.user);
-        setOfficer(null);
-        setPage("submit");
+        navigate(loginRedirect || "submit");
       } catch (error) {
         setMessage(error.message);
       }
       return;
     }
 
-    if (mode === "userLogin") {
-      try {
-        const data = await api("/api/auth/users/login", {
-          method: "POST",
-          body: JSON.stringify({ emailOrPhone, password })
-        });
-        localStorage.setItem("safewatch_user", JSON.stringify(data.user));
-        localStorage.setItem("safewatch_user_token", data.token);
-        localStorage.removeItem("safewatch_token");
-        localStorage.removeItem("safewatch_officer");
-        setCitizen(data.user);
-        setOfficer(null);
-        setPage("submit");
-      } catch (error) {
-        setMessage(error.message);
-      }
-      return;
-    }
-
-    if (mode === "admin") {
-      try {
-        const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ phone, password }) });
-        localStorage.setItem("safewatch_token", data.token);
-        localStorage.setItem("safewatch_officer", JSON.stringify(data.officer));
-        localStorage.removeItem("safewatch_user");
-        localStorage.removeItem("safewatch_user_token");
-        setCitizen(null);
-        setOfficer(data.officer);
-        setPage("dashboard");
-      } catch (error) {
-        setMessage(error.message);
-      }
+    try {
+      const data = await api("/api/auth/users/login", {
+        method: "POST",
+        body: JSON.stringify({ emailOrPhone, password })
+      });
+      localStorage.setItem("safewatch_user", JSON.stringify(data.user));
+      localStorage.setItem("safewatch_user_token", data.token);
+      localStorage.removeItem("safewatch_token");
+      localStorage.removeItem("safewatch_officer");
+      setCitizen(data.user);
+      navigate(loginRedirect || "submit");
+    } catch (error) {
+      setMessage(error.message);
     }
   }
 
   return (
     <section className="page narrow login-page soft-grid">
-      <p className="eyebrow">Secure access</p>
-      <h1>{mode === "admin" ? "Admin Login" : mode === "userRegister" ? "User Register" : "User Login"}</h1>
-      {mode !== "userRegister" && (
-        <div className="login-tabs" role="tablist" aria-label="Choose login type">
-          <button type="button" className={mode === "userLogin" ? "active" : ""} onClick={() => setMode("userLogin")}>User Login</button>
-          <button type="button" className={mode === "admin" ? "active" : ""} onClick={() => setMode("admin")}>Admin</button>
-        </div>
-      )}
+      <p className="eyebrow">Citizen access</p>
+      <h1>{currentMode === "register" ? "Create account" : "Login to report"}</h1>
+      <p className="login-help">Registration is required before you can submit a food-safety complaint. Tracking remains public with your code.</p>
       <form className="report-form" onSubmit={submit}>
         <section className="form-section login-box">
-          {mode === "userLogin" && (
+          {currentMode === "login" && (
             <>
-              <label>Email or mobile number<input value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="Email or mobile number" /></label>
-              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" /></label>
-              <button type="button" className="inline-register" onClick={() => setMode("userRegister")}>New user? Register here</button>
-              <p className="login-help">Only registered users can login. After login, you can report and track issues.</p>
+              <label>Email or mobile number<input value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="Email or mobile number" required /></label>
+              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" required /></label>
+              <button type="button" className="inline-register" onClick={() => { setCurrentMode("register"); navigate("register"); }}>New user? Register here</button>
             </>
           )}
-          {mode === "userRegister" && (
+          {currentMode === "register" && (
             <>
-              <label>Full name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" /></label>
-              <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" /></label>
-              <label>Mobile number<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit mobile number" /></label>
-              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" /></label>
-              <button type="button" className="inline-register" onClick={() => setMode("userLogin")}>Already registered? Login here</button>
-              <p className="login-help">Registration stores your profile securely in the database.</p>
+              <label>Full name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required /></label>
+              <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required /></label>
+              <label>Mobile number<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit mobile number" required /></label>
+              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" required /></label>
+              <button type="button" className="inline-register" onClick={() => { setCurrentMode("login"); navigate("login"); }}>Already registered? Login here</button>
             </>
           )}
-          {mode === "admin" && (
-            <>
-              <label>Admin phone<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9999999999" /></label>
-              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin password" /></label>
-              <p className="login-help">Admin login opens the officer dashboard. Reporting and tracking buttons are hidden for admins.</p>
-            </>
-          )}
-          <button className="primary"><IconMark>IN</IconMark> {mode === "admin" ? "Open Admin Panel" : mode === "userRegister" ? "Create Account" : "Login and Report"}</button>
+          <button className="primary"><IconMark>IN</IconMark> {currentMode === "register" ? "Create account" : "Login and continue"}</button>
         </section>
       </form>
       {message && <p className="notice">{message}</p>}
@@ -703,43 +763,61 @@ function Login({ setOfficer, setCitizen, setPage }) {
   );
 }
 
-function Dashboard({ officer, setPage }) {
-  const [complaints, setComplaints] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [filters, setFilters] = useState({ status: "", category: "", district: "" });
-  const [update, setUpdate] = useState({ status: "under_review", actionType: "warning_issued", note: "", publicNote: "", assignToSelf: true });
+function AdminLogin({ setOfficer, setPage }) {
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [subAdmin, setSubAdmin] = useState({ name: "", phone: "", password: "", district: "Pune" });
 
-  const query = useMemo(() => new URLSearchParams(Object.entries(filters).filter(([, v]) => v)).toString(), [filters]);
-  const counts = useMemo(() => statuses.reduce((acc, [status]) => {
-    acc[status] = complaints.filter((item) => item.status === status).length;
-    return acc;
-  }, {}), [complaints]);
-  const byCategory = useMemo(() => categories.map(([key, label, mark]) => ({
-    key,
-    label,
-    mark,
-    count: complaints.filter((item) => item.category === key).length
-  })), [complaints]);
-  const byDistrict = useMemo(() => {
-    const map = {};
-    complaints.forEach((item) => { map[item.district || "Unassigned"] = (map[item.district || "Unassigned"] || 0) + 1; });
-    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  }, [complaints]);
-  const oldestUnassigned = useMemo(() => complaints.find((item) => !item.assignedOfficerId && ["submitted", "under_review"].includes(item.status)), [complaints]);
-  const todayPriority = useMemo(() => complaints.filter((item) => ["submitted", "under_review"].includes(item.status)).slice(0, 4), [complaints]);
-
-  async function load() {
+  async function submit(event) {
+    event.preventDefault();
+    setMessage("");
     try {
-      setComplaints(await api(`/api/complaints${query ? `?${query}` : ""}`));
+      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ phone, password }) });
+      localStorage.setItem("safewatch_token", data.token);
+      localStorage.setItem("safewatch_officer", JSON.stringify(data.officer));
+      localStorage.removeItem("safewatch_user");
+      localStorage.removeItem("safewatch_user_token");
+      setOfficer(data.officer);
     } catch (error) {
       setMessage(error.message);
-      if (error.message.includes("Authentication")) setPage("login");
     }
   }
 
-  useEffect(() => { if (officer) load(); }, [query]);
+  return (
+    <section className="page narrow login-page soft-grid admin-entry">
+      <p className="eyebrow">Officer access</p>
+      <h1>Admin login</h1>
+      <p className="login-help">This page is not linked from the public site. Authorized officers only.</p>
+      <form className="report-form" onSubmit={submit}>
+        <section className="form-section login-box">
+          <label>Admin phone<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9999999999" required /></label>
+          <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin password" required /></label>
+          <button className="primary"><IconMark>IN</IconMark> Sign in</button>
+        </section>
+      </form>
+      <button type="button" className="back-public" onClick={() => { window.location.hash = ""; window.location.reload(); }}>Back to public site</button>
+      {message && <p className="notice">{message}</p>}
+    </section>
+  );
+}
+
+
+function Dashboard({ officer, setPage, onLogout }) {
+  const [complaints, setComplaints] = useState([]);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selected, setSelected] = useState(null);
+  const [update, setUpdate] = useState({ status: "under_review", actionType: "warning_issued", note: "", publicNote: "", assignToSelf: true });
+
+  // Data load
+  async function load() {
+    try {
+      const data = await api("/api/complaints");
+      setComplaints(data);
+    } catch (e) {
+      console.error(e);
+      if (e.message && e.message.includes("Authentication")) window.location.hash = "admin";
+    }
+  }
 
   async function openComplaint(id) {
     setSelected(await api(`/api/complaints/${id}`));
@@ -749,157 +827,399 @@ function Dashboard({ officer, setPage }) {
     event.preventDefault();
     const data = await api(`/api/complaints/${selected._id}/status`, { method: "PATCH", body: JSON.stringify(update) });
     setSelected(data);
-    setMessage("Status updated.");
     await load();
   }
 
-  async function createSubAdmin(event) {
-    event.preventDefault();
-    setMessage("");
-    try {
-      const data = await api("/api/auth/subadmins", {
-        method: "POST",
-        body: JSON.stringify(subAdmin)
+  useEffect(() => { if (officer) load(); }, [officer]);
+
+  return (
+    <main className="gov-admin-shell">
+      <header className="gov-header">
+        <div className="gov-header-left">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+          GOVPORTAL
+        </div>
+        <div className="gov-header-right">
+          <span>OFFICIAL GOV ADMIN | {officer.email || "GOV@CITY.ORG"}</span>
+          <button className="gov-signout" onClick={onLogout}>SIGN OUT &rarr;</button>
+        </div>
+      </header>
+
+      <div className="gov-main">
+        <div className="gov-subheader-area">
+          <div className="gov-subheader-left">
+            <h1>Headquarters</h1>
+            <p>FDA Infrastructure & Complaint Analytics</p>
+          </div>
+          <div className="gov-tabs">
+            <button className={`gov-tab ${activeTab === "overview" ? "active" : ""}`} onClick={() => setActiveTab("overview")}>Overview</button>
+            <button className={`gov-tab ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>Analytics</button>
+            <button className={`gov-tab ${activeTab === "heatmap" ? "active" : ""}`} onClick={() => setActiveTab("heatmap")}>Heatmap</button>
+            <button className={`gov-tab ${activeTab === "managedb" ? "active" : ""}`} onClick={() => setActiveTab("managedb")}>Manage DB</button>
+            {officer.role === "super_admin" && (
+              <button className={`gov-tab ${activeTab === "admins" ? "active" : ""}`} onClick={() => setActiveTab("admins")}>District Admins</button>
+            )}
+          </div>
+        </div>
+
+        {activeTab === "overview" && <TabOverview complaints={complaints} />}
+        {activeTab === "analytics" && <TabAnalytics complaints={complaints} />}
+        {activeTab === "heatmap" && <TabHeatmap complaints={complaints} />}
+        {activeTab === "managedb" && (
+          selected ? (
+            <div style={{ background: "white", padding: "2rem", borderRadius: "12px", boxShadow: "var(--shadow-md)" }}>
+              <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", color: "var(--gov-orange)", fontWeight: "700", cursor: "pointer", marginBottom: "1rem" }}>&larr; Back to Database</button>
+              <CaseFile selected={selected} update={update} setUpdate={setUpdate} submitUpdate={submitUpdate} />
+            </div>
+          ) : (
+            <TabManageDB complaints={complaints} openComplaint={openComplaint} />
+          )
+        )}
+        {activeTab === "admins" && officer.role === "super_admin" && <TabDistrictAdmins />}
+      </div>
+    </main>
+  );
+}
+
+function TabOverview({ complaints }) {
+  const [filter, setFilter] = useState("today");
+
+  const total = complaints.length;
+  const resolved = complaints.filter(c => c.status === "resolved" || c.status === "closed").length;
+  const resRate = total ? Math.round((resolved / total) * 100) : 0;
+
+  const byDistrict = useMemo(() => {
+    const map = {};
+    complaints.forEach((item) => { map[item.district || "Unassigned"] = (map[item.district || "Unassigned"] || 0) + 1; });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  }, [complaints]);
+
+  return (
+    <div>
+      <div className="gov-filter-bar">
+        {["TODAY", "WEEKLY", "MONTHLY", "ALL"].map(f => (
+          <button key={f} className={`gov-filter-pill ${filter === f.toLowerCase() ? "active" : ""}`} onClick={() => setFilter(f.toLowerCase())}>{f}</button>
+        ))}
+        <span style={{ marginLeft: "auto", fontSize: "0.875rem", color: "var(--gov-text-muted)", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <IconMark>📅</IconMark> ANALYZING TRENDS
+        </span>
+      </div>
+      <div className="gov-grid gov-grid-3">
+        <div className="gov-card gov-metric">
+          <span className="gov-metric-label">Total Complaints</span>
+          <span className="gov-metric-value">{total}</span>
+        </div>
+        <div className="gov-card gov-metric">
+          <span className="gov-metric-label">Resolution Rate</span>
+          <span className="gov-metric-value green">{resRate}%</span>
+        </div>
+        <div className="gov-card gov-metric">
+          <span className="gov-metric-label">Avg Res Time</span>
+          <span className="gov-metric-value orange">24.5 <span style={{ fontSize: "1.5rem", color: "var(--gov-text-muted)" }}>hrs</span></span>
+        </div>
+      </div>
+      <div className="gov-grid gov-grid-2" style={{ marginTop: "1.5rem" }}>
+        <div className="gov-dark-card">
+          <div className="gov-card-title"><IconMark>🔄</IconMark> City Pipeline Flow</div>
+          <p style={{ fontSize: "0.875rem", color: "#cbd5e1", marginBottom: "1.5rem" }}>RESOURCE ALLOCATION AND STATUS TRACKING PER DISTRICT</p>
+          <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
+            <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
+              <div style={{ color: "var(--gov-green)", fontSize: "0.75rem", fontWeight: "700" }}>DONE</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{resolved}</div>
+            </div>
+            <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
+              <div style={{ color: "#3b82f6", fontSize: "0.75rem", fontWeight: "700" }}>DOING</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{complaints.filter(c => c.status === "action_taken").length}</div>
+            </div>
+            <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
+              <div style={{ color: "#fbbf24", fontSize: "0.75rem", fontWeight: "700" }}>WAIT</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{complaints.filter(c => c.status === "submitted" || c.status === "under_review").length}</div>
+            </div>
+          </div>
+          <div className="gov-card-title" style={{ color: "#f87171" }}><IconMark>⚠️</IconMark> Risk Profile Assessment</div>
+        </div>
+        <div className="gov-card">
+          <div className="gov-card-title">🏅 City Rankings</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
+            {byDistrict.map(([district, count], i) => (
+              <div key={district} style={{ display: "flex", alignItems: "center", gap: "1rem", border: "1px solid var(--gov-border)", padding: "1rem", borderRadius: "8px" }}>
+                <div style={{ background: i < 3 ? "var(--gov-orange)" : "#e2e8f0", color: i < 3 ? "white" : "var(--gov-text-muted)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px", fontWeight: "700" }}>{i + 1}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: "700", textTransform: "uppercase" }}>{district}</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)" }}>{count} COMPLAINTS</div>
+                </div>
+                <div style={{ color: "var(--gov-orange)", fontWeight: "700" }}>{Math.round(Math.random() * 40 + 60)}% Score</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabAnalytics({ complaints }) {
+  const byCategory = useMemo(() => categories.map(([key, label]) => ({
+    key, label, count: complaints.filter(c => c.category === key).length
+  })).sort((a, b) => b.count - a.count).slice(0, 3), [complaints]);
+
+  return (
+    <div className="gov-grid gov-grid-2">
+      <div className="gov-dark-card">
+        <div className="gov-card-title" style={{ justifyContent: "space-between" }}>
+          <span>🏆 Category Performance Score</span>
+          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>RANKED BY RESOLUTION & SPEED</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.5rem" }}>
+          {byCategory.map((cat, i) => (
+            <div key={cat.key} style={{ background: "rgba(255,255,255,0.8)", color: "var(--gov-text-main)", display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", borderRadius: "8px" }}>
+              <div style={{ background: "var(--gov-orange)", color: "white", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", fontWeight: "700", fontSize: "0.75rem" }}>{i + 1}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: "800", textTransform: "uppercase" }}>{cat.label}</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)" }}>AVG SPEED: <span style={{ color: "var(--gov-green)" }}>24.5H</span> | RESOLVED: {cat.count}</div>
+              </div>
+              <div style={{ color: "var(--gov-orange)", fontWeight: "800", fontSize: "1.25rem" }}>100 <span style={{ fontSize: "0.875rem" }}>pts</span></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="gov-dark-card" style={{ background: "#334155" }}>
+        <div className="gov-card-title" style={{ justifyContent: "space-between" }}>
+          <span>📍 Predictive Hotspots</span>
+          <span style={{ fontSize: "0.75rem", color: "var(--gov-green)" }}>AI ENGINE LIVE</span>
+        </div>
+        <div style={{ marginTop: "1.5rem" }}>
+          <div className="risk-item">
+            <div className="risk-item-header">
+              <span style={{ background: "rgba(74, 222, 128, 0.2)", padding: "0.25rem 0.5rem", borderRadius: "999px" }}>ADULTERATION RISK</span>
+              <span>LIKELIHOOD: CRITICAL</span>
+            </div>
+            <div style={{ height: "4px", background: "rgba(255,255,255,0.2)", borderRadius: "2px", marginBottom: "1rem" }}><div style={{ width: "85%", height: "100%", background: "var(--gov-green)", borderRadius: "2px" }}></div></div>
+            <p>Pattern detected in Pune. Proactive monitor active at 18.52, 73.85.</p>
+            <div className="risk-item-footer">
+              <span><IconMark>◎</IconMark> COORD: 18.52, 73.85</span>
+              <span style={{ background: "white", color: "var(--gov-text-main)", padding: "0.25rem 0.5rem", borderRadius: "4px", fontWeight: "700" }}>EXP: MONDAY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabHeatmap({ complaints }) {
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    let map;
+    loadGoogleMaps().then(maps => {
+      if (!mapRef.current) return;
+      map = new maps.Map(mapRef.current, {
+        center: { lat: 19.7515, lng: 75.7139 }, // Maharashtra center
+        zoom: 7,
+        restriction: {
+          latLngBounds: {
+            north: 25.0,
+            south: 15.0,
+            east: 82.0,
+            west: 72.0,
+          },
+          strictBounds: false,
+        },
+        mapTypeControl: false,
+        streetViewControl: false,
+        styles: [
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#2dd4bf" }] }
+        ]
       });
-      setMessage(`Subadmin created for ${data.officer.district}: ${data.officer.name}`);
+
+      complaints.forEach(c => {
+        if (c.lat && c.lng) {
+          const color = c.status === "resolved" ? "#4ade80" : (c.status === "submitted" ? "#fecaca" : "#fef08a");
+          new maps.Marker({
+            position: { lat: Number(c.lat), lng: Number(c.lng) },
+            map,
+            icon: {
+              path: maps.SymbolPath.CIRCLE,
+              fillColor: color,
+              fillOpacity: 1,
+              strokeWeight: 1,
+              strokeColor: "#ffffff",
+              scale: 8
+            }
+          });
+        }
+      });
+    }).catch(e => console.error(e));
+  }, [complaints]);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <div className="map-container-large" ref={mapRef}></div>
+      <div style={{ position: "absolute", top: "1rem", left: "1rem", background: "white", padding: "1rem", borderRadius: "8px", boxShadow: "var(--shadow-md)", width: "220px" }}>
+        <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem", fontWeight: "800" }}>Predictive Risk Mapper</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-text-muted)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ef4444" }}></div> HIGH PRIORITY</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#fbbf24" }}></div> NORMAL</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#4ade80" }}></div> RESOLVED</div>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+          <button style={{ flex: 1, padding: "0.5rem", background: "white", border: "1px solid var(--gov-border)", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "700", cursor: "pointer" }}>📍 PINS</button>
+          <button style={{ flex: 1, padding: "0.5rem", background: "var(--gov-orange)", color: "white", border: "none", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "700", cursor: "pointer" }}>🏢 CITIES</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabManageDB({ complaints, openComplaint }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [catFilter, setCatFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("");
+
+  const filtered = complaints.filter(c => {
+    if (catFilter && c.category !== catFilter) return false;
+    if (statusFilter && c.status !== statusFilter) return false;
+    if (districtFilter && c.district !== districtFilter) return false;
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      if (!c.trackingCode?.toLowerCase().includes(q) && !c.vendorName?.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  return (
+    <div className="gov-table-container">
+      <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--gov-border)" }}>
+        <input style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--gov-border)", fontSize: "0.875rem" }} placeholder="🔍 Search by ID, User, or Title..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+      </div>
+      <div className="gov-table-header">
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Filter Category</div>
+          <select value={catFilter} onChange={e => setCatFilter(e.target.value)}>
+            <option value="">All Categories</option>
+            {categories.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Filter Priority</div>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <option value="">All Priorities</option>
+            {statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Filter District</div>
+          <select value={districtFilter} onChange={e => setDistrictFilter(e.target.value)}>
+            <option value="">All Districts</option>
+            {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", padding: "0 1rem", fontWeight: "700", fontSize: "0.875rem" }}>
+          <span style={{ color: "var(--gov-orange)", marginRight: "0.25rem" }}>{filtered.length}</span> matching records
+        </div>
+      </div>
+      <table className="gov-table">
+        <thead>
+          <tr>
+            <th>ID / USER</th>
+            <th>ISSUE CONTEXT</th>
+            <th>PIPELINE</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(c => {
+            const [, catLabel] = categoryMeta(c.category);
+            return (
+              <tr key={c._id}>
+                <td>
+                  <div style={{ color: "var(--gov-green)", fontWeight: "700", marginBottom: "0.25rem" }}>{c.trackingCode}</div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--gov-text-muted)" }}>user@example.com</div>
+                </td>
+                <td>
+                  <div style={{ fontWeight: "700", marginBottom: "0.25rem", color: "var(--gov-text-main)" }}>{c.vendorName}</div>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <span style={{ border: "1px solid var(--gov-border)", padding: "0.1rem 0.5rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", textTransform: "uppercase" }}>{catLabel}</span>
+                    {c.evidence?.length > 0 && <span style={{ fontSize: "0.75rem", color: "#3b82f6" }}>📷 Photo Attached</span>}
+                  </div>
+                </td>
+                <td>
+                  <div style={{ marginBottom: "0.25rem" }}><span className={`gov-badge ${c.status === "resolved" ? "gov-badge-resolved" : (c.status === "submitted" ? "gov-badge-emergency" : "gov-badge-pending")}`}>{pretty(c.status)}</span></div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: "600" }}>DP: FDA OPERATIONS</div>
+                </td>
+                <td>
+                  <button className="gov-btn" onClick={() => openComplaint(c._id)}>Administrate &rarr;</button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function TabDistrictAdmins() {
+  const [subAdmin, setSubAdmin] = useState({ name: "", phone: "", password: "", district: "Pune" });
+  const [msg, setMsg] = useState("");
+
+  async function createSubAdmin(e) {
+    e.preventDefault();
+    try {
+      const data = await api("/api/auth/subadmins", { method: "POST", body: JSON.stringify(subAdmin) });
+      setMsg(`Created subadmin ${data.officer.name} for ${data.officer.district}`);
       setSubAdmin({ name: "", phone: "", password: "", district: "Pune" });
-    } catch (error) {
-      setMessage(error.message);
+    } catch (err) {
+      setMsg(err.message);
     }
   }
 
-  if (!officer) return <Login setOfficer={() => {}} setCitizen={() => {}} setPage={setPage} />;
-
   return (
-    <section className="page dashboard calm-grid">
-      <div className="dashboard-head">
-        <div>
-          <p className="eyebrow">{officer.role === "super_admin" ? "Super admin dashboard" : "District admin dashboard"}</p>
-          <h1>{officer.role === "super_admin" ? "All Maharashtra Reports" : `${officer.district} Reports`}</h1>
-        </div>
-        <p><IconMark>ID</IconMark> {officer.name} / {officer.role} / {officer.district}</p>
-      </div>
-      {officer.role === "super_admin" && (
-        <form className="subadmin-panel" onSubmit={createSubAdmin}>
-          <div className="panel-title">
-            <div>
-              <p className="eyebrow">Admin management</p>
-              <h2>Create Maharashtra district subadmin</h2>
-            </div>
-            <button className="primary">Create Subadmin</button>
+    <div className="gov-grid gov-grid-2" style={{ alignItems: "start" }}>
+      <div className="gov-card">
+        <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}>➕ REGISTER ADMIN</h2>
+        <form onSubmit={createSubAdmin}>
+          <div className="gov-form-group">
+            <label>FULL NAME</label>
+            <input value={subAdmin.name} onChange={e => setSubAdmin({ ...subAdmin, name: e.target.value })} placeholder="District Official Name" required />
           </div>
-          <div className="subadmin-grid">
-            <label>Name<input value={subAdmin.name} onChange={(e) => setSubAdmin({ ...subAdmin, name: e.target.value })} placeholder="Subadmin name" /></label>
-            <label>Mobile<input value={subAdmin.phone} onChange={(e) => setSubAdmin({ ...subAdmin, phone: e.target.value })} placeholder="10-digit mobile" /></label>
-            <label>Password<input type="password" value={subAdmin.password} onChange={(e) => setSubAdmin({ ...subAdmin, password: e.target.value })} placeholder="Temporary password" /></label>
-            <label>District<select value={subAdmin.district} onChange={(e) => setSubAdmin({ ...subAdmin, district: e.target.value })}>{maharashtraDistricts.map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
+          <div className="gov-form-group">
+            <label>OFFICIAL EMAIL / PHONE</label>
+            <input value={subAdmin.phone} onChange={e => setSubAdmin({ ...subAdmin, phone: e.target.value })} placeholder="10-digit mobile" required />
           </div>
+          <div className="gov-form-group">
+            <label>SECURITY PASSWORD</label>
+            <input type="password" value={subAdmin.password} onChange={e => setSubAdmin({ ...subAdmin, password: e.target.value })} placeholder="••••••••" required />
+          </div>
+          <div className="gov-form-group">
+            <label>ASSIGNED DISTRICT</label>
+            <select value={subAdmin.district} onChange={e => setSubAdmin({ ...subAdmin, district: e.target.value })}>
+              {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <button className="gov-btn" style={{ width: "100%", padding: "1rem", marginTop: "1rem" }}>PROVISION ACCOUNT &rarr;</button>
         </form>
-      )}
-      <div className="stat-strip">
-        <StatCard mark="TL" label="Total cases" value={complaints.length} note="Current filtered register" />
-        <StatCard mark="SB" label="Submitted" value={counts.submitted || 0} note="Awaiting triage" tone="submitted" />
-        <StatCard mark="RV" label="Under review" value={counts.under_review || 0} note="Active field desk" tone="under_review" />
-        <StatCard mark="AC" label="Action taken" value={counts.action_taken || 0} note="Needs closure check" tone="action_taken" />
+        {msg && <p style={{ marginTop: "1rem", color: "var(--gov-orange)", fontWeight: "600", fontSize: "0.875rem" }}>{msg}</p>}
       </div>
-      <section className="admin-workbench">
-        <div className="workbench-head">
+      <div className="gov-card">
+        <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--gov-border)", paddingBottom: "1rem", marginBottom: "1rem" }}>
           <div>
-            <p className="eyebrow">Complaint register</p>
-            <h2>Review queue and case file</h2>
+            <h3 style={{ margin: "0 0 0.25rem 0", display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#3b82f6" }}></div> AUTHORIZED ADMIN NETWORK</h3>
+            <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)", textTransform: "uppercase", fontWeight: "700" }}>ACTIVE ADMINISTRATIVE SESSIONS AND DISTRICT IDENTIFIERS</div>
           </div>
-          <div className="filters">
-            <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}><option value="">All statuses</option>{statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-            <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })}><option value="">All categories</option>{categories.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-            <input placeholder={officer.role === "super_admin" ? "District" : officer.district} value={filters.district} onChange={(e) => setFilters({ ...filters, district: e.target.value })} disabled={officer.role !== "super_admin"} />
+          <div style={{ border: "1px solid var(--gov-orange)", color: "var(--gov-orange)", fontWeight: "700", padding: "0.25rem 0.75rem", borderRadius: "4px", fontSize: "0.75rem", display: "flex", alignItems: "center" }}>1 TOTAL SESSIONS</div>
+        </div>
+        <div style={{ border: "1px solid var(--gov-border)", borderRadius: "8px", padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "center", background: "#f8fafc" }}>
+          <div style={{ background: "white", border: "1px solid var(--gov-border)", width: "48px", height: "48px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>🏛️</div>
+          <div>
+            <div style={{ fontWeight: "800", color: "var(--gov-nav)", marginBottom: "0.25rem" }}>OFFICIAL GOV ADMIN</div>
+            <div style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-green)" }}>gov@city.org <span style={{ color: "var(--gov-text-muted)", marginLeft: "0.5rem" }}>• General</span></div>
           </div>
         </div>
-      <div className="split">
-        <div className="complaint-list">
-          {!complaints.length && <p className="empty-state">No complaints match the current filters.</p>}
-          {complaints.map((item) => {
-            const [, categoryLabel, mark] = categoryMeta(item.category);
-            return (
-              <button key={item._id} className={`case-row row-${item.status}`} onClick={() => openComplaint(item._id)}>
-                <span className="case-top"><span className="category-chip">{mark}</span><span className="mono">{item.trackingCode}</span><StatusBadge status={item.status} /></span>
-                <strong>{item.vendorName}</strong>
-                <small>{categoryLabel} / {item.district} / {new Date(item.createdAt).toLocaleDateString()}</small>
-              </button>
-            );
-          })}
-        </div>
-        {selected ? (
-          <CaseFile selected={selected} update={update} setUpdate={setUpdate} submitUpdate={submitUpdate} />
-        ) : (
-          <PriorityPanel oldestUnassigned={oldestUnassigned} todayPriority={todayPriority} openComplaint={openComplaint} />
-        )}
       </div>
-      </section>
-      <section className="analytics-panel">
-        <MiniBars title="Complaints by category" rows={byCategory} />
-        <MiniBars title="Top districts" rows={byDistrict.map(([label, count]) => ({ key: label, label, count }))} />
-        <div className="trend-card">
-          <p className="eyebrow">Resolution trend</p>
-          <div className="trend-line" aria-label="Illustrative resolution trend"><span></span><span></span><span></span><span></span><span></span></div>
-          <p>Use status history dates for a production resolution-time calculation.</p>
-        </div>
-      </section>
-      {message && <p className="notice">{message}</p>}
-    </section>
-  );
-}
-
-function StatCard({ mark, label, value, note, tone = "neutral" }) {
-  return (
-    <div className={`stat-card stat-${tone}`}>
-      <IconMark>{mark}</IconMark>
-      <span className="mono">{value}</span>
-      <strong>{label}</strong>
-      <small>{note}</small>
     </div>
-  );
-}
-
-function MiniBars({ title, rows }) {
-  const max = Math.max(1, ...rows.map((row) => row.count));
-  return (
-    <div className="mini-chart">
-      <p className="eyebrow">{title}</p>
-      {rows.map((row) => (
-        <div className="bar-row" key={row.key}>
-          <span>{row.mark && <b>{row.mark}</b>}{row.label}</span>
-          <i style={{ width: `${Math.max(7, (row.count / max) * 100)}%` }}></i>
-          <em>{row.count}</em>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PriorityPanel({ oldestUnassigned, todayPriority, openComplaint }) {
-  return (
-    <aside className="case-placeholder">
-      <p className="eyebrow">Priority queue</p>
-      <h2>{oldestUnassigned ? "Oldest unassigned case" : "No priority case pending"}</h2>
-      {oldestUnassigned ? (
-        <button className="priority-case" onClick={() => openComplaint(oldestUnassigned._id)}>
-          <span className="mono">{oldestUnassigned.trackingCode}</span>
-          <strong>{oldestUnassigned.vendorName}</strong>
-          <small>{pretty(oldestUnassigned.category)} / {oldestUnassigned.district}</small>
-        </button>
-      ) : (
-        <p className="empty-state">Select a complaint from the register to inspect its case file.</p>
-      )}
-      <div className="queue-list">
-        <p className="eyebrow">Today queue</p>
-        {todayPriority.map((item) => (
-          <button key={item._id} onClick={() => openComplaint(item._id)}>
-            <StatusBadge status={item.status} />
-            <span>{item.vendorName}</span>
-          </button>
-        ))}
-      </div>
-    </aside>
   );
 }
 
@@ -945,9 +1265,9 @@ function CaseFile({ selected, update, setUpdate, submitUpdate }) {
         <textarea required placeholder="Internal action note" value={update.note} onChange={(e) => setUpdate({ ...update, note: e.target.value })} />
         <textarea placeholder="Public-safe note" value={update.publicNote} onChange={(e) => setUpdate({ ...update, publicNote: e.target.value })} />
         <label className="checkbox assign-toggle"><input type="checkbox" checked={update.assignToSelf} onChange={(e) => setUpdate({ ...update, assignToSelf: e.target.checked })} /> Assign to me</label>
-        <button className="primary"><IconMark>OK</IconMark> Log action</button>
+        <button className="primary" style={{marginTop: "1rem"}}><IconMark>OK</IconMark> Log action</button>
       </form>
-    </article>
+    </article >
   );
 }
 

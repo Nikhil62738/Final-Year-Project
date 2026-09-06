@@ -55,9 +55,11 @@ const complaintSchema = new mongoose.Schema(
     lng: { type: Number },
     evidence: [evidenceSchema],
     supportingEvidence: [evidenceSchema],
+    resolutionProof: [evidenceSchema],
     complainantName: { type: String, trim: true },
     complainantPhone: { type: String, trim: true },
     anonymous: { type: Boolean, default: false },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
       enum: ["submitted", "under_review", "action_taken", "resolved", "closed"],
@@ -65,8 +67,11 @@ const complaintSchema = new mongoose.Schema(
       index: true
     },
     assignedOfficerId: { type: mongoose.Schema.Types.ObjectId, ref: "Officer" },
+    pendingDistrictUpdate: { type: Boolean, default: false },
     actionNotes: [actionNoteSchema],
-    statusHistory: [statusHistorySchema]
+    statusHistory: [statusHistorySchema],
+    upvotes: { type: Number, default: 0 },
+    voters: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
   },
   { timestamps: true }
 );

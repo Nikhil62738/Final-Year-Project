@@ -19,6 +19,7 @@
     "mongoose": "^8.5.3",
     "morgan": "^1.10.0",
     "multer": "^2.3.0",
-    "nanoid": "^5.0.7"
+    "nanoid": "^5.0.7",
+    "nodemailer": "^10.0.0"
   }
 }

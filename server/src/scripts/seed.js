@@ -10,9 +10,10 @@ await connectDb();
 const passwordHash = await bcrypt.hash("Admin@12345", 12);
 
 await Officer.findOneAndUpdate(
-  { phone: "9999999999" },
+  { role: "super_admin" },
   {
     name: "Super Admin",
+    email: "fda@gmail.com",
     phone: "9999999999",
     passwordHash,
     role: "super_admin",
@@ -22,5 +23,5 @@ await Officer.findOneAndUpdate(
   { upsert: true, new: true }
 );
 
-console.log("Seeded super admin officer: 9999999999 / Admin@12345");
+console.log("Seeded super admin officer: fda@gmail.com / Admin@12345");
 process.exit(0);

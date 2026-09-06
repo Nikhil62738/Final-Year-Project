@@ -56,20 +56,26 @@ export async function generateTrackingCode() {
 
 export function publicComplaint(complaint) {
   return {
+    _id: complaint._id,
     trackingCode: complaint.trackingCode,
     category: complaint.category,
+    description: complaint.description,
     vendorName: complaint.vendorName,
     address: complaint.address,
     district: complaint.district,
     status: complaint.status,
+    upvotes: complaint.upvotes || 0,
+    voters: complaint.voters || [],
+    resolutionProof: complaint.resolutionProof || [],
+    pendingDistrictUpdate: complaint.pendingDistrictUpdate || false,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt,
-    statusHistory: complaint.statusHistory.map((entry) => ({
+    statusHistory: (complaint.statusHistory || []).map((entry) => ({
       status: entry.status,
       at: entry.at,
       publicNote: entry.publicNote || ""
     })),
-    actionNotes: complaint.actionNotes
+    actionNotes: (complaint.actionNotes || [])
       .filter((note) => note.publicNote)
       .map((note) => ({ actionType: note.actionType, at: note.at, publicNote: note.publicNote }))
   };

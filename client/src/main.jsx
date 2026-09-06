@@ -82,26 +82,6 @@ const statusExplainers = {
   closed: "The case has been closed after review."
 };
 
-let googleMapsPromise;
-
-function loadGoogleMaps() {
-  const key = window.SAFEWATCH_GOOGLE_MAPS_API_KEY || "";
-  if (!key) return Promise.reject(new Error("Google Maps API key is not configured."));
-  if (window.google?.maps) return Promise.resolve(window.google.maps);
-  if (!googleMapsPromise) {
-    googleMapsPromise = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve(window.google.maps);
-      script.onerror = () => reject(new Error("Google Maps could not be loaded."));
-      document.head.appendChild(script);
-    });
-  }
-  return googleMapsPromise;
-}
-
 function pretty(value) {
   return categories.find(([key]) => key === value)?.[1] || statuses.find(([key]) => key === value)?.[1] || value;
 }
@@ -136,7 +116,7 @@ function readPageFromHash() {
   const raw = window.location.hash.replace(/^#\/?/, "").toLowerCase();
   if (!raw || raw === "home") return "home";
   if (raw === "admin") return "admin";
-  if (["submit", "track", "login", "register"].includes(raw)) return raw;
+  if (["submit", "track", "history", "login", "register"].includes(raw)) return raw;
   return "home";
 }
 
@@ -200,13 +180,14 @@ function App() {
   return (
     <>
       <header className="site-header">
-        <button className="brand" onClick={() => navigate("home")} aria-label="FDA SafeWatch home">
-          <span className="seal">FDA</span>
-          <span>
-            <strong>FDA SafeWatch</strong>
-            <small>Food Safety Reporting</small>
-          </span>
-        </button>
+        <div className="header-left">
+          <button className="brand" onClick={() => navigate("home")} aria-label="Aarogya home">
+            <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Aarogya</h2>
+          </button>
+          <select className="language-select">
+            <option>English</option>
+          </select>
+        </div>
         <button
           type="button"
           className="nav-toggle"
@@ -217,20 +198,30 @@ function App() {
           Menu
         </button>
         <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
-          <button className={page === "home" ? "active" : ""} onClick={() => navigate("home")}>Home</button>
-          <button
-            className={page === "submit" ? "active nav-cta" : "nav-cta"}
-            onClick={() => navigate("submit")}
-          >
-            Report an Issue
+          <button className={`nav-link ${page === "submit" ? "active" : ""}`} onClick={() => navigate("submit")}>
+            📝 Report Issue
           </button>
-          <button className={page === "track" ? "active" : ""} onClick={() => navigate("track")}>Track Issue</button>
+          <button className={`nav-link ${page === "track" ? "active" : ""}`} onClick={() => navigate("track")}>
+            🛡️ Track Issues
+          </button>
+          <button className={`nav-link ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
+            📚 My History
+          </button>
+          
+          <button className="nav-icon-btn" style={{ position: 'relative' }}>
+            🔔<span style={{ position: 'absolute', top: '8px', right: '12px', width: '8px', height: '8px', background: 'red', borderRadius: '50%' }}></span>
+          </button>
+
           {!citizen ? (
-            <button className={page === "login" || page === "register" ? "active nav-cta" : "nav-cta"} onClick={() => navigate("login")}>
-              Login / Register
-            </button>
+            <>
+              <button className="btn-nav-login" onClick={() => navigate("login")}>LOGIN</button>
+              <button className="btn-nav-register" onClick={() => navigate("register")}>REGISTER</button>
+            </>
           ) : (
-            <button onClick={logout}>Sign Out ({citizen.name})</button>
+            <div className="user-menu">
+              <span className="welcome-text">Welcome, {citizen.name}</span>
+              <button className="btn-logout" onClick={logout}>Logout</button>
+            </div>
           )}
         </nav>
       </header>
@@ -244,16 +235,31 @@ function App() {
               mode="login"
               loginRedirect={loginRedirect}
               setCitizen={setCitizen}
+              setOfficer={setOfficer}
               navigate={navigate}
             />
           )
         )}
-        {page === "track" && <TrackComplaint />}
+        {page === "track" && <TrackComplaint citizen={citizen} navigate={navigate} />}
+        {page === "history" && (
+          citizen ? (
+            <MyHistory citizen={citizen} navigate={navigate} />
+          ) : (
+            <Login
+              mode="login"
+              loginRedirect="history"
+              setCitizen={setCitizen}
+              setOfficer={setOfficer}
+              navigate={navigate}
+            />
+          )
+        )}
         {(page === "login" || page === "register") && (
           <Login
             mode={page === "register" ? "register" : "login"}
             loginRedirect={loginRedirect}
             setCitizen={setCitizen}
+            setOfficer={setOfficer}
             navigate={navigate}
           />
         )}
@@ -318,90 +324,52 @@ function Home({ navigate, citizen }) {
 }
 
 function SubmitComplaint({ navigate, citizen }) {
-  const [step, setStep] = useState(0);
   const [form, setForm] = useState({
+    title: "",
     category: "adulteration",
     description: "",
-    vendorName: "",
-    fssaiNumber: "",
-    address: "",
     district: "",
+    taluka: "",
     lat: "",
     lng: "",
     complainantName: citizen?.name || "",
     complainantPhone: citizen?.phone || "",
-    anonymous: false
+    anonymous: false,
+    emergency: false
   });
   const [files, setFiles] = useState([]);
-  const [matches, setMatches] = useState([]);
-  const [checked, setChecked] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [locationStatus, setLocationStatus] = useState("");
 
   function setField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
-    setChecked(false);
-    setMatches([]);
   }
 
   function geolocate() {
     if (!navigator.geolocation) {
-      setMessage("Geolocation is not available in this browser.");
+      setMessage("Geolocation is not available.");
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setField("lat", pos.coords.latitude.toFixed(6));
         setField("lng", pos.coords.longitude.toFixed(6));
-        setLocationStatus(`Location captured. Accuracy approximately ${Math.round(pos.coords.accuracy)} metres.`);
+        setLocationStatus(`Location captured (${Math.round(pos.coords.accuracy)}m accuracy).`);
       },
       () => {
-        setLocationStatus("We could not access your location. You can enter the address manually or pick a point on the map.");
+        setLocationStatus("Could not access location.");
       },
       { enableHighAccuracy: true, timeout: 12000 }
     );
   }
 
-  function canAdvance() {
-    if (step === 0) return form.category && form.description && form.vendorName;
-    if (step === 1) return form.address && form.district;
-    if (step === 2) return form.anonymous || (form.complainantName && form.complainantPhone);
-    return true;
-  }
-
-  async function checkDuplicates(event) {
-    event.preventDefault();
-    if (step < submitSteps.length - 1) {
-      if (canAdvance()) setStep(step + 1);
-      return;
-    }
-
-    setBusy(true);
-    setMessage("");
-    try {
-      const data = await api("/api/complaints/check-duplicates", {
-        method: "POST",
-        body: JSON.stringify({ ...form, lat: form.lat ? Number(form.lat) : undefined, lng: form.lng ? Number(form.lng) : undefined })
-      });
-      setMatches(data.matches || []);
-      setChecked(true);
-      if (!data.matches?.length) {
-        await submitComplaint();
-      }
-    } catch (error) {
-      setMessage(error.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function submitComplaint(addEvidenceToComplaintId = "") {
+  async function submitComplaint(e) {
+    e.preventDefault();
     setBusy(true);
     setMessage("");
     const body = new FormData();
     Object.entries(form).forEach(([key, value]) => body.append(key, value));
-    if (addEvidenceToComplaintId) body.append("addEvidenceToComplaintId", addEvidenceToComplaintId);
     files.slice(0, 5).forEach((file) => body.append("evidence", file));
 
     try {
@@ -416,279 +384,443 @@ function SubmitComplaint({ navigate, citizen }) {
   }
 
   return (
-    <section className="page form-page soft-grid">
-      <p className="eyebrow">Citizen complaint</p>
-      <h1>Submit Complaint</h1>
-      <div className="stepper" aria-label="Complaint form progress">
-        {submitSteps.map(([key, label], index) => (
-          <button key={key} type="button" className={index === step ? "current" : index < step ? "done" : ""} onClick={() => setStep(index)}>
-            <span>{String(index + 1).padStart(2, "0")}</span>{label}
-          </button>
-        ))}
-      </div>
-      <form className="report-form stepped-form" onSubmit={checkDuplicates}>
-        {step === 0 && (
-          <section className="form-section section-ruled">
-            <h2>Issue Details</h2>
-            <div className="field-row">
-              <label className="select-field">Category<select value={form.category} onChange={(e) => setField("category", e.target.value)}>{categories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-              <label>Vendor name<input required value={form.vendorName} onChange={(e) => setField("vendorName", e.target.value)} /></label>
+    <section className="page form-page">
+      <div className="report-container">
+        <div className="report-header">
+          <span className="icon">📋</span>
+          <h2>Report a New Issue</h2>
+        </div>
+        
+        <form className="report-form-single" onSubmit={submitComplaint}>
+          <div className="field-group">
+            <label>ISSUE TITLE</label>
+            <input required value={form.title} onChange={(e) => setField("title", e.target.value)} placeholder="e.g. Adulterated milk sold at local store" />
+          </div>
+
+          <div className="field-row-2">
+            <div className="field-group">
+              <label>CATEGORY</label>
+              <select value={form.category} onChange={(e) => setField("category", e.target.value)}>
+                {categories.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+              </select>
+
+              <div className="hazard-level-box" style={{ marginTop: "12px", padding: "10px 14px" }}>
+                <div className="hazard-left">
+                  <span className="siren">🚨</span>
+                  <div>
+                    <strong style={{ fontSize: "0.85rem" }}>HAZARD LEVEL</strong>
+                    <p style={{ margin: 0, fontSize: "0.75rem" }}>Emergency Reporting</p>
+                  </div>
+                </div>
+                <label className="toggle-switch" style={{ margin: 0 }}>
+                  <input type="checkbox" checked={form.emergency} onChange={(e) => setField("emergency", e.target.checked)} />
+                  <span className="slider round"></span>
+                </label>
+              </div>
             </div>
-            <label>FSSAI license number<input value={form.fssaiNumber} onChange={(e) => setField("fssaiNumber", e.target.value)} placeholder="Optional" /></label>
-            <label>Description<textarea required value={form.description} onChange={(e) => setField("description", e.target.value)} /></label>
-          </section>
-        )}
-        {step === 1 && (
-          <section className="form-section section-tabbed">
-            <h2>Location & Evidence</h2>
-            <div className="field-row">
-              <label>District<input required value={form.district} onChange={(e) => setField("district", e.target.value)} placeholder="Pune" /></label>
-              <label className="address-field">Address<textarea required value={form.address} onChange={(e) => setField("address", e.target.value)} /></label>
+
+            <div className="field-group">
+              <label>UPLOAD MEDIA</label>
+              <div className="file-input-wrapper">
+                <input type="file" id="media-upload" multiple accept="image/*,video/mp4" onChange={(e) => setFiles([...e.target.files].slice(0, 5))} />
+                <label htmlFor="media-upload" className="file-button">Choose File</label>
+                <span className="file-text">{files.length ? `${files.length} file(s) selected` : "No file chosen"}</span>
+              </div>
+              <div style={{ marginTop: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc", padding: "10px 14px", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
+                <label htmlFor="anon-check" style={{ fontSize: "0.85rem", fontWeight: 700, color: "#334155", cursor: "pointer", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+                  🕵️ Report Anonymously
+                </label>
+                <label className="toggle-switch" style={{ margin: 0 }}>
+                  <input type="checkbox" id="anon-check" checked={form.anonymous} onChange={(e) => setField("anonymous", e.target.checked)} />
+                  <span className="slider round"></span>
+                </label>
+              </div>
             </div>
-            <div className="field-row location-row">
-              <label>Latitude<input value={form.lat} onChange={(e) => setField("lat", e.target.value)} /></label>
-              <label>Longitude<input value={form.lng} onChange={(e) => setField("lng", e.target.value)} /></label>
-              <button type="button" onClick={geolocate}><IconMark>LOC</IconMark> Use location</button>
+          </div>
+
+          <div className="field-group">
+            <div className="desc-header">
+              <label>DESCRIPTION</label>
+              <button type="button" className="speak-btn">🎙️ SPEAK</button>
+            </div>
+            <textarea required value={form.description} onChange={(e) => setField("description", e.target.value)} placeholder="Describe the issue in detail..." rows="4" />
+          </div>
+
+          <div className="field-row-2">
+            <div className="field-group">
+              <label>DISTRICT</label>
+              <select value={form.district} onChange={(e) => setField("district", e.target.value)} required>
+                <option value="">District</option>
+                {maharashtraDistricts.map(d => <option key={d} value={d.toLowerCase()}>{d}</option>)}
+              </select>
+            </div>
+            <div className="field-group">
+              <label>TALUKA</label>
+              <input type="text" value={form.taluka} onChange={(e) => setField("taluka", e.target.value)} placeholder="e.g. Haveli" required />
+            </div>
+          </div>
+
+          <div className="field-group">
+            <div className="desc-header">
+              <label>MAP PINPOINT</label>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <button type="button" className="speak-btn" onClick={geolocate}>📍 USE LIVE LOCATION</button>
+                <span className="tap-hint">OR TAP MAP</span>
+              </div>
+            </div>
+            <div className="map-container">
+              <GoogleMapPicker
+                lat={form.lat}
+                lng={form.lng}
+                onPick={({ lat, lng }) => {
+                  setField("lat", lat.toFixed(6));
+                  setField("lng", lng.toFixed(6));
+                  setLocationStatus("Map location selected.");
+                }}
+              />
             </div>
             {locationStatus && <p className="map-note">{locationStatus}</p>}
-            <GoogleMapPicker
-              lat={form.lat}
-              lng={form.lng}
-              address={form.address}
-              onPick={({ lat, lng }) => {
-                setField("lat", lat.toFixed(6));
-                setField("lng", lng.toFixed(6));
-                setLocationStatus("Map location selected. You can still adjust the address manually.");
-              }}
-            />
-            <label className="file-drop">Evidence<input type="file" multiple accept="image/*,video/mp4,video/quicktime" onChange={(e) => setFiles([...e.target.files].slice(0, 5))} /><span>{files.length ? `${files.length} file${files.length > 1 ? "s" : ""} ready for upload` : "Drop or choose up to 5 photos/videos"}</span></label>
-          </section>
-        )}
-        {step === 2 && (
-          <section className="form-section section-soft">
-            <h2>Contact Info</h2>
-            <label className="checkbox"><input type="checkbox" checked={form.anonymous} onChange={(e) => setField("anonymous", e.target.checked)} /> Report anonymously</label>
-            {!form.anonymous && (
-              <div className="field-row">
-                <label>Name<input value={form.complainantName} onChange={(e) => setField("complainantName", e.target.value)} required={!form.anonymous} /></label>
-                <label>Phone<input value={form.complainantPhone} onChange={(e) => setField("complainantPhone", e.target.value)} required={!form.anonymous} /></label>
-              </div>
-            )}
-          </section>
-        )}
-        {step === 3 && (
-          <section className="form-section review-sheet">
-            <h2>Review Before Duplicate Check</h2>
-            <div className="review-grid">
-              <p><span>Category</span>{pretty(form.category)}</p>
-              <p><span>Vendor</span>{form.vendorName || "Not provided"}</p>
-              <p><span>District</span>{form.district || "Not provided"}</p>
-              <p><span>FSSAI</span>{form.fssaiNumber || "Not provided"}</p>
-              <p><span>Evidence</span>{files.length} file{files.length === 1 ? "" : "s"}</p>
-              <p><span>Complainant</span>{form.anonymous ? "Anonymous" : form.complainantName || "Not provided"}</p>
-            </div>
-            <p className="review-note">The next step checks open complaints before creating a new case.</p>
-          </section>
-        )}
-        <div className="form-nav">
-          <button type="button" disabled={step === 0} onClick={() => setStep(Math.max(0, step - 1))}>Back</button>
-          <button className="primary" disabled={busy || !canAdvance()}>{step === submitSteps.length - 1 ? (busy ? "Checking..." : "Check duplicates and submit") : "Continue"}</button>
-        </div>
-      </form>
+          </div>
 
-      {checked && matches.length > 0 && (
-        <section className="duplicate-box" role="dialog" aria-label="Possible duplicate complaints">
-          <div className="duplicate-head">
-            <div>
-              <p className="eyebrow">Decision required</p>
-              <h2>Possible existing complaint</h2>
-            </div>
-            <span className="confidence-count">{matches.length} match{matches.length > 1 ? "es" : ""}</span>
-          </div>
-          <p>These are not blocks. Choose whether this is a different issue or whether your evidence belongs with an existing open case.</p>
-          <div className="match-grid">
-            {matches.map((match) => (
-              <article key={match.id} className={`match ${match.strength}`}>
-                <div className="match-top">
-                  <strong>{match.trackingCode}</strong>
-                  <span>{match.strength} confidence</span>
-                </div>
-                <p>{match.reason}</p>
-                <dl>
-                  <div><dt>Vendor</dt><dd>{match.vendorName}</dd></div>
-                  <div><dt>Distance</dt><dd>{match.distanceMeters ?? "Unknown"} m</dd></div>
-                  <div><dt>Status</dt><dd><StatusBadge status={match.status} /></dd></div>
-                </dl>
-                <div className="actions">
-                  <button type="button" onClick={() => submitComplaint()}>Different issue</button>
-                  <button className="primary" type="button" onClick={() => submitComplaint(match.id)}>Add evidence here</button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-      {message && <p className="notice">{message}</p>}
+          <button type="submit" className="submit-report-btn" disabled={busy}>
+            {busy ? "SUBMITTING..." : "SUBMIT REPORT"}
+          </button>
+          
+          {message && <p className="notice">{message}</p>}
+        </form>
+      </div>
     </section>
   );
 }
+
+
 
 function GoogleMapPicker({ lat, lng, address, onPick }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markerInstance = useRef(null);
-  const [state, setState] = useState("loading");
-
-  const currentLat = Number(lat) || 18.5204;
-  const currentLng = Number(lng) || 73.8567;
 
   useEffect(() => {
-    let cancelled = false;
-    loadGoogleMaps()
-      .then((maps) => {
-        if (cancelled || !mapRef.current) return;
-        const center = { lat: currentLat, lng: currentLng };
-        mapInstance.current = new maps.Map(mapRef.current, {
-          center,
-          zoom: lat && lng ? 16 : 12,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false
-        });
-        markerInstance.current = new maps.Marker({
-          position: center,
-          map: mapInstance.current,
-          draggable: true,
-          title: "Complaint location"
-        });
-        mapInstance.current.addListener("click", (event) => {
-          markerInstance.current.setPosition(event.latLng);
-          onPick({ lat: event.latLng.lat(), lng: event.latLng.lng() });
-        });
-        markerInstance.current.addListener("dragend", (event) => {
-          onPick({ lat: event.latLng.lat(), lng: event.latLng.lng() });
-        });
-        setState("ready");
-      })
-      .catch(() => setState("fallback"));
-    return () => { cancelled = true; };
+    if (typeof L === "undefined" || !mapRef.current) return;
+    if (mapInstance.current) return; // already initialized
+
+    const initialLat = Number(lat) || 18.5204;
+    const initialLng = Number(lng) || 73.8567;
+
+    // Define Maharashtra bounding box [southwest, northeast]
+    const maharashtraBounds = L.latLngBounds(
+      L.latLng(15.60, 72.60), // South-West (Sindhudurg / Goa border)
+      L.latLng(22.00, 80.90)  // North-East (Gondia / MP border)
+    );
+
+    const map = L.map(mapRef.current, {
+      maxBounds: maharashtraBounds,
+      maxBoundsViscosity: 1.0,
+      minZoom: 6,
+      maxZoom: 18
+    }).setView([initialLat, initialLng], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+    
+    map.on('click', (e) => {
+      marker.setLatLng(e.latlng);
+      onPick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    });
+
+    marker.on('dragend', () => {
+      const position = marker.getLatLng();
+      onPick({ lat: position.lat, lng: position.lng });
+    });
+
+    mapInstance.current = map;
+    markerInstance.current = marker;
   }, []);
 
   useEffect(() => {
     if (!mapInstance.current || !markerInstance.current || !lat || !lng) return;
-    const position = { lat: Number(lat), lng: Number(lng) };
-    mapInstance.current.setCenter(position);
-    markerInstance.current.setPosition(position);
+    const position = [Number(lat), Number(lng)];
+    mapInstance.current.setView(position);
+    markerInstance.current.setLatLng(position);
   }, [lat, lng]);
 
-  const query = lat && lng ? `${lat},${lng}` : address || "Pune";
-
   return (
-    <div className="map-card">
-      <div className="map-head">
-        <div>
-          <strong>Confirm location</strong>
-          <span>Use the map or enter coordinates manually.</span>
-        </div>
-        <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`} target="_blank" rel="noreferrer">Open in Google Maps</a>
-      </div>
-      {state === "fallback" ? (
-        <div className="map-fallback">
-          <p>Google Maps API key is not configured yet.</p>
-          <span>Add GOOGLE_MAPS_API_KEY in server/.env to enable the interactive map.</span>
-        </div>
-      ) : (
-        <div className="map-canvas" ref={mapRef}>
-          {state === "loading" && <span>Loading Google Map...</span>}
-        </div>
-      )}
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <div className="map-canvas" ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
     </div>
   );
 }
 
-function TrackComplaint() {
-  const [code, setCode] = useState("");
-  const [complaint, setComplaint] = useState(null);
-  const [message, setMessage] = useState("");
+function MyHistory({ citizen, navigate }) {
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  async function track(event) {
-    event.preventDefault();
-    setMessage("");
-    setComplaint(null);
-    try {
-      setComplaint(await api(`/api/complaints/track/${code.trim().toUpperCase()}`));
-    } catch (error) {
-      setMessage(error.message);
+  useEffect(() => {
+    async function fetchHistory() {
+      try {
+        setLoading(true);
+        const data = await api("/api/complaints/history");
+        setComplaints(data);
+      } catch (err) {
+        setError(err.message || "Failed to load history");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-
-  const latest = complaint?.statusHistory?.slice(-3).reverse() || [];
+    fetchHistory();
+  }, []);
 
   return (
-    <section className="page track-page soft-grid">
-      <p className="eyebrow">Public tracker</p>
-      <h1>Track Complaint</h1>
-      <form className="track-form" onSubmit={track}>
-        <label>Tracking code<input className="mono" value={code} onChange={(e) => setCode(e.target.value)} placeholder="FDA-2026-000001" pattern="FDA-[0-9]{4}-[0-9]{6}" /></label>
-        <button className="primary"><IconMark>TR</IconMark> Track</button>
-      </form>
-      {message && <p className="notice">{message}</p>}
+    <section className="page history-page">
+      <div className="report-container" style={{ maxWidth: "900px" }}>
+        <div className="report-header" style={{ marginBottom: "24px" }}>
+          <span className="icon">📚</span>
+          <h2>My Reported Issues History</h2>
+        </div>
 
-      {complaint ? (
-        <section className="tracker result-highlight">
-          <div className="tracker-summary">
-            <p className="eyebrow">Current status</p>
-            <h2>{pretty(complaint.status)}</h2>
-            <StatusBadge status={complaint.status} />
-            <p className="mono tracking-code">{complaint.trackingCode}</p>
-            <p>{complaint.vendorName}</p>
+        {loading ? (
+          <p style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>Loading your complaint history...</p>
+        ) : error ? (
+          <p className="notice">{error}</p>
+        ) : complaints.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px 20px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+            <p style={{ fontSize: "1.1rem", color: "#475569", margin: "0 0 16px 0" }}>You haven't reported any food safety issues yet.</p>
+            <button className="submit-report-btn" style={{ display: "inline-block", width: "auto", padding: "12px 24px" }} onClick={() => navigate("submit")}>
+              REPORT AN ISSUE
+            </button>
           </div>
-          <ol className="timeline">
-            {complaint.statusHistory.map((entry, index) => (
-              <li key={`${entry.status}-${entry.at}-${index}`}>
-                <strong>{pretty(entry.status)}</strong>
-                <time>{new Date(entry.at).toLocaleString()}</time>
-                {entry.publicNote && <p>{entry.publicNote}</p>}
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : (
-        <section className="tracker-empty">
-          <article>
-            <p className="eyebrow">Status guide</p>
-            {statuses.map(([status, label]) => (
-              <div className="status-guide-row" key={status}>
-                <StatusBadge status={status} />
-                <p><strong>{label}</strong><span>{statusExplainers[status]}</span></p>
+        ) : (
+          <div className="history-list" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {complaints.map((c) => (
+              <div key={c._id || c.trackingCode} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                  <div>
+                    <span style={{ fontFamily: "monospace", fontSize: "0.9rem", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "4px 8px", borderRadius: "4px" }}>
+                      {c.trackingCode}
+                    </span>
+                    <h3 style={{ margin: "8px 0 4px 0", fontSize: "1.15rem", color: "#0f172a" }}>{c.description || "Food Safety Complaint"}</h3>
+                    <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b" }}>Vendor: <strong>{c.vendorName}</strong> | Location: {c.address}, {c.district}</p>
+                  </div>
+                  <StatusBadge status={c.status} />
+                </div>
+                
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "12px", borderTop: "1px solid #f1f5f9", fontSize: "0.85rem", color: "#94a3b8" }}>
+                  <span>Reported on: {new Date(c.createdAt).toLocaleDateString()}</span>
+                  <span>Upvotes: ❤️ {c.upvotes || 0}</span>
+                </div>
               </div>
             ))}
-          </article>
-          <aside>
-            <p className="eyebrow">Recent activity format</p>
-            <div className="activity-sample">
-              {(latest.length ? latest : statuses.slice(0, 3).map(([status]) => ({ status, at: new Date(), publicNote: statusExplainers[status] }))).map((entry, index) => (
-                <div key={`${entry.status}-${index}`}>
-                  <StatusBadge status={entry.status} />
-                  <span>{entry.publicNote || statusExplainers[entry.status]}</span>
-                </div>
-              ))}
-            </div>
-          </aside>
-        </section>
-      )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
 
-function Login({ mode, loginRedirect, setCitizen, navigate }) {
+function TrackComplaint({ citizen, navigate }) {
+  const [code, setCode] = useState("");
+  const [searchedComplaint, setSearchedComplaint] = useState(null);
+  const [searchMessage, setSearchMessage] = useState("");
+  const [publicFeed, setPublicFeed] = useState([]);
+  const [loadingFeed, setLoadingFeed] = useState(true);
+  const [activeTab, setActiveTab] = useState("feed"); // 'feed' | 'search'
+
+  useEffect(() => {
+    loadPublicFeed();
+  }, []);
+
+  async function loadPublicFeed() {
+    try {
+      setLoadingFeed(true);
+      const data = await api("/api/complaints/public");
+      setPublicFeed(data);
+    } catch (err) {
+      console.error("Failed to load feed", err);
+    } finally {
+      setLoadingFeed(false);
+    }
+  }
+
+  async function handleVote(complaintId) {
+    if (!citizen) {
+      if (confirm("You must be logged in to vote on issues. Would you like to log in now?")) {
+        navigate("login");
+      }
+      return;
+    }
+
+    try {
+      const updated = await api(`/api/complaints/${complaintId}/vote`, { method: "POST" });
+      
+      setPublicFeed((prev) => prev.map((item) => item._id === complaintId ? updated : item));
+      if (searchedComplaint && searchedComplaint._id === complaintId) {
+        setSearchedComplaint(updated);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to submit vote");
+    }
+  }
+
+  async function track(event) {
+    event.preventDefault();
+    setSearchMessage("");
+    setSearchedComplaint(null);
+    if (!code.trim()) return;
+
+    try {
+      const res = await api(`/api/complaints/track/${code.trim().toUpperCase()}`);
+      setSearchedComplaint(res);
+    } catch (error) {
+      setSearchMessage(error.message || "No complaint found with this code");
+    }
+  }
+
+  return (
+    <section className="page track-page">
+      <div className="report-container" style={{ maxWidth: "950px" }}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <h2 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>Public Food Safety Tracker & Feed</h2>
+          <p style={{ color: "#64748b", margin: 0 }}>Browse issues reported by citizens across districts, support reports by voting, or look up a specific tracking code.</p>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "28px" }}>
+          <button 
+            style={{ padding: "10px 24px", borderRadius: "8px", border: "none", fontWeight: 700, cursor: "pointer", background: activeTab === "feed" ? "#0f172a" : "#e2e8f0", color: activeTab === "feed" ? "#ffffff" : "#475569" }}
+            onClick={() => setActiveTab("feed")}
+          >
+            🔥 Public Feed & Top Voted
+          </button>
+          <button 
+            style={{ padding: "10px 24px", borderRadius: "8px", border: "none", fontWeight: 700, cursor: "pointer", background: activeTab === "search" ? "#0f172a" : "#e2e8f0", color: activeTab === "search" ? "#ffffff" : "#475569" }}
+            onClick={() => setActiveTab("search")}
+          >
+            🔍 Search by Tracking Code
+          </button>
+        </div>
+
+        {activeTab === "search" ? (
+          <div>
+            <form className="track-form" onSubmit={track} style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
+              <input 
+                className="mono" 
+                style={{ flex: 1, padding: "12px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "1rem" }}
+                value={code} 
+                onChange={(e) => setCode(e.target.value)} 
+                placeholder="Enter Tracking Code (e.g. FDA-2026-000001)" 
+              />
+              <button className="primary" style={{ padding: "12px 24px" }}><IconMark>TR</IconMark> Track</button>
+            </form>
+            {searchMessage && <p className="notice" style={{ color: "#ef4444", textStyle: "center" }}>{searchMessage}</p>}
+
+            {searchedComplaint && (
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
+                  <div>
+                    <span style={{ fontFamily: "monospace", fontSize: "1rem", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "4px 10px", borderRadius: "6px" }}>
+                      {searchedComplaint.trackingCode}
+                    </span>
+                    <h3 style={{ margin: "12px 0 4px 0", fontSize: "1.3rem" }}>{searchedComplaint.description}</h3>
+                    <p style={{ color: "#64748b", margin: 0 }}>Vendor: <strong>{searchedComplaint.vendorName}</strong> ({searchedComplaint.address}, {searchedComplaint.district})</p>
+                  </div>
+                  <StatusBadge status={searchedComplaint.status} />
+                </div>
+
+                <div style={{ margin: "20px 0", padding: "16px", background: "#f8fafc", borderRadius: "8px" }}>
+                  <h4 style={{ margin: "0 0 12px 0", color: "#334155" }}>Timeline History</h4>
+                  <ol className="timeline" style={{ margin: 0, paddingLeft: "20px" }}>
+                    {searchedComplaint.statusHistory.map((entry, index) => (
+                      <li key={`${entry.status}-${index}`} style={{ marginBottom: "8px" }}>
+                        <strong>{pretty(entry.status)}</strong> - <time style={{ color: "#94a3b8", fontSize: "0.85rem" }}>{new Date(entry.at).toLocaleString()}</time>
+                        {entry.publicNote && <p style={{ margin: "4px 0 0 0", color: "#475569" }}>{entry.publicNote}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            {loadingFeed ? (
+              <p style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>Loading live public grievances...</p>
+            ) : publicFeed.length === 0 ? (
+              <p style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>No public reports found yet.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                {publicFeed.map((item) => {
+                  const hasVoted = citizen && item.voters && item.voters.includes(citizen.id || citizen._id);
+                  return (
+                    <div key={item._id || item.trackingCode} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", display: "flex", gap: "20px", alignItems: "flex-start", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                      {/* Voting Column */}
+                      <button
+                        type="button"
+                        onClick={() => handleVote(item._id)}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          minWidth: "60px",
+                          padding: "10px",
+                          borderRadius: "10px",
+                          border: hasVoted ? "2px solid #ef4444" : "1px solid #cbd5e1",
+                          background: hasVoted ? "#fef2f2" : "#f8fafc",
+                          color: hasVoted ? "#ef4444" : "#475569",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <span style={{ fontSize: "1.4rem" }}>▲</span>
+                        <span style={{ fontWeight: 800, fontSize: "1.1rem" }}>{item.upvotes || 0}</span>
+                        <span style={{ fontSize: "0.65rem", textTransform: "uppercase", fontWeight: 700, marginTop: "2px" }}>
+                          {hasVoted ? "Voted" : "Vote"}
+                        </span>
+                      </button>
+
+                      {/* Content Column */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+                          <span style={{ fontFamily: "monospace", fontSize: "0.85rem", fontWeight: 700, color: "#2563eb", background: "#eff6ff", padding: "2px 6px", borderRadius: "4px" }}>
+                            {item.trackingCode}
+                          </span>
+                          <StatusBadge status={item.status} />
+                        </div>
+                        <h3 style={{ margin: "4px 0 8px 0", fontSize: "1.15rem", color: "#0f172a" }}>{item.description || "Food Safety Complaint"}</h3>
+                        <p style={{ margin: "0 0 12px 0", fontSize: "0.9rem", color: "#475569" }}>
+                          Vendor: <strong>{item.vendorName}</strong> ({item.address}, {item.district})
+                        </p>
+                        <div style={{ fontSize: "0.8rem", color: "#94a3b8", display: "flex", gap: "16px" }}>
+                          <span>Category: {pretty(item.category)}</span>
+                          <span>Posted: {new Date(item.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
   const [currentMode, setCurrentMode] = useState(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
+  const [resetRole, setResetRole] = useState("user");
 
   useEffect(() => {
     setCurrentMode(mode);
@@ -697,6 +829,77 @@ function Login({ mode, loginRedirect, setCitizen, navigate }) {
   async function submit(event) {
     event.preventDefault();
     setMessage("");
+
+    if (currentMode === "otp_request") {
+      try {
+        await api("/api/auth/users/otp/request", { method: "POST", body: JSON.stringify({ email: emailOrPhone }) });
+        setMessage("OTP sent to your email!");
+        setCurrentMode("otp_verify");
+      } catch (error) {
+        setMessage(error.message);
+      }
+      return;
+    }
+
+    if (currentMode === "otp_verify") {
+      try {
+        const data = await api("/api/auth/users/otp/verify", {
+          method: "POST",
+          body: JSON.stringify({ email: emailOrPhone, otp })
+        });
+        localStorage.setItem("safewatch_user", JSON.stringify(data.user));
+        localStorage.setItem("safewatch_user_token", data.token);
+        localStorage.removeItem("safewatch_token");
+        localStorage.removeItem("safewatch_officer");
+        setCitizen(data.user);
+        navigate("home");
+      } catch (error) {
+        setMessage(error.message);
+      }
+      return;
+    }
+
+    if (currentMode === "forgot_password_request") {
+      try {
+        await api("/api/auth/users/forgot-password/request", { method: "POST", body: JSON.stringify({ emailOrPhone, role: resetRole }) });
+        setMessage("Password reset OTP sent to your email!");
+        setCurrentMode("forgot_password_verify");
+      } catch (error) {
+        setMessage(error.message);
+      }
+      return;
+    }
+
+    if (currentMode === "forgot_password_verify") {
+      try {
+        await api("/api/auth/users/forgot-password/verify", {
+          method: "POST",
+          body: JSON.stringify({ emailOrPhone, role: resetRole, otp, newPassword: password })
+        });
+        setMessage("Password reset successfully! You can now log in.");
+        setCurrentMode(resetRole === "admin" ? "admin" : "login");
+        setPassword("");
+        setOtp("");
+      } catch (error) {
+        setMessage(error.message);
+      }
+      return;
+    }
+
+    if (currentMode === "admin") {
+      try {
+        const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ phone: emailOrPhone, password }) });
+        localStorage.setItem("safewatch_token", data.token);
+        localStorage.setItem("safewatch_officer", JSON.stringify(data.officer));
+        localStorage.removeItem("safewatch_user");
+        localStorage.removeItem("safewatch_user_token");
+        if (setOfficer) setOfficer(data.officer);
+        navigate("admin");
+      } catch (error) {
+        setMessage(error.message);
+      }
+      return;
+    }
 
     if (currentMode === "register") {
       try {
@@ -709,7 +912,7 @@ function Login({ mode, loginRedirect, setCitizen, navigate }) {
         localStorage.removeItem("safewatch_token");
         localStorage.removeItem("safewatch_officer");
         setCitizen(data.user);
-        navigate(loginRedirect || "submit");
+        navigate("home");
       } catch (error) {
         setMessage(error.message);
       }
@@ -726,45 +929,139 @@ function Login({ mode, loginRedirect, setCitizen, navigate }) {
       localStorage.removeItem("safewatch_token");
       localStorage.removeItem("safewatch_officer");
       setCitizen(data.user);
-      navigate(loginRedirect || "submit");
+      navigate("home");
     } catch (error) {
       setMessage(error.message);
     }
   }
 
   return (
-    <section className="page narrow login-page soft-grid">
-      <p className="eyebrow">Citizen access</p>
-      <h1>{currentMode === "register" ? "Create account" : "Login to report"}</h1>
-      <p className="login-help">Registration is required before you can submit a food-safety complaint. Tracking remains public with your code.</p>
-      <form className="report-form" onSubmit={submit}>
-        <section className="form-section login-box">
-          {currentMode === "login" && (
+    <div className="swift-login-wrapper">
+      <div className="swift-login-card">
+        {currentMode === "register" ? (
+          <>
+            <div className="swift-title"><span className="welcome">Create</span> <span className="back">Account</span></div>
+            <p className="swift-subtitle">Register to submit and track civic issues</p>
+          </>
+        ) : currentMode.startsWith("otp") ? (
+          <>
+            <div className="swift-title"><span className="welcome">OTP</span> <span className="back">Login</span></div>
+            <p className="swift-subtitle">Secure login without a password</p>
+          </>
+        ) : currentMode.startsWith("forgot") ? (
+          <>
+            <div className="swift-title"><span className="welcome">Reset</span> <span className="back">Password</span></div>
+            <p className="swift-subtitle">Recover access to your account</p>
+          </>
+        ) : (
+          <>
+            <div className="swift-title"><span className="welcome">Welcome</span> <span className="back">Back</span></div>
+            <p className="swift-subtitle">Sign in to report and track civic issues</p>
+          </>
+        )}
+        
+        <div className="swift-tabs">
+          <button type="button" className={`swift-tab ${currentMode !== "admin" ? "active" : ""}`} onClick={() => setCurrentMode("login")}>👤 Citizen</button>
+          <button type="button" className={`swift-tab ${currentMode === "admin" ? "active" : ""}`} onClick={() => setCurrentMode("admin")}>🏛️ Government</button>
+        </div>
+
+        <form className="swift-form" onSubmit={submit}>
+          {(currentMode === "login" || currentMode === "admin") && (
             <>
-              <label>Email or mobile number<input value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="Email or mobile number" required /></label>
-              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" required /></label>
-              <button type="button" className="inline-register" onClick={() => { setCurrentMode("register"); navigate("register"); }}>New user? Register here</button>
+              <label className="swift-label">{currentMode === "admin" ? "Official Email address" : "Email address or Mobile"}</label>
+              <input className="swift-input" type={currentMode === "admin" ? "email" : "text"} value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder={currentMode === "admin" ? "admin@aarogya.gov.in" : "email@domain.com"} required />
+              
+              <label className="swift-label">Password</label>
+              <input className="swift-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              
+              <div style={{ textAlign: "right", marginTop: "-15px", marginBottom: "15px" }}>
+                <button type="button" className="swift-link-btn" onClick={() => { setResetRole(currentMode === "admin" ? "admin" : "user"); setCurrentMode("forgot_password_request"); }}>Forgot Password?</button>
+              </div>
+
+              <button className="swift-button">Login</button>
+              {currentMode === "login" && (
+                <>
+                  <button type="button" className="swift-otp" onClick={() => setCurrentMode("otp_request")}>📱 Login with Email OTP instead</button>
+                  <div className="swift-footer">
+                    New to Aarogya? <button type="button" onClick={() => { setCurrentMode("register"); navigate("register"); }}>Register</button>
+                  </div>
+                </>
+              )}
             </>
           )}
+
+          {currentMode === "otp_request" && (
+            <>
+              <label className="swift-label">Registered Email address</label>
+              <input className="swift-input" type="email" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} required />
+              
+              <button className="swift-button">Send OTP</button>
+              <button type="button" className="swift-otp" onClick={() => setCurrentMode("login")}>Back to password login</button>
+            </>
+          )}
+
+          {currentMode === "otp_verify" && (
+            <>
+              <label className="swift-label">Enter 6-digit OTP</label>
+              <input className="swift-input" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+              
+              <button className="swift-button">Verify & Login</button>
+              <button type="button" className="swift-otp" onClick={() => setCurrentMode("otp_request")}>Resend OTP</button>
+            </>
+          )}
+
+          {currentMode === "forgot_password_request" && (
+            <>
+              <label className="swift-label">Registered {resetRole === "admin" ? "Phone or Email" : "Email or Mobile"}</label>
+              <input className="swift-input" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} required />
+              
+              <button className="swift-button">Send Reset OTP</button>
+              <button type="button" className="swift-otp" onClick={() => setCurrentMode(resetRole === "admin" ? "admin" : "login")}>Back to login</button>
+            </>
+          )}
+
+          {currentMode === "forgot_password_verify" && (
+            <>
+              <label className="swift-label">Enter 6-digit Reset OTP</label>
+              <input className="swift-input" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+
+              <label className="swift-label">New Password</label>
+              <input className="swift-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              
+              <button className="swift-button">Reset Password</button>
+              <button type="button" className="swift-otp" onClick={() => setCurrentMode("forgot_password_request")}>Resend OTP</button>
+            </>
+          )}
+
           {currentMode === "register" && (
             <>
-              <label>Full name<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required /></label>
-              <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required /></label>
-              <label>Mobile number<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit mobile number" required /></label>
-              <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" required /></label>
-              <button type="button" className="inline-register" onClick={() => { setCurrentMode("login"); navigate("login"); }}>Already registered? Login here</button>
+              <label className="swift-label">Full name</label>
+              <input className="swift-input" value={name} onChange={(e) => setName(e.target.value)} required />
+
+              <label className="swift-label">Email</label>
+              <input className="swift-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+              <label className="swift-label">Mobile number</label>
+              <input className="swift-input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+
+              <label className="swift-label">Password</label>
+              <input className="swift-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              
+              <button className="swift-button">Create account</button>
+              <div className="swift-footer">
+                Already registered? <button type="button" onClick={() => { setCurrentMode("login"); navigate("login"); }}>Login</button>
+              </div>
             </>
           )}
-          <button className="primary"><IconMark>IN</IconMark> {currentMode === "register" ? "Create account" : "Login and continue"}</button>
-        </section>
-      </form>
-      {message && <p className="notice">{message}</p>}
-    </section>
+        </form>
+        {message && <p className="notice" style={{marginTop: "1rem"}}>{message}</p>}
+      </div>
+    </div>
   );
 }
 
 function AdminLogin({ setOfficer, setPage }) {
-  const [phone, setPhone] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
@@ -772,7 +1069,7 @@ function AdminLogin({ setOfficer, setPage }) {
     event.preventDefault();
     setMessage("");
     try {
-      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ phone, password }) });
+      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email: emailOrPhone, phone: emailOrPhone, password }) });
       localStorage.setItem("safewatch_token", data.token);
       localStorage.setItem("safewatch_officer", JSON.stringify(data.officer));
       localStorage.removeItem("safewatch_user");
@@ -790,7 +1087,7 @@ function AdminLogin({ setOfficer, setPage }) {
       <p className="login-help">This page is not linked from the public site. Authorized officers only.</p>
       <form className="report-form" onSubmit={submit}>
         <section className="form-section login-box">
-          <label>Admin phone<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9999999999" required /></label>
+          <label>Official Email address<input type="email" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="admin@aarogya.gov.in" required /></label>
           <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin password" required /></label>
           <button className="primary"><IconMark>IN</IconMark> Sign in</button>
         </section>
@@ -823,11 +1120,39 @@ function Dashboard({ officer, setPage, onLogout }) {
     setSelected(await api(`/api/complaints/${id}`));
   }
 
-  async function submitUpdate(event) {
+  async function submitUpdate(event, proofFiles = []) {
     event.preventDefault();
-    const data = await api(`/api/complaints/${selected._id}/status`, { method: "PATCH", body: JSON.stringify(update) });
-    setSelected(data);
-    await load();
+    try {
+      const formData = new FormData();
+      Object.entries(update).forEach(([key, val]) => formData.append(key, val));
+      proofFiles.forEach((file) => formData.append("proofMedia", file));
+
+      const data = await api(`/api/complaints/${selected._id}/status`, {
+        method: "PATCH",
+        body: formData
+      });
+      await load();
+      setSelected(null); // Return directly back to database view
+    } catch (err) {
+      alert(err.message || "Failed to update complaint status");
+    }
+  }
+
+  async function assignToDistrict(complaintId) {
+    try {
+      const formData = new FormData();
+      formData.append("assignToSelf", "false");
+      formData.append("note", "Assigned to District Admin by Super Admin");
+
+      await api(`/api/complaints/${complaintId}/status`, {
+        method: "PATCH",
+        body: formData
+      });
+      alert("Successfully assigned complaint to District Admin!");
+      await load();
+    } catch (err) {
+      alert(err.message || "Failed to assign complaint to district admin");
+    }
   }
 
   useEffect(() => { if (officer) load(); }, [officer]);
@@ -869,10 +1194,10 @@ function Dashboard({ officer, setPage, onLogout }) {
           selected ? (
             <div style={{ background: "white", padding: "2rem", borderRadius: "12px", boxShadow: "var(--shadow-md)" }}>
               <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", color: "var(--gov-orange)", fontWeight: "700", cursor: "pointer", marginBottom: "1rem" }}>&larr; Back to Database</button>
-              <CaseFile selected={selected} update={update} setUpdate={setUpdate} submitUpdate={submitUpdate} />
+              <CaseFile selected={selected} update={update} setUpdate={setUpdate} submitUpdate={submitUpdate} officer={officer} />
             </div>
           ) : (
-            <TabManageDB complaints={complaints} openComplaint={openComplaint} />
+            <TabManageDB complaints={complaints} openComplaint={openComplaint} assignToDistrict={assignToDistrict} officer={officer} />
           )
         )}
         {activeTab === "admins" && officer.role === "super_admin" && <TabDistrictAdmins />}
@@ -1009,70 +1334,71 @@ function TabAnalytics({ complaints }) {
 
 function TabHeatmap({ complaints }) {
   const mapRef = useRef(null);
+  const mapInstance = useRef(null);
 
   useEffect(() => {
-    let map;
-    loadGoogleMaps().then(maps => {
-      if (!mapRef.current) return;
-      map = new maps.Map(mapRef.current, {
-        center: { lat: 19.7515, lng: 75.7139 }, // Maharashtra center
-        zoom: 7,
-        restriction: {
-          latLngBounds: {
-            north: 25.0,
-            south: 15.0,
-            east: 82.0,
-            west: 72.0,
-          },
-          strictBounds: false,
-        },
-        mapTypeControl: false,
-        streetViewControl: false,
-        styles: [
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#2dd4bf" }] }
-        ]
-      });
+    if (typeof L === "undefined" || !mapRef.current) return;
+    if (mapInstance.current) return; // Prevent double initialization
 
-      complaints.forEach(c => {
-        if (c.lat && c.lng) {
-          const color = c.status === "resolved" ? "#4ade80" : (c.status === "submitted" ? "#fecaca" : "#fef08a");
-          new maps.Marker({
-            position: { lat: Number(c.lat), lng: Number(c.lng) },
-            map,
-            icon: {
-              path: maps.SymbolPath.CIRCLE,
-              fillColor: color,
-              fillOpacity: 1,
-              strokeWeight: 1,
-              strokeColor: "#ffffff",
-              scale: 8
-            }
-          });
-        }
-      });
-    }).catch(e => console.error(e));
+    // Define Maharashtra bounding box [southwest, northeast]
+    const maharashtraBounds = L.latLngBounds(
+      L.latLng(15.60, 72.60),
+      L.latLng(22.00, 80.90)
+    );
+
+    // Center on Maharashtra
+    const map = L.map(mapRef.current, {
+      maxBounds: maharashtraBounds,
+      maxBoundsViscosity: 1.0,
+      minZoom: 6,
+      maxZoom: 18
+    }).setView([19.7515, 75.7139], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    complaints.forEach((c) => {
+      if (c.lat && c.lng) {
+        const color = c.status === "resolved" ? "#22c55e" : (c.status === "submitted" ? "#ef4444" : "#f59e0b");
+        const circle = L.circleMarker([Number(c.lat), Number(c.lng)], {
+          radius: 8,
+          fillColor: color,
+          color: "#ffffff",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(map);
+
+        circle.bindPopup(`
+          <div style="font-family: sans-serif; padding: 4px;">
+            <strong style="color: #0f172a;">${c.trackingCode}</strong><br/>
+            <span>${c.description || "Complaint"}</span><br/>
+            <small style="color: #64748b;">District: ${c.district}</small>
+          </div>
+        `);
+      }
+    });
+
+    mapInstance.current = map;
+    setTimeout(() => map.invalidateSize(), 300);
   }, [complaints]);
 
   return (
-    <div style={{ position: "relative" }}>
-      <div className="map-container-large" ref={mapRef}></div>
-      <div style={{ position: "absolute", top: "1rem", left: "1rem", background: "white", padding: "1rem", borderRadius: "8px", boxShadow: "var(--shadow-md)", width: "220px" }}>
-        <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem", fontWeight: "800" }}>Predictive Risk Mapper</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-text-muted)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ef4444" }}></div> HIGH PRIORITY</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#fbbf24" }}></div> NORMAL</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#4ade80" }}></div> RESOLVED</div>
-        </div>
-        <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-          <button style={{ flex: 1, padding: "0.5rem", background: "white", border: "1px solid var(--gov-border)", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "700", cursor: "pointer" }}>📍 PINS</button>
-          <button style={{ flex: 1, padding: "0.5rem", background: "var(--gov-orange)", color: "white", border: "none", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "700", cursor: "pointer" }}>🏢 CITIES</button>
+    <div style={{ position: "relative", width: "100%", height: "550px", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--gov-border)" }}>
+      <div ref={mapRef} style={{ width: "100%", height: "100%", minHeight: "550px" }}></div>
+      <div style={{ position: "absolute", top: "1rem", left: "1rem", background: "white", padding: "1rem", borderRadius: "8px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", width: "220px", zIndex: 1000 }}>
+        <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem", fontWeight: "800", color: "#0f172a" }}>Predictive Risk Mapper</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.75rem", fontWeight: "700", color: "#64748b" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ef4444" }}></div> SUBMITTED / HIGH</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#f59e0b" }}></div> UNDER REVIEW</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#22c55e" }}></div> RESOLVED</div>
         </div>
       </div>
     </div>
   );
 }
 
-function TabManageDB({ complaints, openComplaint }) {
+function TabManageDB({ complaints, openComplaint, assignToDistrict, officer }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [catFilter, setCatFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -1136,7 +1462,21 @@ function TabManageDB({ complaints, openComplaint }) {
               <tr key={c._id}>
                 <td>
                   <div style={{ color: "var(--gov-green)", fontWeight: "700", marginBottom: "0.25rem" }}>{c.trackingCode}</div>
-                  <div style={{ fontSize: "0.875rem", color: "var(--gov-text-muted)" }}>user@example.com</div>
+                  {c.anonymous ? (
+                    <span style={{ fontSize: "0.75rem", background: "#f1f5f9", color: "#64748b", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" }}>
+                      🕵️ Anonymous Report
+                    </span>
+                  ) : (
+                    <div style={{ fontSize: "0.85rem", color: "#334155" }}>
+                      <strong>{c.complainantName || c.userId?.name || "Citizen User"}</strong>
+                      {(c.complainantPhone || c.userId?.phone) && (
+                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>📞 {c.complainantPhone || c.userId?.phone}</div>
+                      )}
+                      {c.userId?.email && (
+                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>✉️ {c.userId.email}</div>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td>
                   <div style={{ fontWeight: "700", marginBottom: "0.25rem", color: "var(--gov-text-main)" }}>{c.vendorName}</div>
@@ -1150,7 +1490,18 @@ function TabManageDB({ complaints, openComplaint }) {
                   <div style={{ fontSize: "0.75rem", fontWeight: "600" }}>DP: FDA OPERATIONS</div>
                 </td>
                 <td>
-                  <button className="gov-btn" onClick={() => openComplaint(c._id)}>Administrate &rarr;</button>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button className="gov-btn" onClick={() => openComplaint(c._id)}>Administrate &rarr;</button>
+                    {officer?.role === "super_admin" && (
+                      <button 
+                        type="button"
+                        style={{ background: "#059669", color: "white", border: "none", borderRadius: "6px", padding: "6px 12px", fontSize: "0.8rem", fontWeight: "bold", cursor: "pointer" }}
+                        onClick={() => assignToDistrict(c._id)}
+                      >
+                        🏛️ Assign to District
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             );
@@ -1163,30 +1514,84 @@ function TabManageDB({ complaints, openComplaint }) {
 
 function TabDistrictAdmins() {
   const [subAdmin, setSubAdmin] = useState({ name: "", phone: "", password: "", district: "Pune" });
+  const [editingAdmin, setEditingAdmin] = useState(null); // id of admin being edited
+  const [editForm, setEditForm] = useState({ name: "", phone: "", password: "", district: "" });
+  const [adminList, setAdminList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
+
+  async function loadAdmins() {
+    try {
+      setLoading(true);
+      const data = await api("/api/auth/subadmins");
+      setAdminList(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadAdmins();
+  }, []);
 
   async function createSubAdmin(e) {
     e.preventDefault();
+    setMsg("");
     try {
       const data = await api("/api/auth/subadmins", { method: "POST", body: JSON.stringify(subAdmin) });
-      setMsg(`Created subadmin ${data.officer.name} for ${data.officer.district}`);
+      setMsg(`Successfully created subadmin ${data.officer.name} for ${data.officer.district}`);
       setSubAdmin({ name: "", phone: "", password: "", district: "Pune" });
+      await loadAdmins();
     } catch (err) {
       setMsg(err.message);
+    }
+  }
+
+  function startEdit(adm) {
+    setEditingAdmin(adm._id);
+    setEditForm({ name: adm.name, phone: adm.phone, password: "", district: adm.district });
+  }
+
+  async function saveEdit(e, id) {
+    e.preventDefault();
+    setMsg("");
+    try {
+      await api(`/api/auth/subadmins/${id}`, { method: "PUT", body: JSON.stringify(editForm) });
+      setEditingAdmin(null);
+      setMsg("District admin updated successfully!");
+      await loadAdmins();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async function deleteAdmin(id, name) {
+    if (!confirm(`Are you sure you want to delete district admin ${name}?`)) return;
+    setMsg("");
+    try {
+      await api(`/api/auth/subadmins/${id}`, { method: "DELETE" });
+      setMsg(`Deleted admin ${name}`);
+      await loadAdmins();
+    } catch (err) {
+      alert(err.message);
     }
   }
 
   return (
     <div className="gov-grid gov-grid-2" style={{ alignItems: "start" }}>
       <div className="gov-card">
-        <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}>➕ REGISTER ADMIN</h2>
+        <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}>➕ REGISTER DISTRICT ADMIN</h2>
+        <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "-6px 0 16px 0" }}>* Note: Each district can have only 1 active admin.</p>
+        
         <form onSubmit={createSubAdmin}>
           <div className="gov-form-group">
             <label>FULL NAME</label>
             <input value={subAdmin.name} onChange={e => setSubAdmin({ ...subAdmin, name: e.target.value })} placeholder="District Official Name" required />
           </div>
           <div className="gov-form-group">
-            <label>OFFICIAL EMAIL / PHONE</label>
+            <label>OFFICIAL PHONE NUMBER</label>
             <input value={subAdmin.phone} onChange={e => setSubAdmin({ ...subAdmin, phone: e.target.value })} placeholder="10-digit mobile" required />
           </div>
           <div className="gov-form-group">
@@ -1203,28 +1608,92 @@ function TabDistrictAdmins() {
         </form>
         {msg && <p style={{ marginTop: "1rem", color: "var(--gov-orange)", fontWeight: "600", fontSize: "0.875rem" }}>{msg}</p>}
       </div>
+
       <div className="gov-card">
         <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--gov-border)", paddingBottom: "1rem", marginBottom: "1rem" }}>
           <div>
-            <h3 style={{ margin: "0 0 0.25rem 0", display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#3b82f6" }}></div> AUTHORIZED ADMIN NETWORK</h3>
-            <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)", textTransform: "uppercase", fontWeight: "700" }}>ACTIVE ADMINISTRATIVE SESSIONS AND DISTRICT IDENTIFIERS</div>
+            <h3 style={{ margin: "0 0 0.25rem 0", display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}>
+              <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#3b82f6" }}></div> AUTHORIZED ADMIN NETWORK
+            </h3>
+            <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)", textTransform: "uppercase", fontWeight: "700" }}>PROVISIONED DISTRICT ADMINS AND OFFICERS</div>
           </div>
-          <div style={{ border: "1px solid var(--gov-orange)", color: "var(--gov-orange)", fontWeight: "700", padding: "0.25rem 0.75rem", borderRadius: "4px", fontSize: "0.75rem", display: "flex", alignItems: "center" }}>1 TOTAL SESSIONS</div>
+          <div style={{ border: "1px solid var(--gov-orange)", color: "var(--gov-orange)", fontWeight: "700", padding: "0.25rem 0.75rem", borderRadius: "4px", fontSize: "0.75rem", display: "flex", alignItems: "center" }}>
+            {adminList.length + 1} TOTAL SESSIONS
+          </div>
         </div>
-        <div style={{ border: "1px solid var(--gov-border)", borderRadius: "8px", padding: "1.5rem", display: "flex", gap: "1rem", alignItems: "center", background: "#f8fafc" }}>
-          <div style={{ background: "white", border: "1px solid var(--gov-border)", width: "48px", height: "48px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>🏛️</div>
-          <div>
-            <div style={{ fontWeight: "800", color: "var(--gov-nav)", marginBottom: "0.25rem" }}>OFFICIAL GOV ADMIN</div>
-            <div style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-green)" }}>gov@city.org <span style={{ color: "var(--gov-text-muted)", marginLeft: "0.5rem" }}>• General</span></div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* Main Super Admin Card */}
+          <div style={{ border: "1px solid var(--gov-border)", borderRadius: "8px", padding: "1rem", display: "flex", gap: "1rem", alignItems: "center", background: "#f8fafc" }}>
+            <div style={{ background: "white", border: "1px solid var(--gov-border)", width: "40px", height: "40px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>🏛️</div>
+            <div>
+              <div style={{ fontWeight: "800", color: "var(--gov-nav)", fontSize: "0.9rem" }}>SUPER GOV ADMIN</div>
+              <div style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-green)" }}>Headquarters <span style={{ color: "var(--gov-text-muted)", marginLeft: "0.5rem" }}>• Full Access</span></div>
+            </div>
           </div>
+
+          {/* Provisioned Subadmins with Edit/Delete */}
+          {loading ? (
+            <p style={{ fontSize: "0.85rem", color: "#64748b" }}>Loading admin accounts...</p>
+          ) : adminList.map((adm) => (
+            <div key={adm._id} style={{ border: "1px solid #e2e8f0", borderRadius: "8px", padding: "1rem", background: "#ffffff" }}>
+              {editingAdmin === adm._id ? (
+                <form onSubmit={(e) => saveEdit(e, adm._id)} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <h4 style={{ margin: 0, fontSize: "0.9rem", color: "#0f172a" }}>Edit Admin: {adm.name}</h4>
+                  <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} placeholder="Full Name" required style={{ padding: "6px", fontSize: "0.85rem" }} />
+                  <input value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} placeholder="Phone" required style={{ padding: "6px", fontSize: "0.85rem" }} />
+                  <input type="password" value={editForm.password} onChange={e => setEditForm({ ...editForm, password: e.target.value })} placeholder="New Password (leave empty to keep current)" style={{ padding: "6px", fontSize: "0.85rem" }} />
+                  <select value={editForm.district} onChange={e => setEditForm({ ...editForm, district: e.target.value })} style={{ padding: "6px", fontSize: "0.85rem" }}>
+                    {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                    <button type="submit" style={{ flex: 1, background: "#2563eb", color: "white", border: "none", padding: "6px", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", fontSize: "0.8rem" }}>Save</button>
+                    <button type="button" onClick={() => setEditingAdmin(null)} style={{ flex: 1, background: "#94a3b8", color: "white", border: "none", padding: "6px", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", fontSize: "0.8rem" }}>Cancel</button>
+                  </div>
+                </form>
+              ) : (
+                <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                  <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", width: "40px", height: "40px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>👮</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: "800", color: "#0f172a", fontSize: "0.9rem" }}>{adm.name}</div>
+                    <div style={{ fontSize: "0.75rem", fontWeight: "700", color: "#2563eb" }}>
+                      District: {adm.district} <span style={{ color: "#64748b", marginLeft: "0.5rem" }}>• ✉️ {adm.email || "N/A"}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <button type="button" onClick={() => startEdit(adm)} style={{ background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", cursor: "pointer", fontSize: "0.75rem", fontWeight: "bold", color: "#334155" }}>
+                      ✏️ Edit
+                    </button>
+                    <button type="button" onClick={() => deleteAdmin(adm._id, adm.name)} style={{ background: "#fef2f2", border: "1px solid #fecdd3", borderRadius: "4px", padding: "4px 8px", cursor: "pointer", fontSize: "0.75rem", fontWeight: "bold", color: "#ef4444" }}>
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function CaseFile({ selected, update, setUpdate, submitUpdate }) {
+function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
+  const [proofFiles, setProofFiles] = useState([]);
   const files = [...(selected.evidence || []), ...(selected.supportingEvidence || [])];
+  const proofMedia = selected.resolutionProof || [];
+
+  const isSuperAdmin = officer && officer.role === "super_admin";
+  const isDistrictAdmin = officer && officer.role !== "super_admin";
+
+  // Rule: If Super Admin assigns to District Admin, Super Admin remains in Read-Only view until District Admin updates/saves it
+  const isReadOnlyForSuperAdmin = isSuperAdmin && selected.pendingDistrictUpdate;
+  
+  // Rule: If assigned to District Admin and not self, District Admin sees read-only if another officer is assigned
+  const isReadOnlyForDistrictAdmin = isDistrictAdmin && selected.assignedOfficerId && String(selected.assignedOfficerId._id || selected.assignedOfficerId) !== String(officer.id || officer._id);
+
+  const isReadOnly = isReadOnlyForSuperAdmin || isReadOnlyForDistrictAdmin;
+
   return (
     <article className="case-detail">
       <div className="case-detail-head">
@@ -1232,20 +1701,55 @@ function CaseFile({ selected, update, setUpdate, submitUpdate }) {
         <StatusBadge status={selected.status} />
       </div>
       <h2>{selected.vendorName}</h2>
-      <p className="case-address">{selected.address}</p>
+      <p className="case-address">{selected.address} ({selected.district})</p>
       <p>{selected.description}</p>
+
+      {/* Complainant Profile Card */}
+      <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px", margin: "16px 0" }}>
+        <h4 style={{ margin: "0 0 8px 0", color: "#0f172a", fontSize: "0.95rem" }}>👤 Complainant Profile</h4>
+        {selected.anonymous ? (
+          <p style={{ margin: 0, color: "#64748b", fontSize: "0.85rem", fontWeight: 600 }}>
+            🕵️ Filed Anonymously (Identity protected on official records)
+          </p>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem", color: "#334155" }}>
+            <div><strong>Name:</strong> {selected.complainantName || selected.userId?.name || "Citizen"}</div>
+            <div><strong>Phone:</strong> {selected.complainantPhone || selected.userId?.phone || "N/A"}</div>
+            <div><strong>Email:</strong> {selected.userId?.email || "N/A"}</div>
+            <div><strong>District:</strong> {selected.district}</div>
+          </div>
+        )}
+      </div>
+
       <section className="evidence-gallery">
         <div className="gallery-head">
-          <p className="eyebrow">Evidence</p>
+          <p className="eyebrow">Complainant Evidence</p>
           <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
         </div>
         <div className="evidence-grid">
           {files.length ? files.map((file) => (
             <a key={file.url} href={file.url} target="_blank" rel="noreferrer"><IconMark>EV</IconMark> {file.originalName || file.filename}</a>
-          )) : <p className="empty-state">No evidence files attached.</p>}
+          )) : <p className="empty-state">No initial evidence files attached.</p>}
         </div>
       </section>
-      <section className="case-log">
+
+      {proofMedia.length > 0 && (
+        <section className="evidence-gallery" style={{ marginTop: "1.5rem" }}>
+          <div className="gallery-head">
+            <p className="eyebrow" style={{ color: "#059669" }}>✅ Resolution & Inspection Proof (Admin Uploaded)</p>
+            <span>{proofMedia.length} file(s)</span>
+          </div>
+          <div className="evidence-grid">
+            {proofMedia.map((file) => (
+              <a key={file.url} href={file.url} target="_blank" rel="noreferrer" style={{ background: "#ecfdf5", borderColor: "#a7f3d0", color: "#047857" }}>
+                <IconMark>PROOF</IconMark> {file.originalName || file.filename}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="case-log" style={{ marginTop: "1.5rem" }}>
         <p className="eyebrow">Action log</p>
         <ol className="timeline compact">
           {(selected.statusHistory || []).map((entry, index) => (
@@ -1257,17 +1761,60 @@ function CaseFile({ selected, update, setUpdate, submitUpdate }) {
           ))}
         </ol>
       </section>
-      <form className="update-form" onSubmit={submitUpdate}>
-        <div className="field-row">
-          <select value={update.status} onChange={(e) => setUpdate({ ...update, status: e.target.value })}>{statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-          <select value={update.actionType} onChange={(e) => setUpdate({ ...update, actionType: e.target.value })}>{actionTypes.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+
+      {isReadOnly ? (
+        <div style={{ marginTop: "1.5rem", padding: "16px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", color: "#1e40af" }}>
+          <h4 style={{ margin: "0 0 6px 0", fontSize: "0.95rem" }}>👁️ Read-Only Mode (Awaiting District Admin Update)</h4>
+          <p style={{ margin: 0, fontSize: "0.85rem" }}>
+            {isSuperAdmin ? (
+              <>This complaint was assigned to the District Admin. <strong>Super Admin is in Read-Only view</strong> until the District Admin reviews and saves an update on this case.</>
+            ) : (
+              <>This complaint is assigned to another officer. You are viewing it in Read-Only mode.</>
+            )}
+          </p>
         </div>
-        <textarea required placeholder="Internal action note" value={update.note} onChange={(e) => setUpdate({ ...update, note: e.target.value })} />
-        <textarea placeholder="Public-safe note" value={update.publicNote} onChange={(e) => setUpdate({ ...update, publicNote: e.target.value })} />
-        <label className="checkbox assign-toggle"><input type="checkbox" checked={update.assignToSelf} onChange={(e) => setUpdate({ ...update, assignToSelf: e.target.checked })} /> Assign to me</label>
-        <button className="primary" style={{marginTop: "1rem"}}><IconMark>OK</IconMark> Log action</button>
-      </form>
-    </article >
+      ) : (
+        <form className="update-form" onSubmit={(e) => submitUpdate(e, proofFiles)}>
+          <h4 style={{ margin: "1rem 0 0.5rem 0", color: "#0f172a" }}>Update Case & Upload Resolution Proof</h4>
+          <div className="field-row">
+            <select value={update.status} onChange={(e) => setUpdate({ ...update, status: e.target.value })}>{statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+            <select value={update.actionType} onChange={(e) => setUpdate({ ...update, actionType: e.target.value })}>{actionTypes.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+          </div>
+          <textarea required placeholder="Internal action note" value={update.note} onChange={(e) => setUpdate({ ...update, note: e.target.value })} />
+          <textarea placeholder="Public-safe note" value={update.publicNote} onChange={(e) => setUpdate({ ...update, publicNote: e.target.value })} />
+          
+          <div style={{ margin: "12px 0", background: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+            <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#334155", display: "block", marginBottom: "6px" }}>
+              📷 UPLOAD RESOLUTION PROOF (PHOTOS / VIDEOS)
+            </label>
+            <input 
+              type="file" 
+              multiple 
+              accept="image/*,video/mp4" 
+              onChange={(e) => setProofFiles([...e.target.files].slice(0, 5))}
+              style={{ fontSize: "0.85rem" }}
+            />
+            {proofFiles.length > 0 && (
+              <p style={{ margin: "4px 0 0 0", fontSize: "0.8rem", color: "#059669", fontWeight: 600 }}>
+                {proofFiles.length} proof file(s) selected
+              </p>
+            )}
+          </div>
+
+          {/* Single Save Action & Proof Button */}
+          <div style={{ marginTop: "1rem" }}>
+            <button 
+              type="submit" 
+              className="primary" 
+              style={{ width: "100%", padding: "12px", background: "#2563eb" }}
+              onClick={() => setUpdate((prev) => ({ ...prev, assignToSelf: true }))}
+            >
+              💾 Save Action & Proof Details
+            </button>
+          </div>
+        </form>
+      )}
+    </article>
   );
 }
 

@@ -22,12 +22,13 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com", "https://cdnjs.cloudflare.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com", "https://cdnjs.cloudflare.com", "https://accounts.google.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "blob:", "https://maps.gstatic.com", "https://maps.googleapis.com", "https://*.tile.openstreetmap.org", "https://unpkg.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https://maps.gstatic.com", "https://maps.googleapis.com", "https://*.tile.openstreetmap.org", "https://unpkg.com", "https://*.googleusercontent.com"],
         mediaSrc: ["'self'", "blob:"],
-        connectSrc: ["'self'", "https://maps.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com"]
+        connectSrc: ["'self'", "https://maps.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://accounts.google.com"],
+        frameSrc: ["'self'", "https://accounts.google.com"]
       }
     },
     crossOriginResourcePolicy: { policy: "cross-origin" }
@@ -40,14 +41,31 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/config.js", (_req, res) => {
   res.type("application/javascript").send(
-    `window.SAFEWATCH_GOOGLE_MAPS_API_KEY=${JSON.stringify(process.env.GOOGLE_MAPS_API_KEY || "")};`
+    `window.SAFEWATCH_GOOGLE_MAPS_API_KEY=${JSON.stringify(process.env.GOOGLE_MAPS_API_KEY || "")};\n` +
+    `window.SAFEWATCH_GOOGLE_CLIENT_ID=${JSON.stringify(process.env.GOOGLE_CLIENT_ID || "")};`
   );
 });
 
 app.use(express.static(clientDir));
+app.use(express.static(path.join(clientDir, "public")));
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "FDA SafeWatch API" });
+});
+
+app.get("/api/geocode", async (req, res) => {
+  const q = req.query.q;
+  if (!q) return res.status(400).json({ error: "Missing q parameter" });
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`;
+    const response = await fetch(url, {
+      headers: { "User-Agent": "FDA-SafeWatch/1.0 (contact@maharashtra.gov.in)" }
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Geocoding failed" });
+  }
 });
 
 app.use("/api/auth", authRoutes);

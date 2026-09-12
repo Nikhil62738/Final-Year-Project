@@ -1,6 +1,7 @@
 import Complaint from "../models/Complaint.js";
 import { findDuplicateMatches, generateTrackingCode, mapEvidence, publicComplaint } from "../utils/complaints.js";
 import { sendEmail } from "../utils/email.js";
+import { sendSMS } from "../utils/sms.js";
 
 function parseComplaintBody(body) {
   return {
@@ -65,12 +66,34 @@ export async function createComplaint(req, res) {
     });
   }
 
+  // Strict Duplicate Check: Block duplicate complaint creation
+  const duplicates = await findDuplicateMatches(payload);
+  const strongDuplicate = duplicates.find((m) => m.strength === "strong");
+
+  if (strongDuplicate) {
+    return res.status(400).json({
+      message: `Duplicate complaint cannot be allowed. An active complaint for vendor "${strongDuplicate.vendorName}" has already been registered in ${strongDuplicate.district || "this area"} under tracking code ${strongDuplicate.trackingCode}.`,
+      duplicate: true,
+      existingTrackingCode: strongDuplicate.trackingCode,
+      existingComplaint: strongDuplicate
+    });
+  }
+
+  const Officer = (await import("../models/Officer.js")).default;
+  const distAdmin = await Officer.findOne({ district: { $regex: new RegExp(`^${payload.district}$`, 'i') }, active: true });
+  const assignedOfficerId = distAdmin ? distAdmin._id : undefined;
+  const pendingDistrictUpdate = !!distAdmin;
+  const assignedToDistrict = !!distAdmin;
+
   const trackingCode = await generateTrackingCode();
   const complaint = await Complaint.create({
     ...payload,
     userId: req.user ? req.user._id : undefined,
     trackingCode,
     evidence: mapEvidence(req.files, req),
+    assignedOfficerId,
+    pendingDistrictUpdate,
+    assignedToDistrict,
     statusHistory: [
       {
         status: "submitted",
@@ -82,6 +105,16 @@ export async function createComplaint(req, res) {
 
   res.status(201).json({ mode: "created", trackingCode, complaint: publicComplaint(complaint) });
 
+  // 1. Send SMS Confirmation to citizen's mobile number
+  const citizenPhone = (req.user && req.user.phone) || complaint.complainantPhone;
+  if (citizenPhone) {
+    sendSMS({
+      to: citizenPhone,
+      message: `Aarogya Food Safety: Your complaint has been submitted successfully! Tracking ID: ${trackingCode}. Vendor: ${complaint.vendorName}. Status: Submitted.`
+    }).catch((err) => console.error("Complaint SMS error:", err));
+  }
+
+  // 2. Send Email Confirmation
   if (req.user && req.user.email) {
     const detailHtml = `
       <h2 style="color: #0f172a; margin-top: 0;">Complaint Registered Successfully</h2>
@@ -103,7 +136,7 @@ export async function createComplaint(req, res) {
       to: req.user.email,
       subject: `Complaint Received [${trackingCode}] - Aarogya Food Safety`,
       html: detailHtml
-    });
+    }).catch((err) => console.error("Complaint Email error:", err));
   }
 }
 
@@ -121,19 +154,19 @@ export async function listComplaints(req, res) {
 
   if (status) query.status = status;
   if (category) query.category = category;
-  if (district) query.district = district;
+  if (district) query.district = { $regex: new RegExp(`^${district}$`, 'i') };
 
   if (req.officer.role !== "super_admin") {
     const Officer = (await import("../models/Officer.js")).default;
     // Check if there is an active district admin or officer for this officer's district
-    const districtOfficers = await Officer.find({ district: req.officer.district, active: true });
+    const districtOfficers = await Officer.find({ district: { $regex: new RegExp(`^${req.officer.district}$`, 'i') }, active: true });
     
     // If no active officer exists for this district, only super_admin can see it
     if (!districtOfficers.length) {
       return res.json([]);
     }
 
-    query.district = req.officer.district;
+    query.district = { $regex: new RegExp(`^${req.officer.district}$`, 'i') };
   }
 
   const complaints = await Complaint.find(query)
@@ -145,7 +178,7 @@ export async function listComplaints(req, res) {
 export async function getComplaint(req, res) {
   const query = { _id: req.params.id };
   if (req.officer.role !== "super_admin") {
-    query.district = req.officer.district;
+    query.district = { $regex: new RegExp(`^${req.officer.district}$`, 'i') };
   }
 
   const complaint = await Complaint.findOne(query)
@@ -161,7 +194,7 @@ export async function getComplaint(req, res) {
 export async function updateComplaintStatus(req, res) {
   const query = { _id: req.params.id };
   if (req.officer.role !== "super_admin") {
-    query.district = req.officer.district;
+    query.district = { $regex: new RegExp(`^${req.officer.district}$`, 'i') };
   }
 
   const complaint = await Complaint.findOne(query);
@@ -169,60 +202,39 @@ export async function updateComplaintStatus(req, res) {
     return res.status(404).json({ message: "Complaint not found" });
   }
 
-  const { status, actionType, note, publicNote, assignToSelf } = req.body;
-  let assignedOfficer = null;
+  let { status, actionType, note, publicNote, workflowAction } = req.body;
 
   if (req.files && req.files.length) {
     complaint.resolutionProof.push(...mapEvidence(req.files, req));
   }
 
-  // Handle assignment logic
-  if (assignToSelf === "true" || assignToSelf === true) {
-    complaint.assignedOfficerId = req.officer.id;
-    assignedOfficer = req.officer;
+  let emailCitizenMessage = "";
+  let emailDistAdminMessage = "";
+
+  if (workflowAction === "submit_to_super_admin") {
     complaint.pendingDistrictUpdate = false;
-  } else if (assignToSelf === "false" || assignToSelf === false) {
-    // Assigned to District Admin (pending district admin review & update)
-    complaint.pendingDistrictUpdate = true;
-    
-    // Find district admin to assign and notify via email
-    const Officer = (await import("../models/Officer.js")).default;
-    const distAdmin = await Officer.findOne({ district: complaint.district, active: true });
-    if (distAdmin) {
-      complaint.assignedOfficerId = distAdmin._id;
-      assignedOfficer = distAdmin;
-
-      if (distAdmin.email) {
-        const emailHtml = `
-          <h2 style="color: #0f172a; margin-top: 0;">New Grievance Assigned to Your District</h2>
-          <p>Super Admin has assigned a food safety complaint in <strong>${complaint.district}</strong> to your district admin portal.</p>
-          
-          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 16px 0;">
-            <p style="margin: 4px 0;"><strong>Tracking Code:</strong> <span style="font-family: monospace; color: #2563eb; font-weight: bold;">${complaint.trackingCode}</span></p>
-            <p style="margin: 4px 0;"><strong>Category:</strong> ${complaint.category}</p>
-            <p style="margin: 4px 0;"><strong>Establishment/Vendor:</strong> ${complaint.vendorName}</p>
-            <p style="margin: 4px 0;"><strong>Address:</strong> ${complaint.address}, ${complaint.district}</p>
-            <p style="margin: 4px 0;"><strong>Description:</strong> ${complaint.description}</p>
-          </div>
-          
-          <p>Please log in to your District Admin Portal to inspect evidence, log action notes, and update case resolution.</p>
-        `;
-
-        await sendEmail({
-          to: distAdmin.email,
-          subject: `[Action Required] Complaint Assigned [${complaint.trackingCode}] - ${complaint.district}`,
-          html: emailHtml
-        });
-      }
+    if (status === "submitted") {
+      status = "under_review";
     }
+    emailCitizenMessage = "Your complaint has been forwarded to the Super Admin for final review.";
+  } else if (workflowAction === "approve_resolve") {
+    complaint.status = "resolved";
+    complaint.superAdminFinalized = true;
+    emailCitizenMessage = "Your complaint has been resolved by the Super Admin.";
+    complaint.statusHistory.push({
+      status: "resolved",
+      at: new Date(),
+      publicNote: publicNote || "Complaint resolved by Super Admin.",
+      officerId: req.officer.id
+    });
+  } else if (workflowAction === "return_correction") {
+    complaint.pendingDistrictUpdate = true;
+    actionType = "other";
+    note = `[RETURNED FOR CORRECTION] ${note || "Please review and correct."}`;
+    emailDistAdminMessage = `Super Admin has returned complaint ${complaint.trackingCode} for correction. Note: ${note}`;
   }
 
-  // If a district admin updates this complaint, clear the pending flag
-  if (req.officer.role !== "super_admin") {
-    complaint.pendingDistrictUpdate = false;
-  }
-
-  if (status) {
+  if (status && workflowAction !== "approve_resolve") {
     complaint.status = status;
     complaint.statusHistory.push({
       status,
@@ -244,31 +256,54 @@ export async function updateComplaintStatus(req, res) {
   await complaint.save();
   res.json(complaint);
 
-  // Send update email to citizen if userId exists
-  if (complaint.userId) {
+  if (emailDistAdminMessage && complaint.assignedOfficerId) {
+    const Officer = (await import("../models/Officer.js")).default;
+    const distAdmin = await Officer.findById(complaint.assignedOfficerId);
+    if (distAdmin) {
+      if (distAdmin.phone) {
+        sendSMS({
+          to: distAdmin.phone,
+          message: `Aarogya Alert: Complaint [${complaint.trackingCode}] has been returned for your review.`
+        }).catch((err) => console.error("Officer SMS error:", err));
+      }
+      if (distAdmin.email) {
+        sendEmail({
+          to: distAdmin.email,
+          subject: `[Action Required] Complaint Returned [${complaint.trackingCode}]`,
+          html: `<p>${emailDistAdminMessage}</p>`
+        }).catch((err) => console.error("Officer Email error:", err));
+      }
+    }
+  }
+
+  if (emailCitizenMessage && (complaint.userId || complaint.complainantPhone)) {
     const User = (await import("../models/User.js")).default;
-    const user = await User.findById(complaint.userId);
+    const user = complaint.userId ? await User.findById(complaint.userId) : null;
+    const citizenPhone = (user && user.phone) || complaint.complainantPhone;
+
+    // Send SMS status update to citizen
+    if (citizenPhone) {
+      sendSMS({
+        to: citizenPhone,
+        message: `Aarogya Food Safety: Status of complaint [${complaint.trackingCode}] updated to ${complaint.status.toUpperCase()}. ${emailCitizenMessage ? emailCitizenMessage.substring(0, 90) : ''}`
+      }).catch((err) => console.error("Citizen SMS update error:", err));
+    }
+
+    // Send Email status update to citizen
     if (user && user.email) {
       let updateBodyHtml = `
         <h2 style="color: #0f172a; margin-top: 0;">Complaint Status Update</h2>
-        <p>There has been an update on your reported complaint <strong>${complaint.trackingCode}</strong>.</p>
-        
+        <p>${emailCitizenMessage}</p>
         <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin: 16px 0;">
           <p style="margin: 4px 0;"><strong>Tracking Code:</strong> <span style="font-family: monospace; color: #2563eb; font-weight: bold;">${complaint.trackingCode}</span></p>
           <p style="margin: 4px 0;"><strong>Current Status:</strong> <span style="color: #059669; font-weight: bold;">${complaint.status.toUpperCase()}</span></p>
-          ${assignedOfficer ? `<p style="margin: 4px 0;"><strong>Assigned Officer:</strong> ${assignedOfficer.name} (${assignedOfficer.district || "FDA Food Safety Officer"})</p>` : ""}
-          ${publicNote ? `<p style="margin: 4px 0;"><strong>Officer Public Remarks:</strong> ${publicNote}</p>` : ""}
-          <p style="margin: 4px 0;"><strong>Vendor/Premises:</strong> ${complaint.vendorName}</p>
         </div>
-        
-        <p>Log in to Aarogya or check your history tab for complete case timeline updates.</p>
       `;
-
-      await sendEmail({
+      sendEmail({
         to: user.email,
         subject: `Update on Complaint [${complaint.trackingCode}] - Aarogya`,
         html: updateBodyHtml
-      });
+      }).catch((err) => console.error("Citizen Email update error:", err));
     }
   }
 }

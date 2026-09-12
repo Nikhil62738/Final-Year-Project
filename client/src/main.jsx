@@ -1,5 +1,10 @@
 const { useEffect, useMemo, useRef, useState } = React;
 
+const FLAG_IMG = window.FDA_ASSETS?.FLAG || "/flag.png";
+const EMBLEM_IMG = window.FDA_ASSETS?.EMBLEM || "/emblem.png";
+const FDA_LOGO_IMG = window.FDA_ASSETS?.FDA_LOGO || "/fda_logo.png";
+const HERO_BG_IMG = "/hero_bg.png";
+
 const API_BASE = "";
 
 const categories = [
@@ -74,6 +79,84 @@ const maharashtraDistricts = [
   "Yavatmal"
 ];
 
+const districtCoords = {
+  "Ahmednagar": { lat: 19.0948, lng: 74.7480, zoom: 9 },
+  "Akola": { lat: 20.7002, lng: 77.0082, zoom: 10 },
+  "Amravati": { lat: 20.9320, lng: 77.7523, zoom: 10 },
+  "Aurangabad": { lat: 19.8762, lng: 75.3433, zoom: 10 },
+  "Beed": { lat: 18.9891, lng: 75.7601, zoom: 10 },
+  "Bhandara": { lat: 21.1669, lng: 79.6504, zoom: 10 },
+  "Buldhana": { lat: 20.5293, lng: 76.1842, zoom: 10 },
+  "Chandrapur": { lat: 19.9500, lng: 79.2961, zoom: 10 },
+  "Dhule": { lat: 20.9042, lng: 74.7749, zoom: 10 },
+  "Gadchiroli": { lat: 20.1826, lng: 80.0000, zoom: 9 },
+  "Gondia": { lat: 21.4550, lng: 80.1920, zoom: 10 },
+  "Hingoli": { lat: 19.7173, lng: 77.1470, zoom: 10 },
+  "Jalgaon": { lat: 21.0077, lng: 75.5626, zoom: 10 },
+  "Jalna": { lat: 19.8347, lng: 75.8816, zoom: 10 },
+  "Kolhapur": { lat: 16.7050, lng: 74.2433, zoom: 10 },
+  "Latur": { lat: 18.3968, lng: 76.5604, zoom: 10 },
+  "Mumbai City": { lat: 18.9388, lng: 72.8354, zoom: 12 },
+  "Mumbai Suburban": { lat: 19.1136, lng: 72.8697, zoom: 12 },
+  "Nagpur": { lat: 21.1458, lng: 79.0882, zoom: 10 },
+  "Nanded": { lat: 19.1383, lng: 77.3210, zoom: 10 },
+  "Nandurbar": { lat: 21.3670, lng: 74.2390, zoom: 10 },
+  "Nashik": { lat: 20.0000, lng: 73.7800, zoom: 10 },
+  "Osmanabad": { lat: 18.1860, lng: 76.0400, zoom: 10 },
+  "Palghar": { lat: 19.6967, lng: 72.7651, zoom: 10 },
+  "Parbhani": { lat: 19.2609, lng: 76.7748, zoom: 10 },
+  "Pune": { lat: 18.5204, lng: 73.8567, zoom: 10 },
+  "Raigad": { lat: 18.4928, lng: 73.1381, zoom: 10 },
+  "Ratnagiri": { lat: 16.9944, lng: 73.3000, zoom: 10 },
+  "Sangli": { lat: 16.8524, lng: 74.5815, zoom: 10 },
+  "Satara": { lat: 17.6805, lng: 74.0183, zoom: 10 },
+  "Sindhudurg": { lat: 16.3500, lng: 73.7500, zoom: 10 },
+  "Solapur": { lat: 17.6599, lng: 75.9064, zoom: 10 },
+  "Thane": { lat: 19.2183, lng: 72.9781, zoom: 11 },
+  "Wardha": { lat: 20.7453, lng: 78.6022, zoom: 10 },
+  "Washim": { lat: 20.1121, lng: 77.1337, zoom: 10 },
+  "Yavatmal": { lat: 20.3899, lng: 78.1307, zoom: 10 }
+};
+
+const maharashtraTalukas = {
+  "Ahmednagar": ["Ahmednagar", "Shrirampur", "Nevasa", "Rahuri", "Shrigonda", "Karjat", "Jamkhed", "Pathardi", "Parner", "Sangamner", "Kopargaon", "Akole", "Rahata", "Newasa"],
+  "Akola": ["Akola", "Akot", "Telhara", "Balapur", "Patur", "Murtizapur", "Barshitakli"],
+  "Amravati": ["Amravati", "Achalpur", "Morshi", "Warud", "Daryapur", "Anjangaon Surji", "Chandur Railway", "Chandur Bazar", "Nandgaon-Khandeshwar", "Dhamangaon Railway", "Chikhaldara", "Bhatkuli", "Dharni", "Tiosa"],
+  "Aurangabad": ["Aurangabad", "Khuldabad", "Kannad", "Sillod", "Phulambri", "Soegaon", "Paithan", "Gangapur", "Vaijapur"],
+  "Beed": ["Beed", "Kaij", "Georai", "Majalgaon", "Parli", "Ambajogai", "Dharur", "Patoda", "Shirur Kasar", "Ashti", "Wadwani"],
+  "Bhandara": ["Bhandara", "Tumsar", "Pauni", "Mohadi", "Sakoli", "Lakhani", "Lakhandur"],
+  "Buldhana": ["Buldhana", "Chikhli", "Deulgaon Raja", "Jalgaon Jamod", "Khamgaon", "Lonar", "Malkapur", "Mehkar", "Motala", "Nandura", "Sangrampur", "Shegaon", "Sindkhed Raja"],
+  "Chandrapur": ["Chandrapur", "Ballarpur", "Bhadravati", "Warora", "Chimur", "Nagbhid", "Brahmapuri", "Sindewahi", "Mul", "Gondpipri", "Pombhurna", "Saoli", "Rajura", "Korpana", "Jiwati"],
+  "Dhule": ["Dhule", "Sakri", "Shirpur", "Sindkheda"],
+  "Gadchiroli": ["Gadchiroli", "Chamorshi", "Aheri", "Etapalli", "Dhanora", "Armori", "Kurkheda", "Korchi", "Desaiganj", "Sironcha", "Mulchera", "Bhamragad"],
+  "Gondia": ["Gondia", "Tirora", "Goregaon", "Arjuni Morgaon", "Amgaon", "Deori", "Salekasa", "Sadak Arjuni"],
+  "Hingoli": ["Hingoli", "Sengaon", "Kalamnuri", "Basmath", "Aundha Nagnath"],
+  "Jalgaon": ["Jalgaon", "Bhusawal", "Chalisgaon", "Amalner", "Erandol", "Dharangaon", "Pachora", "Bhadgaon", "Parola", "Chopda", "Raver", "Yawal", "Muktainagar", "Bodwad", "Jamner"],
+  "Jalna": ["Jalna", "Bhokardan", "Jafrabad", "Ambad", "Badnapur", "Ghansawangi", "Partur", "Mantha"],
+  "Kolhapur": ["Kolhapur", "Karveer", "Panhala", "Shahuwadi", "Kagal", "Hatkanangle", "Shirol", "Radhanagari", "Gadhinglaj", "Chandgad", "Ajra", "Bhudargad", "Bavda"],
+  "Latur": ["Latur", "Ausa", "Nilanga", "Udgir", "Chakur", "Deoni", "Jalkot", "Ahmedpur", "Shirur Anantpal", "Renapur"],
+  "Mumbai City": ["Mumbai City"],
+  "Mumbai Suburban": ["Andheri", "Bandra", "Borivali", "Kurla"],
+  "Nagpur": ["Nagpur City", "Nagpur Rural", "Kamptee", "Hingna", "Katol", "Narkhed", "Savner", "Kalmeshwar", "Parseoni", "Umred", "Kuhi", "Bhiwapur", "Ramtek", "Mouda"],
+  "Nanded": ["Nanded", "Ardhapur", "Mudkhed", "Bhokar", "Umri", "Loha", "Kandhar", "Kinwat", "Hadgaon", "Himayatnagar", "Deglur", "Mukhed", "Dharmabad", "Biloli", "Naigaon", "Mahoor"],
+  "Nandurbar": ["Nandurbar", "Shahada", "Taloda", "Akkalkuwa", "Akrani", "Nawapur"],
+  "Nashik": ["Nashik", "Malegaon", "Niphad", "Sinnar", "Igatpuri", "Dindori", "Peint", "Trimbakeshwar", "Kalwan", "Deola", "Surgana", "Baglan", "Chandwad", "Nandgaon", "Yeola"],
+  "Osmanabad": ["Osmanabad", "Tuljapur", "Umarga", "Paranda", "Bhoom", "Kalamb", "Washi", "Lohara"],
+  "Palghar": ["Palghar", "Vasai", "Dahanu", "Talasari", "Jawhar", "Mokhada", "Vikramgad", "Wada"],
+  "Parbhani": ["Parbhani", "Jintur", "Gangakhed", "Pathri", "Purna", "Manwath", "Palam", "Sonpeth", "Selu"],
+  "Pune": ["Haveli", "Pune City", "Maval", "Mulshi", "Shirur", "Baramati", "Khed", "Junnar", "Ambegaon", "Bhor", "Velhe", "Purandar", "Indapur", "Daund"],
+  "Raigad": ["Panvel", "Alibag", "Pen", "Karjat", "Khopoli", "Uran", "Mahad", "Mangaon", "Roha", "Sudhagad", "Murud", "Shrivardhan", "Mhasla", "Tala", "Poladpur"],
+  "Ratnagiri": ["Ratnagiri", "Chiplun", "Guhagar", "Dapoli", "Khed", "Mandangad", "Sangameshwar", "Lanja", "Rajapur"],
+  "Sangli": ["Sangli", "Miraj", "Tasgaon", "Walwa", "Shirala", "Palus", "Kadegaon", "Khanapur", "Atpadi", "Jat"],
+  "Satara": ["Satara", "Karad", "Wai", "Mahabaleshwar", "Patan", "Jawali", "Khandala", "Koregaon", "Phaltan", "Man", "Khatav"],
+  "Sindhudurg": ["Sindhudurg", "Kudal", "Malwan", "Devgad", "Kankavli", "Sawantwadi", "Vengurla", "Dodamarg"],
+  "Solapur": ["Solapur North", "Solapur South", "Akkalkot", "Barshi", "Mohol", "Mangalwedha", "Madha", "Karmala", "Pandharpur", "Malshiras", "Sangola"],
+  "Thane": ["Thane", "Kalyan", "Bhiwandi", "Ulhasnagar", "Ambernath", "Shahapur", "Murbad"],
+  "Wardha": ["Wardha", "Deoli", "Hinganghat", "Arvi", "Seloo", "Ashti", "Karanja", "Samudrapur"],
+  "Washim": ["Washim", "Malegaon", "Risod", "Mangrulpir", "Karanja", "Manora"],
+  "Yavatmal": ["Yavatmal", "Arni", "Babhulgaon", "Darwha", "Digras", "Ghatanji", "Kalamb", "Kelapur", "Mahagaon", "Maregaon", "Ner", "Pusad", "Ralegaon", "Umarkhed", "Wani", "Zari-Jamani"]
+};
+
 const statusExplainers = {
   submitted: "Complaint received and registered with a tracking code.",
   under_review: "District office is checking vendor, location, and evidence.",
@@ -124,8 +207,10 @@ function App() {
   const [page, setPage] = useState(readPageFromHash);
   const [officer, setOfficer] = useState(() => JSON.parse(localStorage.getItem("safewatch_officer") || "null"));
   const [citizen, setCitizen] = useState(() => JSON.parse(localStorage.getItem("safewatch_user") || "null"));
-  const [loginRedirect, setLoginRedirect] = useState("submit");
+  const [loginRedirect, setLoginRedirect] = useState("home");
   const [navOpen, setNavOpen] = useState(false);
+  // Track the page user was on before going to login — updated synchronously
+  const prevPageRef = useRef("home");
 
   useEffect(() => {
     const syncPage = () => setPage(readPageFromHash());
@@ -136,11 +221,19 @@ function App() {
   function navigate(target, options = {}) {
     setNavOpen(false);
 
+    // Redirect unauthenticated users trying to access protected pages to login
     if (target === "submit" && !citizen) {
+      prevPageRef.current = page; // remember where they came from
       setLoginRedirect(options.redirect || "submit");
       window.location.hash = "login";
       setPage("login");
       return;
+    }
+
+    // When explicitly going to login or register, remember the current page
+    if ((target === "login" || target === "register") && page !== "login" && page !== "register") {
+      prevPageRef.current = page;
+      setLoginRedirect(page);
     }
 
     if (target === "home") {
@@ -163,70 +256,160 @@ function App() {
     navigate("home");
   }
 
-  const isAdminRoute = page === "admin";
+  // Bypasses the citizen guard in navigate() — used by Login after successful auth
+  // so that stale citizen closure doesn’t redirect back to login page.
+  function forceNavigate(target) {
+    const dest = target || "home";
+    if (dest === "home") {
+      window.location.hash = "";
+      setPage("home");
+    } else {
+      window.location.hash = dest;
+      setPage(dest);
+    }
+  }
 
-  if (isAdminRoute) {
+  if (page === "admin" && officer) {
     return (
       <main className="admin-shell">
-        {officer ? (
-          <Dashboard officer={officer} setPage={navigate} onLogout={logout} />
-        ) : (
-          <AdminLogin setOfficer={setOfficer} setPage={navigate} />
-        )}
+        <Dashboard officer={officer} setPage={navigate} onLogout={logout} />
       </main>
+    );
+  }
+
+  if (page === "admin" && !officer) {
+    return (
+      <div className="admin-portal-shell">
+        <header className="admin-white-header">
+          <div className="admin-white-header-inner">
+            <div className="admin-white-header-left" onClick={() => navigate("home")}>
+              <img
+                src={EMBLEM_IMG}
+                alt="National Emblem of India"
+                className="national-emblem"
+                onError={(e) => { e.target.onerror = null; e.target.src = "/emblem.png"; }}
+              />
+              <img
+                src={FDA_LOGO_IMG}
+                alt="FDA Maharashtra Logo"
+                className="fssai-logo"
+                onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
+              />
+              <div className="brand-titles">
+                <h1 className="brand-main-title">FDA SafeWatch</h1>
+                <p className="brand-sub-title">Food Safety Complaint & Action Tracking Platform - Maharashtra</p>
+              </div>
+            </div>
+
+            <div className="admin-white-header-right">
+              <div className="admin-header-motto">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span>Towards Safe Food, Healthier Maharashtra</span>
+              </div>
+              <button 
+                type="button" 
+                className="btn-admin-header-back"
+                onClick={() => navigate("home")}
+              >
+                &larr; Public Portal
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <AdminLogin setOfficer={setOfficer} setPage={navigate} />
+      </div>
     );
   }
 
   return (
     <>
-      <header className="site-header">
-        <div className="header-left">
-          <button className="brand" onClick={() => navigate("home")} aria-label="Aarogya home">
-            <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Aarogya</h2>
-          </button>
-          <select className="language-select">
-            <option>English</option>
-          </select>
-        </div>
-        <button
-          type="button"
-          className="nav-toggle"
-          aria-expanded={navOpen}
-          aria-controls="primary-nav"
-          onClick={() => setNavOpen((open) => !open)}
-        >
-          Menu
-        </button>
-        <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
-          <button className={`nav-link ${page === "submit" ? "active" : ""}`} onClick={() => navigate("submit")}>
-            📝 Report Issue
-          </button>
-          <button className={`nav-link ${page === "track" ? "active" : ""}`} onClick={() => navigate("track")}>
-            🛡️ Track Issues
-          </button>
-          <button className={`nav-link ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
-            📚 My History
-          </button>
-          
-          <button className="nav-icon-btn" style={{ position: 'relative' }}>
-            🔔<span style={{ position: 'absolute', top: '8px', right: '12px', width: '8px', height: '8px', background: 'red', borderRadius: '50%' }}></span>
-          </button>
-
-          {!citizen ? (
-            <>
-              <button className="btn-nav-login" onClick={() => navigate("login")}>LOGIN</button>
-              <button className="btn-nav-register" onClick={() => navigate("register")}>REGISTER</button>
-            </>
-          ) : (
-            <div className="user-menu">
-              <span className="welcome-text">Welcome, {citizen.name}</span>
-              <button className="btn-logout" onClick={logout}>Logout</button>
+      <header className="site-header-wrap">
+        {/* Main Brand & Logo Section */}
+        <div className="brand-header-bar">
+          <div className="brand-header-container">
+            <div className="brand-header-left">
+              <img
+                src={EMBLEM_IMG}
+                alt="Emblem of India"
+                className="national-emblem"
+                onError={(e) => { e.target.onerror = null; e.target.src = "/emblem.png"; }}
+              />
+              <div className="brand-titles" onClick={() => navigate("home")} style={{ cursor: "pointer" }}>
+                <h1 className="brand-main-title">FDA SafeWatch</h1>
+                <p className="brand-sub-title">Food Safety Complaint & Action Tracking Platform - Maharashtra</p>
+                <p className="brand-tagline">A step towards Safe Food, Healthier Maharashtra</p>
+              </div>
             </div>
-          )}
-        </nav>
+
+            <div className="brand-header-right">
+              <img
+                src={FDA_LOGO_IMG}
+                alt="FDA Maharashtra Logo"
+                className="fssai-logo"
+                onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
+              />
+              <button 
+                type="button" 
+                className="btn-admin-login-brand"
+                onClick={() => navigate("admin")} 
+              >
+                🏛️ Admin Login
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Primary Navigation Bar */}
+        <div className="nav-bar-container">
+          <div className="nav-bar-inner">
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-expanded={navOpen}
+              aria-controls="primary-nav"
+              onClick={() => setNavOpen((open) => !open)}
+            >
+              Menu ☰
+            </button>
+            <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
+              <button className={`nav-link-item ${page === "home" ? "active" : ""}`} onClick={() => navigate("home")}>
+                <span className="nav-icon">🏠</span> Home
+              </button>
+              <button className={`nav-link-item ${page === "submit" ? "active" : ""}`} onClick={() => navigate("submit")}>
+                <span className="nav-icon">📝</span> Submit Complaint
+              </button>
+              <button className={`nav-link-item ${page === "track" ? "active" : ""}`} onClick={() => navigate("track")}>
+                <span className="nav-icon">🔍</span> Track Complaint
+              </button>
+              <button className={`nav-link-item ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
+                <span className="nav-icon">📊</span> Transparency Register
+              </button>
+              <button className="nav-link-item" onClick={() => { navigate("home"); setTimeout(() => document.querySelector('.portal-info-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>
+                <span className="nav-icon">📜</span> Food Safety Information
+              </button>
+
+              {!citizen ? (
+                <div className="nav-auth-buttons">
+                  <button className="btn-portal-login" onClick={() => navigate("login")}>Login</button>
+                  <button className="btn-portal-register" onClick={() => navigate("register")}>Register</button>
+                </div>
+              ) : (
+                <div className="user-menu">
+                  <span className="welcome-text">Welcome, {citizen.name}</span>
+                  <button className="btn-logout" onClick={logout}>Logout</button>
+                </div>
+              )}
+            </nav>
+          </div>
+        </div>
       </header>
-      <main>
+      <main className="main-content-area">
         {page === "home" && <Home navigate={navigate} citizen={citizen} />}
+        {page === "admin" && !officer && <AdminLogin setOfficer={setOfficer} setPage={navigate} />}
         {page === "submit" && (
           citizen ? (
             <SubmitComplaint navigate={navigate} citizen={citizen} />
@@ -237,6 +420,7 @@ function App() {
               setCitizen={setCitizen}
               setOfficer={setOfficer}
               navigate={navigate}
+              forceNavigate={forceNavigate}
             />
           )
         )}
@@ -251,6 +435,7 @@ function App() {
               setCitizen={setCitizen}
               setOfficer={setOfficer}
               navigate={navigate}
+              forceNavigate={forceNavigate}
             />
           )
         )}
@@ -261,65 +446,218 @@ function App() {
             setCitizen={setCitizen}
             setOfficer={setOfficer}
             navigate={navigate}
+            forceNavigate={forceNavigate}
           />
         )}
       </main>
+
+      {page !== "login" && page !== "register" && page !== "admin" && (
+        <footer className="site-portal-footer">
+          <div className="footer-container">
+            <div className="footer-col">
+              <h4>FDA SafeWatch - Maharashtra State</h4>
+              <p>
+                Food and Drug Administration, Maharashtra State (अन्न व औषध प्रशासन, महाराष्ट्र राज्य).
+                Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.
+              </p>
+            </div>
+            <div className="footer-col">
+              <h4>Quick Links</h4>
+              <ul>
+                <li><a href="#home" onClick={() => navigate("home")}>Home Desk</a></li>
+                <li><a href="#submit" onClick={() => navigate("submit")}>Submit Complaint</a></li>
+                <li><a href="#track" onClick={() => navigate("track")}>Track Complaint</a></li>
+                <li><a href="#history" onClick={() => navigate("history")}>Transparency Register</a></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h4>Helpline & Info</h4>
+              <p><strong>Toll Free:</strong> 1800-222-365</p>
+              <p><strong>Emergency:</strong> 112</p>
+              <p><strong>Email:</strong> support.fda@maharashtra.gov.in</p>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <span>© 2026 Food and Drug Administration, Government of Maharashtra. All rights reserved.</span>
+            <span>Designed & Maintained for Public Health Transparency</span>
+          </div>
+        </footer>
+      )}
     </>
   );
 }
 
 function Home({ navigate, citizen }) {
   return (
-    <section className="page home-page">
-      <div className="home-grid">
-        <div className="lede">
-          <p className="eyebrow">Public food-safety desk</p>
-          <h1>Report unsafe food, then track what action followed.</h1>
-          <p>
-            FDA SafeWatch helps citizens report suspected adulteration, expired stock, unhygienic premises,
-            mislabeling, or contamination. Every accepted complaint receives a public tracking code.
-          </p>
-          {!citizen && (
-            <p className="login-prompt">You must register or login before filing a complaint.</p>
-          )}
-          <div className="actions">
-            <button className="primary" onClick={() => navigate("submit")}><IconMark>UP</IconMark> {citizen ? "Submit complaint" : "Login to report"}</button>
-            <button onClick={() => navigate("track")}><IconMark>TR</IconMark> Track code</button>
-          </div>
-          <dl className="public-metrics">
-            <div><dt>Duplicate check</dt><dd>Before filing</dd></div>
-            <div><dt>Tracking code</dt><dd>Public-safe status</dd></div>
-            <div><dt>Officer notes</dt><dd>Privacy redacted</dd></div>
-          </dl>
-        </div>
-        <aside className="hero-status-card" aria-label="Process overview">
-          <div className="hero-status-pill">Live status updates</div>
-          <ol className="process-list">
-            <li><strong>Submitted</strong><span>Complaint and evidence are received.</span></li>
-            <li><strong>Under Review</strong><span>Officer verifies location, vendor, and risk.</span></li>
-            <li><strong>Action Taken</strong><span>Inspection, warning, fine, lab sample, or closure is logged.</span></li>
-            <li><strong>Resolved or Closed</strong><span>Public-safe status remains trackable.</span></li>
-          </ol>
-        </aside>
-      </div>
+    <div className="home-portal-wrap">
+      {/* Hero Section */}
+      <section className="hero-banner">
+        <div className="hero-overlay"></div>
+        <div className="hero-content-container">
+          <div className="hero-left-box">
+            <h1 className="hero-headline">
+              Unsafe Food<br />
+              Should Not Be on<br />
+              Anyone's Plate
+            </h1>
+            <p className="hero-subheadline">
+              Report food safety <span className="highlight-text">issues</span>. Track the action.<br />
+              Help build a healthier Maharashtra.
+            </p>
+            <div className="accent-bar-trio">
+              <span className="bar orange"></span>
+              <span className="bar green"></span>
+            </div>
 
-      <section className="below-fold-grid">
-        <article className="duplicate-visual">
-          <p className="eyebrow">Duplicate intelligence</p>
-          <h2>Every new report is compared before it becomes a new case.</h2>
-          <div className="match-diagram" aria-label="Duplicate detection rules">
-            <div><IconMark>01</IconMark><strong>License + category</strong><span>Strong match</span></div>
-            <div><IconMark>02</IconMark><strong>Nearby + similar vendor</strong><span>Strong match within 150m</span></div>
-            <div><IconMark>03</IconMark><strong>Nearby + different name</strong><span>Weak match for review</span></div>
+            <div className="hero-features-trio">
+              <div className="feature-item">
+                <div className="feature-icon-circle">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </div>
+                <div>
+                  <strong>Report</strong>
+                  <span>Unsafe food practices</span>
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-icon-circle">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div>
+                  <strong>Track</strong>
+                  <span>Real-time status</span>
+                </div>
+              </div>
+
+              <div className="feature-item">
+                <div className="feature-icon-circle">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <strong>Ensure</strong>
+                  <span>Safer food for all</span>
+                </div>
+              </div>
+            </div>
+
+            {!citizen && (
+              <p className="hero-auth-alert">
+                * Citizens must log in or register before submitting official food safety complaints in Maharashtra.
+              </p>
+            )}
+
+            <div className="hero-actions-row">
+              <button className="btn-hero-primary" onClick={() => navigate("submit")}>
+                Submit a Complaint <span className="arrow-icon">→</span>
+              </button>
+              <button className="btn-hero-secondary" onClick={() => navigate("track")}>
+                <span className="search-icon">🔍</span> Track Your Complaint
+              </button>
+            </div>
+            
+            <p className="hero-subtext-note">
+              <span className="lock-icon">🔒</span> No app required. Report online or via SMS/WhatsApp.
+            </p>
           </div>
-        </article>
-        <article className="service-note">
-          <p className="eyebrow">Public record</p>
-          <h2>Designed for action tracking, not social posting.</h2>
-          <p>Citizens see public-safe progress. Officers see evidence, assignment, and action history behind authentication.</p>
-        </article>
+
+          <div className="hero-right-card">
+            <div className="card-glass-panel">
+              <svg className="card-map-bg" viewBox="0 0 100 100" fill="none" stroke="#004b38" strokeWidth="1.2">
+                <path d="M45 10 L58 15 L62 28 L78 32 L88 48 L82 64 L68 78 L52 88 L35 72 L22 62 L18 46 L28 32 Z" />
+                <path d="M30 40 L50 45 L70 38 M40 60 L60 58" strokeDasharray="2 2" />
+              </svg>
+              <h3>Safe Food<br />Healthy Citizens<br />Stronger Maharashtra</h3>
+              <div className="flag-stripe-mini">
+                <span className="stripe-orange"></span>
+                <span className="stripe-green"></span>
+              </div>
+              <p className="quote-text">
+                "Food safety is everyone's responsibility."
+              </p>
+              <p className="quote-author">— FDA Maharashtra</p>
+            </div>
+          </div>
+        </div>
       </section>
-    </section>
+
+      {/* Metrics Summary Bar */}
+      <section className="metrics-summary-bar">
+        <div className="metrics-container">
+          <div className="metric-box">
+            <span className="metric-icon">📊</span>
+            <div className="metric-data">
+              <span className="metric-num">12,845</span>
+              <span className="metric-label">Complaints Received</span>
+            </div>
+          </div>
+          <div className="metric-box">
+            <span className="metric-icon">🛡️</span>
+            <div className="metric-data">
+              <span className="metric-num">10,932</span>
+              <span className="metric-label">Resolved</span>
+            </div>
+          </div>
+          <div className="metric-box">
+            <span className="metric-icon">🏛️</span>
+            <div className="metric-data">
+              <span className="metric-num">1,240</span>
+              <span className="metric-label">Vendors Penalized</span>
+            </div>
+          </div>
+          <div className="metric-box">
+            <span className="metric-icon">🎯</span>
+            <div className="metric-data">
+              <span className="metric-num">98%</span>
+              <span className="metric-label">Average Resolution Rate</span>
+            </div>
+          </div>
+          <div className="metric-right-meta">
+            <span>Last updated: 08 Sep 2026</span>
+            <button className="btn-view-dash" onClick={() => navigate("history")}>View Dashboard →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Information Cards Section */}
+      <section className="portal-info-section">
+        <div className="info-grid-container">
+          <div className="info-card">
+            <div className="info-card-header">
+              <span className="info-badge">Duplicate Intelligence</span>
+              <h2>Automated Complaint Verification</h2>
+            </div>
+            <p className="info-desc">
+              Every newly submitted report is scanned against our duplicate-check registry before opening a case to ensure rapid officer action and prevent duplicate spam.
+            </p>
+            <ul className="info-list">
+              <li><strong>License + Category Match:</strong> High-priority flag</li>
+              <li><strong>Geo-location Proximity:</strong> 150m vendor area scan</li>
+              <li><strong>Public Tracking Code:</strong> Assigned to every valid report</li>
+            </ul>
+          </div>
+
+          <div className="info-card">
+            <div className="info-card-header">
+              <span className="info-badge">Action Tracking</span>
+              <h2>Public Register & Redacted Logs</h2>
+            </div>
+            <p className="info-desc">
+              FDA SafeWatch provides end-to-end transparency. Citizens track public-safe complaint progress while personal identity remains protected.
+            </p>
+            <div className="status-steps-mini">
+              <div className="step-tag tag-submitted">Submitted</div>
+              <span className="step-arrow">→</span>
+              <div className="step-tag tag-review">Under Review</div>
+              <span className="step-arrow">→</span>
+              <div className="step-tag tag-action">Action Taken</div>
+              <span className="step-arrow">→</span>
+              <div className="step-tag tag-resolved">Resolved</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -328,6 +666,9 @@ function SubmitComplaint({ navigate, citizen }) {
     title: "",
     category: "adulteration",
     description: "",
+    vendorName: "",
+    fssaiNumber: "",
+    address: "",
     district: "",
     taluka: "",
     lat: "",
@@ -339,8 +680,47 @@ function SubmitComplaint({ navigate, citizen }) {
   });
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [busy, setBusy] = useState(false);
   const [locationStatus, setLocationStatus] = useState("");
+  const [qrScanning, setQrScanning] = useState(false);
+  const qrRef = useRef(null);
+  const qrScannerRef = useRef(null);
+
+  function startQrScan() {
+    setQrScanning(true);
+    setTimeout(() => {
+      if (!qrRef.current || typeof Html5Qrcode === "undefined") return;
+      const scanner = new Html5Qrcode("qr-reader");
+      qrScannerRef.current = scanner;
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          setField("vendorName", decodedText);
+          scanner.stop().then(() => {
+            setQrScanning(false);
+            qrScannerRef.current = null;
+          }).catch(console.error);
+        },
+        () => {}
+      ).catch((err) => {
+        console.error("QR Scanner error:", err);
+        setQrScanning(false);
+      });
+    }, 100);
+  }
+
+  function stopQrScan() {
+    if (qrScannerRef.current) {
+      qrScannerRef.current.stop().then(() => {
+        setQrScanning(false);
+        qrScannerRef.current = null;
+      }).catch(console.error);
+    } else {
+      setQrScanning(false);
+    }
+  }
 
   function setField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -368,6 +748,7 @@ function SubmitComplaint({ navigate, citizen }) {
     e.preventDefault();
     setBusy(true);
     setMessage("");
+    setDuplicateInfo(null);
     const body = new FormData();
     Object.entries(form).forEach(([key, value]) => body.append(key, value));
     files.slice(0, 5).forEach((file) => body.append("evidence", file));
@@ -377,7 +758,14 @@ function SubmitComplaint({ navigate, citizen }) {
       setMessage(`Recorded. Tracking code: ${data.trackingCode}`);
       navigate("track");
     } catch (error) {
-      setMessage(error.message);
+      if (error.duplicate || (error.message && error.message.toLowerCase().includes("duplicate complaint"))) {
+        setDuplicateInfo({
+          message: error.message || "Duplicate complaint cannot be allowed. A complaint for this issue/vendor has already been registered.",
+          existingTrackingCode: error.existingTrackingCode || error.trackingCode || ""
+        });
+      } else {
+        setMessage(error.message);
+      }
     } finally {
       setBusy(false);
     }
@@ -385,11 +773,32 @@ function SubmitComplaint({ navigate, citizen }) {
 
   return (
     <section className="page form-page">
+
       <div className="report-container">
         <div className="report-header">
           <span className="icon">📋</span>
           <h2>Report a New Issue</h2>
         </div>
+
+        {duplicateInfo && (
+          <div style={{ background: "#fef2f2", border: "2px solid #ef4444", borderRadius: "10px", padding: "18px", margin: "0 0 20px 0", color: "#991b1b" }}>
+            <h3 style={{ margin: "0 0 8px 0", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px", color: "#991b1b" }}>
+              🚫 Duplicate Complaint Cannot Be Allowed
+            </h3>
+            <p style={{ margin: "0 0 14px 0", fontSize: "0.92rem", lineHeight: 1.5 }}>
+              {duplicateInfo.message}
+            </p>
+            {duplicateInfo.existingTrackingCode && (
+              <button 
+                type="button" 
+                style={{ background: "#dc2626", color: "white", border: "none", padding: "10px 18px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", fontSize: "0.85rem" }}
+                onClick={() => navigate("track")}
+              >
+                🔍 Track Existing Complaint ({duplicateInfo.existingTrackingCode})
+              </button>
+            )}
+          </div>
+        )}
         
         <form className="report-form-single" onSubmit={submitComplaint}>
           <div className="field-group">
@@ -404,18 +813,23 @@ function SubmitComplaint({ navigate, citizen }) {
                 {categories.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
               </select>
 
-              <div className="hazard-level-box" style={{ marginTop: "12px", padding: "10px 14px" }}>
-                <div className="hazard-left">
-                  <span className="siren">🚨</span>
-                  <div>
-                    <strong style={{ fontSize: "0.85rem" }}>HAZARD LEVEL</strong>
-                    <p style={{ margin: 0, fontSize: "0.75rem" }}>Emergency Reporting</p>
-                  </div>
+              <div style={{ marginTop: "12px" }}>
+                <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-text-muted)", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>VENDOR / BUSINESS NAME</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input required value={form.vendorName} onChange={(e) => setField("vendorName", e.target.value)} placeholder="Enter vendor name or scan QR" style={{ flex: 1 }} />
+                  <button type="button" onClick={qrScanning ? stopQrScan : startQrScan} style={{ background: qrScanning ? "#ef4444" : "#0ea5e9", color: "white", border: "none", padding: "8px 14px", borderRadius: "6px", fontWeight: "700", cursor: "pointer", fontSize: "0.8rem", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "6px" }}>
+                    {qrScanning ? "✕ Stop" : "📷 Scan QR"}
+                  </button>
                 </div>
-                <label className="toggle-switch" style={{ margin: 0 }}>
-                  <input type="checkbox" checked={form.emergency} onChange={(e) => setField("emergency", e.target.checked)} />
-                  <span className="slider round"></span>
-                </label>
+                {qrScanning && (
+                  <div style={{ marginTop: "10px", borderRadius: "8px", overflow: "hidden", border: "2px solid #0ea5e9" }}>
+                    <div id="qr-reader" ref={qrRef} style={{ width: "100%" }}></div>
+                  </div>
+                )}
+              </div>
+              <div style={{ marginTop: "12px" }}>
+                <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--gov-text-muted)", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>FSSAI LICENSE NO. (Optional)</label>
+                <input value={form.fssaiNumber} onChange={(e) => setField("fssaiNumber", e.target.value)} placeholder="e.g. 10020012345678" />
               </div>
             </div>
 
@@ -446,20 +860,27 @@ function SubmitComplaint({ navigate, citizen }) {
             <textarea required value={form.description} onChange={(e) => setField("description", e.target.value)} placeholder="Describe the issue in detail..." rows="4" />
           </div>
 
+          <div className="field-group">
+            <label>ADDRESS / LOCATION</label>
+            <input required value={form.address} onChange={(e) => setField("address", e.target.value)} placeholder="e.g. Shop No 12, MG Road, Panvel" />
+          </div>
+
           <div className="field-row-2">
             <div className="field-group">
               <label>DISTRICT</label>
-              <select value={form.district} onChange={(e) => setField("district", e.target.value)} required>
+              <select value={form.district} onChange={(e) => { setField("district", e.target.value); setField("taluka", ""); }} required>
                 <option value="">District</option>
-                {maharashtraDistricts.map(d => <option key={d} value={d.toLowerCase()}>{d}</option>)}
+                {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div className="field-group">
               <label>TALUKA</label>
-              <input type="text" value={form.taluka} onChange={(e) => setField("taluka", e.target.value)} placeholder="e.g. Haveli" required />
+              <select value={form.taluka} onChange={(e) => setField("taluka", e.target.value)} required disabled={!form.district}>
+                <option value="">Select Taluka</option>
+                {(maharashtraTalukas[form.district] || ["Headquarters", "Rural Area", "Other"]).map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
           </div>
-
           <div className="field-group">
             <div className="desc-header">
               <label>MAP PINPOINT</label>
@@ -472,6 +893,8 @@ function SubmitComplaint({ navigate, citizen }) {
               <GoogleMapPicker
                 lat={form.lat}
                 lng={form.lng}
+                district={form.district}
+                taluka={form.taluka}
                 onPick={({ lat, lng }) => {
                   setField("lat", lat.toFixed(6));
                   setField("lng", lng.toFixed(6));
@@ -493,24 +916,30 @@ function SubmitComplaint({ navigate, citizen }) {
   );
 }
 
-
-
-function GoogleMapPicker({ lat, lng, address, onPick }) {
+function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markerInstance = useRef(null);
+  const boundsRef = useRef(null);       // L.latLngBounds for the selected district
+  const boundsRectRef = useRef(null);   // visual rectangle overlay
+  const [boundsWarning, setBoundsWarning] = useState("");
+
+  // Validate if a latlng is inside allowed bounds
+  function isInsideBounds(latlng) {
+    if (!boundsRef.current) return true; // no district selected = allow anywhere
+    return boundsRef.current.contains(latlng);
+  }
 
   useEffect(() => {
     if (typeof L === "undefined" || !mapRef.current) return;
-    if (mapInstance.current) return; // already initialized
+    if (mapInstance.current) return;
 
     const initialLat = Number(lat) || 18.5204;
     const initialLng = Number(lng) || 73.8567;
 
-    // Define Maharashtra bounding box [southwest, northeast]
     const maharashtraBounds = L.latLngBounds(
-      L.latLng(15.60, 72.60), // South-West (Sindhudurg / Goa border)
-      L.latLng(22.00, 80.90)  // North-East (Gondia / MP border)
+      L.latLng(15.60, 72.60),
+      L.latLng(22.00, 80.90)
     );
 
     const map = L.map(mapRef.current, {
@@ -521,18 +950,36 @@ function GoogleMapPicker({ lat, lng, address, onPick }) {
     }).setView([initialLat, initialLng], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+      attribution: '\u00a9 OpenStreetMap contributors'
     }).addTo(map);
 
     const marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
-    
+
     map.on('click', (e) => {
+      if (!isInsideBounds(e.latlng)) {
+        setBoundsWarning("\u26a0\ufe0f You can only place the pin inside the selected district/taluka area.");
+        setTimeout(() => setBoundsWarning(""), 3000);
+        return;
+      }
+      setBoundsWarning("");
       marker.setLatLng(e.latlng);
       onPick({ lat: e.latlng.lat, lng: e.latlng.lng });
     });
 
     marker.on('dragend', () => {
       const position = marker.getLatLng();
+      if (!isInsideBounds(position)) {
+        setBoundsWarning("\u26a0\ufe0f Pin dragged outside the selected area. Moving back.");
+        // Move marker back to center of bounds
+        if (boundsRef.current) {
+          const center = boundsRef.current.getCenter();
+          marker.setLatLng(center);
+          onPick({ lat: center.lat, lng: center.lng });
+        }
+        setTimeout(() => setBoundsWarning(""), 3000);
+        return;
+      }
+      setBoundsWarning("");
       onPick({ lat: position.lat, lng: position.lng });
     });
 
@@ -540,16 +987,96 @@ function GoogleMapPicker({ lat, lng, address, onPick }) {
     markerInstance.current = marker;
   }, []);
 
+  // Handle explicit lat/lng updates from props
   useEffect(() => {
     if (!mapInstance.current || !markerInstance.current || !lat || !lng) return;
+    const currentPos = markerInstance.current.getLatLng();
+    if (Math.abs(currentPos.lat - Number(lat)) < 0.0001 && Math.abs(currentPos.lng - Number(lng)) < 0.0001) return;
     const position = [Number(lat), Number(lng)];
     mapInstance.current.setView(position);
     markerInstance.current.setLatLng(position);
   }, [lat, lng]);
 
+  // Auto-zoom + set bounds restriction when district/taluka changes
+  useEffect(() => {
+    if (!mapInstance.current) return;
+
+    // Clear previous bounds rectangle
+    if (boundsRectRef.current) {
+      mapInstance.current.removeLayer(boundsRectRef.current);
+      boundsRectRef.current = null;
+    }
+
+    if (!district) {
+      boundsRef.current = null;
+      return;
+    }
+
+    const coords = districtCoords[district];
+    if (!coords) return;
+
+    // Immediately zoom to district center
+    const zoomLevel = taluka ? 13 : coords.zoom;
+    mapInstance.current.flyTo([coords.lat, coords.lng], zoomLevel, { duration: 1.0 });
+
+    // Fetch precise bounding box from geocode proxy
+    const locationQuery = taluka
+      ? `${taluka}, ${district}, Maharashtra, India`
+      : `${district}, Maharashtra, India`;
+
+    const fetchBounds = async () => {
+      try {
+        const response = await fetch(`/api/geocode?q=${encodeURIComponent(locationQuery)}`);
+        const data = await response.json();
+        if (data && data.length > 0 && data[0].boundingbox) {
+          const bb = data[0].boundingbox;
+          const sw = L.latLng(parseFloat(bb[0]), parseFloat(bb[2]));
+          const ne = L.latLng(parseFloat(bb[1]), parseFloat(bb[3]));
+          const bounds = L.latLngBounds(sw, ne);
+          boundsRef.current = bounds;
+
+          // Draw a subtle rectangle to show allowed area
+          if (boundsRectRef.current) {
+            mapInstance.current.removeLayer(boundsRectRef.current);
+          }
+          boundsRectRef.current = L.rectangle(bounds, {
+            color: "#0ea5e9", weight: 2, fillColor: "#0ea5e9", fillOpacity: 0.05,
+            dashArray: "6 4", interactive: false
+          }).addTo(mapInstance.current);
+
+          // Fit map to the bounds
+          mapInstance.current.flyToBounds(bounds, { duration: 1.0, padding: [20, 20] });
+
+          // Move marker to center of bounds
+          const center = bounds.getCenter();
+          markerInstance.current.setLatLng(center);
+          onPick({ lat: center.lat, lng: center.lng });
+        }
+      } catch (err) {
+        // fallback: use approximate bounds around district center (0.5 degree box)
+        const approxBounds = L.latLngBounds(
+          L.latLng(coords.lat - 0.5, coords.lng - 0.5),
+          L.latLng(coords.lat + 0.5, coords.lng + 0.5)
+        );
+        boundsRef.current = approxBounds;
+      }
+    };
+    setTimeout(fetchBounds, 150);
+  }, [district, taluka]);
+
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <div className="map-canvas" ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
+      {boundsWarning && (
+        <div style={{ position: "absolute", bottom: "10px", left: "10px", right: "10px", background: "#fef2f2", border: "1px solid #fca5a5", color: "#991b1b", padding: "8px 12px", borderRadius: "6px", fontSize: "0.8rem", fontWeight: "700", zIndex: 1000, textAlign: "center" }}>
+          {boundsWarning}
+        </div>
+      )}
+      {district && (
+        <div style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(14, 165, 233, 0.9)", color: "white", padding: "4px 10px", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "700", zIndex: 1000 }}>
+          📍 Restricted to: {taluka ? `${taluka}, ${district}` : district}
+        </div>
+      )}
     </div>
   );
 }
@@ -576,6 +1103,14 @@ function MyHistory({ citizen, navigate }) {
 
   return (
     <section className="page history-page">
+      <div className="portal-page-header">
+        <div>
+          <h1>Transparency Register & History</h1>
+          <p>View all complaints logged under your profile and monitor official resolution stages.</p>
+        </div>
+        <span className="portal-page-badge">Registered Citizen Records</span>
+      </div>
+
       <div className="report-container" style={{ maxWidth: "900px" }}>
         <div className="report-header" style={{ marginBottom: "24px" }}>
           <span className="icon">📚</span>
@@ -681,6 +1216,7 @@ function TrackComplaint({ citizen, navigate }) {
 
   return (
     <section className="page track-page">
+
       <div className="report-container" style={{ maxWidth: "950px" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
           <h2 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>Public Food Safety Tracker & Feed</h2>
@@ -811,7 +1347,110 @@ function TrackComplaint({ citizen, navigate }) {
   );
 }
 
-function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
+function GoogleIcon() {
+  return (
+    <svg className="google-icon" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+    </svg>
+  );
+}
+
+function IconMail() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function IconLock() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function IconUser() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function IconPhone() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  );
+}
+
+function IconEye({ show }) {
+  if (show) {
+    return (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+      <line x1="2" x2="22" y1="2" y2="22" />
+    </svg>
+  );
+}
+
+function AuthIllustration({ mode }) {
+  if (mode === "register") {
+    return (
+      <div className="auth-illustration-wrap">
+        <svg viewBox="0 0 340 75" className="auth-illustration-svg" fill="none">
+          <path d="M0 65 Q170 48 340 65 L340 75 L0 75 Z" fill="#dcfce7" opacity="0.6" />
+          <rect x="25" y="38" width="55" height="26" rx="3" fill="#fed7aa" stroke="#f97316" strokeWidth="1.2" />
+          <line x1="25" y1="48" x2="80" y2="48" stroke="#f97316" strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="40" cy="35" r="9" fill="#22c55e" opacity="0.9" />
+          <circle cx="54" cy="31" r="11" fill="#16a34a" opacity="0.95" />
+          <path d="M58 36 L68 20 L73 36 Z" fill="#ea580c" />
+          <rect x="92" y="28" width="16" height="36" rx="3" fill="#ffffff" stroke="#94a3b8" strokeWidth="1.4" />
+          <rect x="95" y="23" width="10" height="5" rx="1" fill="#38bdf8" />
+          <circle cx="120" cy="54" r="8" fill="#ef4444" />
+          <circle cx="134" cy="56" r="7" fill="#f59e0b" />
+        </svg>
+        <span className="auth-cursive-tag">Healthy Food, Stronger Maharashtra</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-illustration-wrap">
+      <svg viewBox="0 0 340 75" className="auth-illustration-svg" fill="none">
+        <path d="M0 65 Q170 48 340 65 L340 75 L0 75 Z" fill="#dcfce7" opacity="0.6" />
+        <path d="M55 65 V36 H65 V28 H105 V36 H115 V65 M75 65 V44 Q85 38 95 44 V65" stroke="#94a3b8" strokeWidth="1.4" fill="none" opacity="0.55" />
+        <rect x="70" y="24" width="30" height="4" fill="#94a3b8" opacity="0.4" />
+        <circle cx="140" cy="55" r="10" fill="#f59e0b" />
+        <circle cx="155" cy="52" r="12" fill="#ef4444" />
+        <rect x="174" y="36" width="14" height="28" rx="2.5" fill="#ffffff" stroke="#94a3b8" strokeWidth="1.4" />
+        <rect x="176" y="31" width="10" height="5" rx="1" fill="#38bdf8" />
+        <circle cx="196" cy="55" r="10" fill="#22c55e" />
+      </svg>
+      <span className="auth-cursive-tag">Food Safety for a Better Tomorrow</span>
+    </div>
+  );
+}
+
+function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNavigate }) {
   const [currentMode, setCurrentMode] = useState(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -821,10 +1460,32 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
   const [resetRole, setResetRole] = useState("user");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [agreedTerms, setAgreedTerms] = useState(true);
 
   useEffect(() => {
     setCurrentMode(mode);
   }, [mode]);
+
+  useEffect(() => {
+    document.body.classList.add("auth-no-scroll");
+    return () => {
+      document.body.classList.remove("auth-no-scroll");
+    };
+  }, []);
+
+  // Safely redirect after auth success — bypasses the stale citizen closure
+  // in navigate() which still sees citizen=null right after setCitizen() is called.
+  function postAuthRedirect(redirectTarget) {
+    const dest = redirectTarget || "home";
+    if (forceNavigate) {
+      forceNavigate(dest);
+    } else {
+      // Fallback: use hash change (triggers syncPage in App)
+      window.location.hash = dest === "home" ? "" : dest;
+    }
+  }
 
   async function submit(event) {
     event.preventDefault();
@@ -832,8 +1493,8 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
 
     if (currentMode === "otp_request") {
       try {
-        await api("/api/auth/users/otp/request", { method: "POST", body: JSON.stringify({ email: emailOrPhone }) });
-        setMessage("OTP sent to your email!");
+        const res = await api("/api/auth/users/otp/request", { method: "POST", body: JSON.stringify({ emailOrPhone }) });
+        setMessage(res.message || "OTP sent to your registered mobile number and email!");
         setCurrentMode("otp_verify");
       } catch (error) {
         setMessage(error.message);
@@ -845,14 +1506,14 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
       try {
         const data = await api("/api/auth/users/otp/verify", {
           method: "POST",
-          body: JSON.stringify({ email: emailOrPhone, otp })
+          body: JSON.stringify({ emailOrPhone, otp })
         });
         localStorage.setItem("safewatch_user", JSON.stringify(data.user));
         localStorage.setItem("safewatch_user_token", data.token);
         localStorage.removeItem("safewatch_token");
         localStorage.removeItem("safewatch_officer");
         setCitizen(data.user);
-        navigate("home");
+        postAuthRedirect(loginRedirect);
       } catch (error) {
         setMessage(error.message);
       }
@@ -861,8 +1522,8 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
 
     if (currentMode === "forgot_password_request") {
       try {
-        await api("/api/auth/users/forgot-password/request", { method: "POST", body: JSON.stringify({ emailOrPhone, role: resetRole }) });
-        setMessage("Password reset OTP sent to your email!");
+        const res = await api("/api/auth/users/forgot-password/request", { method: "POST", body: JSON.stringify({ emailOrPhone, role: resetRole }) });
+        setMessage(res.message || "Password reset OTP sent to your registered mobile and email!");
         setCurrentMode("forgot_password_verify");
       } catch (error) {
         setMessage(error.message);
@@ -902,6 +1563,10 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
     }
 
     if (currentMode === "register") {
+      if (!agreedTerms) {
+        setMessage("Please agree to the Terms & Conditions and Privacy Policy.");
+        return;
+      }
       try {
         const data = await api("/api/auth/users/register", {
           method: "POST",
@@ -912,7 +1577,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
         localStorage.removeItem("safewatch_token");
         localStorage.removeItem("safewatch_officer");
         setCitizen(data.user);
-        navigate("home");
+        postAuthRedirect(loginRedirect);
       } catch (error) {
         setMessage(error.message);
       }
@@ -929,171 +1594,665 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate }) {
       localStorage.removeItem("safewatch_token");
       localStorage.removeItem("safewatch_officer");
       setCitizen(data.user);
-      navigate("home");
+      postAuthRedirect(loginRedirect);
     } catch (error) {
       setMessage(error.message);
     }
   }
 
+  const isRegister = currentMode === "register";
+
   return (
-    <div className="swift-login-wrapper">
-      <div className="swift-login-card">
-        {currentMode === "register" ? (
-          <>
-            <div className="swift-title"><span className="welcome">Create</span> <span className="back">Account</span></div>
-            <p className="swift-subtitle">Register to submit and track civic issues</p>
-          </>
-        ) : currentMode.startsWith("otp") ? (
-          <>
-            <div className="swift-title"><span className="welcome">OTP</span> <span className="back">Login</span></div>
-            <p className="swift-subtitle">Secure login without a password</p>
-          </>
-        ) : currentMode.startsWith("forgot") ? (
-          <>
-            <div className="swift-title"><span className="welcome">Reset</span> <span className="back">Password</span></div>
-            <p className="swift-subtitle">Recover access to your account</p>
-          </>
-        ) : (
-          <>
-            <div className="swift-title"><span className="welcome">Welcome</span> <span className="back">Back</span></div>
-            <p className="swift-subtitle">Sign in to report and track civic issues</p>
-          </>
-        )}
-        
-        <div className="swift-tabs">
-          <button type="button" className={`swift-tab ${currentMode !== "admin" ? "active" : ""}`} onClick={() => setCurrentMode("login")}>👤 Citizen</button>
-          <button type="button" className={`swift-tab ${currentMode === "admin" ? "active" : ""}`} onClick={() => setCurrentMode("admin")}>🏛️ Government</button>
-        </div>
+    <section className="page login-page">
+      <div className="auth-split-wrapper">
+        <div className="auth-split-container">
+          
+          {/* Left Column: Branding & Features matching reference mockup */}
+          <div className="auth-left-brand">
+            <div className="auth-badge-pill">
+              {isRegister ? "Be a Part of Safer Maharashtra" : "Safe Food • Healthy People • Stronger Maharashtra"}
+            </div>
 
-        <form className="swift-form" onSubmit={submit}>
-          {(currentMode === "login" || currentMode === "admin") && (
-            <>
-              <label className="swift-label">{currentMode === "admin" ? "Official Email address" : "Email address or Mobile"}</label>
-              <input className="swift-input" type={currentMode === "admin" ? "email" : "text"} value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder={currentMode === "admin" ? "admin@aarogya.gov.in" : "email@domain.com"} required />
-              
-              <label className="swift-label">Password</label>
-              <input className="swift-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              
-              <div style={{ textAlign: "right", marginTop: "-15px", marginBottom: "15px" }}>
-                <button type="button" className="swift-link-btn" onClick={() => { setResetRole(currentMode === "admin" ? "admin" : "user"); setCurrentMode("forgot_password_request"); }}>Forgot Password?</button>
-              </div>
+            <h1 className="auth-brand-heading">
+              {isRegister ? (
+                <>Create<br /><span className="accent-green">Your Account</span></>
+              ) : (
+                <>Report.<br />Track.<br /><span className="accent-green">Ensure Safe Food.</span></>
+              )}
+            </h1>
 
-              <button className="swift-button">Login</button>
-              {currentMode === "login" && (
+            <p className="auth-brand-sub">
+              {isRegister
+                ? "Register to submit complaints, track progress and contribute towards safer food for everyone."
+                : "Join FDA SafeWatch to report food safety issues and help us build a healthier Maharashtra."}
+            </p>
+
+            <div className="auth-features-list">
+              {isRegister ? (
                 <>
-                  <button type="button" className="swift-otp" onClick={() => setCurrentMode("otp_request")}>📱 Login with Email OTP instead</button>
-                  <div className="swift-footer">
-                    New to Aarogya? <button type="button" onClick={() => { setCurrentMode("register"); navigate("register"); }}>Register</button>
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#fff7ed", color: "#ea580c" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Quick Registration</h4>
+                      <p className="auth-feature-desc">Get started in minutes</p>
+                    </div>
+                  </div>
+
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#ecfdf5", color: "#059669" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Secure & Trusted</h4>
+                      <p className="auth-feature-desc">Your data is safe with us</p>
+                    </div>
+                  </div>
+
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#eff6ff", color: "#2563eb" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Track Your Complaints</h4>
+                      <p className="auth-feature-desc">Stay informed at every stage</p>
+                    </div>
+                  </div>
+
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#faf5ff", color: "#7c3aed" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Make a Difference</h4>
+                      <p className="auth-feature-desc">Help build a healthier Maharashtra</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#ecfdf5", color: "#059669" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Report Complaints</h4>
+                      <p className="auth-feature-desc">Easily submit food safety issues</p>
+                    </div>
+                  </div>
+
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#eff6ff", color: "#2563eb" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.3-4.3" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Track Progress</h4>
+                      <p className="auth-feature-desc">Stay updated in real-time</p>
+                    </div>
+                  </div>
+
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#e0f2fe", color: "#003b6d" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Transparent System</h4>
+                      <p className="auth-feature-desc">Accountability at every step</p>
+                    </div>
+                  </div>
+
+                  <div className="auth-feature-item">
+                    <div className="auth-feature-icon-wrap" style={{ background: "#f0fdf4", color: "#16a34a" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+                      </svg>
+                    </div>
+                    <div className="auth-feature-text">
+                      <h4 className="auth-feature-title">Safer Maharashtra</h4>
+                      <p className="auth-feature-desc">Better food for a healthier tomorrow</p>
+                    </div>
                   </div>
                 </>
               )}
-            </>
-          )}
+            </div>
 
-          {currentMode === "otp_request" && (
-            <>
-              <label className="swift-label">Registered Email address</label>
-              <input className="swift-input" type="email" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} required />
-              
-              <button className="swift-button">Send OTP</button>
-              <button type="button" className="swift-otp" onClick={() => setCurrentMode("login")}>Back to password login</button>
-            </>
-          )}
+            <AuthIllustration mode={isRegister ? "register" : "login"} />
+          </div>
 
-          {currentMode === "otp_verify" && (
-            <>
-              <label className="swift-label">Enter 6-digit OTP</label>
-              <input className="swift-input" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} required />
-              
-              <button className="swift-button">Verify & Login</button>
-              <button type="button" className="swift-otp" onClick={() => setCurrentMode("otp_request")}>Resend OTP</button>
-            </>
-          )}
+          {/* Right Column: Form Card matching reference mockup */}
+          <div className="swift-login-card">
+            {isRegister ? (
+              <>
+                <div className="swift-title">
+                  <span className="title-navy">Create </span>
+                  <span className="title-green">Account</span>
+                </div>
+                <p className="swift-subtitle">Fill in your details to get started</p>
+              </>
+            ) : currentMode.startsWith("otp") ? (
+              <>
+                <div className="swift-title">
+                  <span className="title-navy">OTP </span>
+                  <span className="title-green">Login</span>
+                </div>
+                <p className="swift-subtitle">Secure login without a password</p>
+              </>
+            ) : currentMode.startsWith("forgot") ? (
+              <>
+                <div className="swift-title">
+                  <span className="title-navy">Reset </span>
+                  <span className="title-green">Password</span>
+                </div>
+                <p className="swift-subtitle">Recover access to your account</p>
+              </>
+            ) : (
+              <>
+                <div className="swift-title">
+                  <span className="title-navy">Welcome </span>
+                  <span className="title-green">Back</span>
+                </div>
+                <p className="swift-subtitle">Sign in to continue to FDA SafeWatch</p>
+              </>
+            )}
 
-          {currentMode === "forgot_password_request" && (
-            <>
-              <label className="swift-label">Registered {resetRole === "admin" ? "Phone or Email" : "Email or Mobile"}</label>
-              <input className="swift-input" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} required />
-              
-              <button className="swift-button">Send Reset OTP</button>
-              <button type="button" className="swift-otp" onClick={() => setCurrentMode(resetRole === "admin" ? "admin" : "login")}>Back to login</button>
-            </>
-          )}
+            <form className="swift-form" onSubmit={submit}>
+              {(currentMode === "login" || currentMode === "admin") && (
+                <>
+                  <label className="swift-label">{currentMode === "admin" ? "Official Email address" : "Email address or Mobile number"}</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconMail /></span>
+                    <input
+                      className="swift-input swift-input-with-icon"
+                      type={currentMode === "admin" ? "email" : "text"}
+                      value={emailOrPhone}
+                      onChange={(e) => setEmailOrPhone(e.target.value)}
+                      placeholder="Enter your email or mobile number"
+                      required
+                    />
+                  </div>
+                  
+                  <label className="swift-label">Password</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconLock /></span>
+                    <input
+                      className="swift-input swift-input-with-icon swift-input-with-eye"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="swift-input-eye"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <IconEye show={showPassword} />
+                    </button>
+                  </div>
+                  
+                  <div className="auth-row-between">
+                    <label className="auth-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Remember me</span>
+                    </label>
+                    <button
+                      type="button"
+                      className="auth-link-green"
+                      onClick={() => { setResetRole(currentMode === "admin" ? "admin" : "user"); setCurrentMode("forgot_password_request"); }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
 
-          {currentMode === "forgot_password_verify" && (
-            <>
-              <label className="swift-label">Enter 6-digit Reset OTP</label>
-              <input className="swift-input" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+                  <button className="swift-button auth-submit-btn">
+                    <span>Login</span>
+                    <span className="btn-arrow">→</span>
+                  </button>
 
-              <label className="swift-label">New Password</label>
-              <input className="swift-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              
-              <button className="swift-button">Reset Password</button>
-              <button type="button" className="swift-otp" onClick={() => setCurrentMode("forgot_password_request")}>Resend OTP</button>
-            </>
-          )}
+                  {currentMode === "login" && (
+                    <>
+                      <button type="button" className="swift-otp" onClick={() => setCurrentMode("otp_request")}>
+                        📱 Login with Mobile / Email OTP
+                      </button>
+                      <div className="auth-footer-clean">
+                        New to FDA SafeWatch? <button type="button" onClick={() => { setCurrentMode("register"); navigate("register"); }}>Register</button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
 
-          {currentMode === "register" && (
-            <>
-              <label className="swift-label">Full name</label>
-              <input className="swift-input" value={name} onChange={(e) => setName(e.target.value)} required />
+              {currentMode === "otp_request" && (
+                <>
+                  <label className="swift-label">Registered Mobile number or Email address</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconPhone /></span>
+                    <input
+                      className="swift-input swift-input-with-icon"
+                      type="text"
+                      value={emailOrPhone}
+                      onChange={(e) => setEmailOrPhone(e.target.value)}
+                      placeholder="Enter 10-digit mobile or email"
+                      required
+                    />
+                  </div>
+                  
+                  <button className="swift-button auth-submit-btn">
+                    <span>Send OTP</span>
+                    <span className="btn-arrow">→</span>
+                  </button>
+                  <button type="button" className="swift-otp" onClick={() => setCurrentMode("login")}>Back to password login</button>
+                </>
+              )}
 
-              <label className="swift-label">Email</label>
-              <input className="swift-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              {currentMode === "otp_verify" && (
+                <>
+                  <p style={{ fontSize: "0.82rem", color: "#475569", margin: "0 0 0.8rem 0" }}>
+                    Enter the 6-digit OTP code sent to <strong>{emailOrPhone}</strong>:
+                  </p>
+                  <label className="swift-label">Enter 6-digit OTP</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconLock /></span>
+                    <input className="swift-input swift-input-with-icon" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" required />
+                  </div>
+                  
+                  <button className="swift-button auth-submit-btn">
+                    <span>Verify & Login</span>
+                    <span className="btn-arrow">→</span>
+                  </button>
+                  <button type="button" className="swift-otp" onClick={() => setCurrentMode("otp_request")}>Resend OTP</button>
+                </>
+              )}
 
-              <label className="swift-label">Mobile number</label>
-              <input className="swift-input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+              {currentMode === "forgot_password_request" && (
+                <>
+                  <label className="swift-label">Registered {resetRole === "admin" ? "Phone or Email" : "Email or Mobile"}</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconMail /></span>
+                    <input className="swift-input swift-input-with-icon" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="Enter email or mobile" required />
+                  </div>
+                  
+                  <button className="swift-button auth-submit-btn">
+                    <span>Send Reset OTP</span>
+                    <span className="btn-arrow">→</span>
+                  </button>
+                  <button type="button" className="swift-otp" onClick={() => setCurrentMode(resetRole === "admin" ? "admin" : "login")}>Back to login</button>
+                </>
+              )}
 
-              <label className="swift-label">Password</label>
-              <input className="swift-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              
-              <button className="swift-button">Create account</button>
-              <div className="swift-footer">
-                Already registered? <button type="button" onClick={() => { setCurrentMode("login"); navigate("login"); }}>Login</button>
-              </div>
-            </>
-          )}
-        </form>
-        {message && <p className="notice" style={{marginTop: "1rem"}}>{message}</p>}
+              {currentMode === "forgot_password_verify" && (
+                <>
+                  <label className="swift-label">Enter 6-digit Reset OTP</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconLock /></span>
+                    <input className="swift-input swift-input-with-icon" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit reset OTP" required />
+                  </div>
+
+                  <label className="swift-label">New Password</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconLock /></span>
+                    <input className="swift-input swift-input-with-icon" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password" required />
+                  </div>
+                  
+                  <button className="swift-button auth-submit-btn">
+                    <span>Reset Password</span>
+                    <span className="btn-arrow">→</span>
+                  </button>
+                  <button type="button" className="swift-otp" onClick={() => setCurrentMode("forgot_password_request")}>Resend OTP</button>
+                </>
+              )}
+
+              {isRegister && (
+                <>
+                  <label className="swift-label">Full name</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconUser /></span>
+                    <input
+                      className="swift-input swift-input-with-icon"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+
+                  <label className="swift-label">Email address</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconMail /></span>
+                    <input
+                      className="swift-input swift-input-with-icon"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      required
+                    />
+                  </div>
+
+                  <label className="swift-label">Mobile number</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconPhone /></span>
+                    <input
+                      className="swift-input swift-input-with-icon"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Enter 10-digit mobile number"
+                      required
+                    />
+                  </div>
+
+                  <label className="swift-label">Password</label>
+                  <div className="swift-input-wrap">
+                    <span className="swift-input-icon"><IconLock /></span>
+                    <input
+                      className="swift-input swift-input-with-icon swift-input-with-eye"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Create a password (min. 6 characters)"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="swift-input-eye"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      <IconEye show={showPassword} />
+                    </button>
+                  </div>
+                  
+                  <div className="auth-terms-row">
+                    <label className="auth-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={agreedTerms}
+                        onChange={(e) => setAgreedTerms(e.target.checked)}
+                        required
+                      />
+                      <span>I agree to the <span className="terms-highlight">Terms & Conditions</span> and <span className="terms-highlight">Privacy Policy</span></span>
+                    </label>
+                  </div>
+
+                  <button className="swift-button auth-submit-btn">
+                    <span>Create Account</span>
+                    <span className="btn-arrow">→</span>
+                  </button>
+
+                  <div className="auth-footer-clean">
+                    Already registered? <button type="button" onClick={() => { setCurrentMode("login"); navigate("login"); }}>Login</button>
+                  </div>
+                </>
+              )}
+            </form>
+            {message && <p className="notice" style={{marginTop: "0.65rem"}}>{message}</p>}
+          </div>
+
+        </div>
       </div>
-    </div>
+
+    </section>
   );
 }
 
 function AdminLogin({ setOfficer, setPage }) {
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   async function submit(event) {
     event.preventDefault();
     setMessage("");
+    setLoading(true);
     try {
-      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email: emailOrPhone, phone: emailOrPhone, password }) });
+      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
       localStorage.setItem("safewatch_token", data.token);
       localStorage.setItem("safewatch_officer", JSON.stringify(data.officer));
       localStorage.removeItem("safewatch_user");
       localStorage.removeItem("safewatch_user_token");
       setOfficer(data.officer);
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message || "Authentication failed. Verify your official credentials.");
+    } finally {
+      setLoading(false);
     }
   }
 
+  function fillDemoAdmin() {
+    setEmail("fda@gmail.com");
+    setPassword("Admin@12345");
+    setMessage("");
+  }
+
   return (
-    <section className="page narrow login-page soft-grid admin-entry">
-      <p className="eyebrow">Officer access</p>
-      <h1>Admin login</h1>
-      <p className="login-help">This page is not linked from the public site. Authorized officers only.</p>
-      <form className="report-form" onSubmit={submit}>
-        <section className="form-section login-box">
-          <label>Official Email address<input type="email" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="admin@aarogya.gov.in" required /></label>
-          <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Admin password" required /></label>
-          <button className="primary"><IconMark>IN</IconMark> Sign in</button>
-        </section>
-      </form>
-      <button type="button" className="back-public" onClick={() => { window.location.hash = ""; window.location.reload(); }}>Back to public site</button>
-      {message && <p className="notice">{message}</p>}
+    <section className="admin-split-page">
+      {/* Left Column: Official FDA Hero Branding */}
+      <div className="admin-split-hero">
+        <div className="admin-split-hero-content">
+          <span className="admin-split-gov-badge">Government of Maharashtra</span>
+          <h1 className="admin-split-title-hero">
+            Food &amp; Drug<br />
+            <span className="green-accent">Administration</span>
+          </h1>
+          <p className="admin-split-tagline-hero">
+            State Food Safety Enforcement &amp; Redressal System
+          </p>
+
+          <div className="admin-split-features">
+            <div className="admin-split-feature-item">
+              <div className="admin-split-icon-circle green">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+              </div>
+              <div className="admin-split-feature-text">
+                <h4>Ensure Food Safety</h4>
+                <p>Safe food for a healthier Maharashtra</p>
+              </div>
+            </div>
+
+            <div className="admin-split-feature-item">
+              <div className="admin-split-icon-circle blue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+              </div>
+              <div className="admin-split-feature-text">
+                <h4>Track &amp; Resolve</h4>
+                <p>Transparent complaint tracking</p>
+              </div>
+            </div>
+
+            <div className="admin-split-feature-item">
+              <div className="admin-split-icon-circle purple">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div className="admin-split-feature-text">
+                <h4>Accountability</h4>
+                <p>Stronger enforcement, safer communities</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Glass Quote */}
+        <div className="admin-split-quote-glass">
+          <div className="admin-quote-leaf-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
+          </div>
+          <div>
+            <p>“Safe Food Today, A Healthier Tomorrow”</p>
+            <div className="quote-green-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Floating White Login Card */}
+      <div className="admin-split-form-panel">
+        <div className="admin-white-login-card">
+          
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <img 
+              src={FDA_LOGO_IMG} 
+              alt="Food and Drug Administration Maharashtra Logo" 
+              className="admin-split-fda-logo"
+              onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
+            />
+          </div>
+
+          <h2 className="admin-split-card-title">Administrative Console</h2>
+          <p className="admin-split-card-sub">State Food Safety Enforcement &amp; Redressal System</p>
+
+          <div style={{ textAlign: "center" }}>
+            <div className="admin-split-clearance-pill">
+              <span>🔒</span> RESTRICTED CLEARANCE • LEVEL-3 AUTH
+            </div>
+          </div>
+
+          {message && (
+            <div className="admin-split-alert-error" role="alert">
+              <span>⚠️</span>
+              <span>{message}</span>
+            </div>
+          )}
+
+          {/* 1-Click Demo Credentials Chip */}
+          <button 
+            type="button" 
+            className="admin-split-demo-chip"
+            onClick={fillDemoAdmin}
+            title="Click to auto-fill default admin credentials"
+          >
+            <span>⚡ Fill Default Admin Credentials</span>
+            <span className="chip-badge">fda@gmail.com</span>
+          </button>
+
+          <form onSubmit={submit}>
+            <div className="admin-split-form-group">
+              <label className="admin-split-label">Official Email Address</label>
+              <div className="admin-split-input-wrap">
+                <span className="admin-split-input-icon"><IconMail /></span>
+                <input 
+                  className="admin-split-input" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="fda@gmail.com" 
+                  autoComplete="username"
+                  required 
+                />
+              </div>
+            </div>
+
+            <div className="admin-split-form-group">
+              <label className="admin-split-label">Master Password</label>
+              <div className="admin-split-input-wrap">
+                <span className="admin-split-input-icon"><IconLock /></span>
+                <input 
+                  className="admin-split-input admin-split-input-with-eye" 
+                  type={showPassword ? "text" : "password"} 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  autoComplete="current-password"
+                  required 
+                />
+                <button 
+                  type="button" 
+                  className="admin-split-eye-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <IconEye show={showPassword} />
+                </button>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              className="admin-split-submit-btn"
+              disabled={loading}
+            >
+              {loading ? (
+                <>⏳ Authenticating Officer...</>
+              ) : (
+                <>🔒 Authenticate &amp; Enter Console &rarr;</>
+              )}
+            </button>
+
+            {/* Official Warning Box */}
+            <div className="admin-split-warning-box">
+              <span className="warning-icon">⚠️</span>
+              <p>
+                <strong>Official Warning:</strong> This portal is exclusively designated for FDA Maharashtra authorized personnel. All authentication transactions, IP addresses, and operational actions are logged and audited pursuant to Sec. 43 of the Information Technology Act, 2000.
+              </p>
+            </div>
+
+            {/* Back to Public Portal Link */}
+            <div className="admin-split-footer">
+              <button 
+                type="button" 
+                className="admin-split-back-link"
+                onClick={() => { window.location.hash = ""; setPage("home"); }}
+              >
+                &larr; Return to Citizen Public Portal
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
     </section>
   );
 }
@@ -1335,40 +2494,44 @@ function TabAnalytics({ complaints }) {
 function TabHeatmap({ complaints }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
+  const markersLayer = useRef(null);
 
   useEffect(() => {
     if (typeof L === "undefined" || !mapRef.current) return;
-    if (mapInstance.current) return; // Prevent double initialization
+    if (mapInstance.current) return;
 
-    // Define Maharashtra bounding box [southwest, northeast]
     const maharashtraBounds = L.latLngBounds(
       L.latLng(15.60, 72.60),
       L.latLng(22.00, 80.90)
     );
 
-    // Center on Maharashtra
     const map = L.map(mapRef.current, {
       maxBounds: maharashtraBounds,
       maxBoundsViscosity: 1.0,
       minZoom: 6,
       maxZoom: 18
     }).setView([19.7515, 75.7139], 7);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+      attribution: '\u00a9 OpenStreetMap contributors'
     }).addTo(map);
+
+    markersLayer.current = L.layerGroup().addTo(map);
+    mapInstance.current = map;
+    setTimeout(() => map.invalidateSize(), 300);
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstance.current || !markersLayer.current) return;
+    markersLayer.current.clearLayers();
 
     complaints.forEach((c) => {
       if (c.lat && c.lng) {
         const color = c.status === "resolved" ? "#22c55e" : (c.status === "submitted" ? "#ef4444" : "#f59e0b");
         const circle = L.circleMarker([Number(c.lat), Number(c.lng)], {
-          radius: 8,
-          fillColor: color,
-          color: "#ffffff",
-          weight: 1,
-          opacity: 1,
-          fillOpacity: 0.8
-        }).addTo(map);
-
+          radius: 8, fillColor: color, color: "#ffffff",
+          weight: 1, opacity: 1, fillOpacity: 0.8
+        });
         circle.bindPopup(`
           <div style="font-family: sans-serif; padding: 4px;">
             <strong style="color: #0f172a;">${c.trackingCode}</strong><br/>
@@ -1376,11 +2539,9 @@ function TabHeatmap({ complaints }) {
             <small style="color: #64748b;">District: ${c.district}</small>
           </div>
         `);
+        markersLayer.current.addLayer(circle);
       }
     });
-
-    mapInstance.current = map;
-    setTimeout(() => map.invalidateSize(), 300);
   }, [complaints]);
 
   return (
@@ -1403,11 +2564,13 @@ function TabManageDB({ complaints, openComplaint, assignToDistrict, officer }) {
   const [catFilter, setCatFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [districtFilter, setDistrictFilter] = useState("");
+  const [talukaFilter, setTalukaFilter] = useState("");
 
   const filtered = complaints.filter(c => {
     if (catFilter && c.category !== catFilter) return false;
     if (statusFilter && c.status !== statusFilter) return false;
     if (districtFilter && c.district !== districtFilter) return false;
+    if (talukaFilter && c.taluka !== talukaFilter) return false;
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       if (!c.trackingCode?.toLowerCase().includes(q) && !c.vendorName?.toLowerCase().includes(q)) return false;
@@ -1435,13 +2598,24 @@ function TabManageDB({ complaints, openComplaint, assignToDistrict, officer }) {
             {statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Filter District</div>
-          <select value={districtFilter} onChange={e => setDistrictFilter(e.target.value)}>
-            <option value="">All Districts</option>
-            {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </div>
+        {officer?.role === "super_admin" && (
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Filter District</div>
+            <select value={districtFilter} onChange={e => { setDistrictFilter(e.target.value); setTalukaFilter(""); }}>
+              <option value="">All Districts</option>
+              {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+        )}
+        {officer?.role === "super_admin" && districtFilter && (
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--gov-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Filter Taluka</div>
+            <select value={talukaFilter} onChange={e => setTalukaFilter(e.target.value)}>
+              <option value="">All Talukas</option>
+              {(maharashtraTalukas[districtFilter] || []).map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        )}
         <div style={{ display: "flex", alignItems: "center", padding: "0 1rem", fontWeight: "700", fontSize: "0.875rem" }}>
           <span style={{ color: "var(--gov-orange)", marginRight: "0.25rem" }}>{filtered.length}</span> matching records
         </div>
@@ -1492,15 +2666,6 @@ function TabManageDB({ complaints, openComplaint, assignToDistrict, officer }) {
                 <td>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <button className="gov-btn" onClick={() => openComplaint(c._id)}>Administrate &rarr;</button>
-                    {officer?.role === "super_admin" && (
-                      <button 
-                        type="button"
-                        style={{ background: "#059669", color: "white", border: "none", borderRadius: "6px", padding: "6px 12px", fontSize: "0.8rem", fontWeight: "bold", cursor: "pointer" }}
-                        onClick={() => assignToDistrict(c._id)}
-                      >
-                        🏛️ Assign to District
-                      </button>
-                    )}
                   </div>
                 </td>
               </tr>
@@ -1513,9 +2678,9 @@ function TabManageDB({ complaints, openComplaint, assignToDistrict, officer }) {
 }
 
 function TabDistrictAdmins() {
-  const [subAdmin, setSubAdmin] = useState({ name: "", phone: "", password: "", district: "Pune" });
+  const [subAdmin, setSubAdmin] = useState({ name: "", email: "", phone: "", password: "", district: "Pune" });
   const [editingAdmin, setEditingAdmin] = useState(null); // id of admin being edited
-  const [editForm, setEditForm] = useState({ name: "", phone: "", password: "", district: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", password: "", district: "" });
   const [adminList, setAdminList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
@@ -1542,7 +2707,7 @@ function TabDistrictAdmins() {
     try {
       const data = await api("/api/auth/subadmins", { method: "POST", body: JSON.stringify(subAdmin) });
       setMsg(`Successfully created subadmin ${data.officer.name} for ${data.officer.district}`);
-      setSubAdmin({ name: "", phone: "", password: "", district: "Pune" });
+      setSubAdmin({ name: "", email: "", phone: "", password: "", district: "Pune" });
       await loadAdmins();
     } catch (err) {
       setMsg(err.message);
@@ -1551,7 +2716,7 @@ function TabDistrictAdmins() {
 
   function startEdit(adm) {
     setEditingAdmin(adm._id);
-    setEditForm({ name: adm.name, phone: adm.phone, password: "", district: adm.district });
+    setEditForm({ name: adm.name, email: adm.email || "", phone: adm.phone || "", password: "", district: adm.district });
   }
 
   async function saveEdit(e, id) {
@@ -1591,8 +2756,8 @@ function TabDistrictAdmins() {
             <input value={subAdmin.name} onChange={e => setSubAdmin({ ...subAdmin, name: e.target.value })} placeholder="District Official Name" required />
           </div>
           <div className="gov-form-group">
-            <label>OFFICIAL PHONE NUMBER</label>
-            <input value={subAdmin.phone} onChange={e => setSubAdmin({ ...subAdmin, phone: e.target.value })} placeholder="10-digit mobile" required />
+            <label>OFFICIAL EMAIL ADDRESS</label>
+            <input type="email" value={subAdmin.email} onChange={e => setSubAdmin({ ...subAdmin, email: e.target.value })} placeholder="admin@pune.fda.gov.in" required />
           </div>
           <div className="gov-form-group">
             <label>SECURITY PASSWORD</label>
@@ -1641,7 +2806,7 @@ function TabDistrictAdmins() {
                 <form onSubmit={(e) => saveEdit(e, adm._id)} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <h4 style={{ margin: 0, fontSize: "0.9rem", color: "#0f172a" }}>Edit Admin: {adm.name}</h4>
                   <input value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} placeholder="Full Name" required style={{ padding: "6px", fontSize: "0.85rem" }} />
-                  <input value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} placeholder="Phone" required style={{ padding: "6px", fontSize: "0.85rem" }} />
+                  <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} placeholder="Official Email" required style={{ padding: "6px", fontSize: "0.85rem" }} />
                   <input type="password" value={editForm.password} onChange={e => setEditForm({ ...editForm, password: e.target.value })} placeholder="New Password (leave empty to keep current)" style={{ padding: "6px", fontSize: "0.85rem" }} />
                   <select value={editForm.district} onChange={e => setEditForm({ ...editForm, district: e.target.value })} style={{ padding: "6px", fontSize: "0.85rem" }}>
                     {maharashtraDistricts.map(d => <option key={d} value={d}>{d}</option>)}
@@ -1686,13 +2851,14 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
   const isSuperAdmin = officer && officer.role === "super_admin";
   const isDistrictAdmin = officer && officer.role !== "super_admin";
 
-  // Rule: If Super Admin assigns to District Admin, Super Admin remains in Read-Only view until District Admin updates/saves it
-  const isReadOnlyForSuperAdmin = isSuperAdmin && selected.pendingDistrictUpdate;
+  // Rule 1: Super Admin is Read-Only when complaint is pending District Admin review or has not been touched yet.
+  const isReadOnlyForSuperAdmin = isSuperAdmin && (selected.pendingDistrictUpdate || selected.status === "submitted");
   
-  // Rule: If assigned to District Admin and not self, District Admin sees read-only if another officer is assigned
-  const isReadOnlyForDistrictAdmin = isDistrictAdmin && selected.assignedOfficerId && String(selected.assignedOfficerId._id || selected.assignedOfficerId) !== String(officer.id || officer._id);
+  // Rule 2: District Admin is Read-Only once they submit it to Super Admin (i.e. pendingDistrictUpdate is false)
+  // However, if status is 'submitted', it means it's a new complaint (even if it missed assignment due to older bugs), so they can edit it.
+  const isReadOnlyForDistrictAdmin = isDistrictAdmin && (!selected.pendingDistrictUpdate && selected.status !== "submitted");
 
-  const isReadOnly = isReadOnlyForSuperAdmin || isReadOnlyForDistrictAdmin;
+  const isReadOnly = isReadOnlyForSuperAdmin || isReadOnlyForDistrictAdmin || selected.superAdminFinalized;
 
   return (
     <article className="case-detail">
@@ -1750,26 +2916,44 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
       )}
 
       <section className="case-log" style={{ marginTop: "1.5rem" }}>
-        <p className="eyebrow">Action log</p>
-        <ol className="timeline compact">
-          {(selected.statusHistory || []).map((entry, index) => (
-            <li key={`${entry.status}-${entry.at}-${index}`}>
-              <strong>{pretty(entry.status)}</strong>
-              <time>{new Date(entry.at).toLocaleString()}</time>
-              {entry.publicNote && <p>{entry.publicNote}</p>}
-            </li>
-          ))}
-        </ol>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          <div>
+            <p className="eyebrow">Public Status Log</p>
+            <ol className="timeline compact">
+              {(selected.statusHistory || []).map((entry, index) => (
+                <li key={`${entry.status}-${entry.at}-${index}`}>
+                  <strong>{pretty(entry.status)}</strong>
+                  <time>{new Date(entry.at).toLocaleString()}</time>
+                  {entry.publicNote && <p>{entry.publicNote}</p>}
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div>
+            <p className="eyebrow">Internal Action Notes</p>
+            <ul className="internal-notes" style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {(selected.actionNotes || []).map((entry, index) => (
+                <li key={`action-${index}`} style={{ background: "#fef3c7", padding: "10px", borderRadius: "6px", marginBottom: "8px", fontSize: "0.85rem", borderLeft: "4px solid #f59e0b" }}>
+                  <strong>{pretty(entry.actionType)}</strong> - <time style={{ color: "#b45309" }}>{new Date(entry.at || Date.now()).toLocaleString()}</time>
+                  <p style={{ margin: "4px 0 0 0", color: "#92400e" }}>{entry.note}</p>
+                </li>
+              ))}
+              {(!selected.actionNotes || selected.actionNotes.length === 0) && (
+                <p style={{ fontSize: "0.85rem", color: "#94a3b8" }}>No internal notes yet.</p>
+              )}
+            </ul>
+          </div>
+        </div>
       </section>
 
       {isReadOnly ? (
         <div style={{ marginTop: "1.5rem", padding: "16px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", color: "#1e40af" }}>
-          <h4 style={{ margin: "0 0 6px 0", fontSize: "0.95rem" }}>👁️ Read-Only Mode (Awaiting District Admin Update)</h4>
+          <h4 style={{ margin: "0 0 6px 0", fontSize: "0.95rem" }}>👁️ Read-Only Mode</h4>
           <p style={{ margin: 0, fontSize: "0.85rem" }}>
             {isSuperAdmin ? (
               <>This complaint was assigned to the District Admin. <strong>Super Admin is in Read-Only view</strong> until the District Admin reviews and saves an update on this case.</>
             ) : (
-              <>This complaint is assigned to another officer. You are viewing it in Read-Only mode.</>
+              <>This complaint is in <strong>Read-Only view</strong> for District Admins until the Super Admin assigns it to your district for official action.</>
             )}
           </p>
         </div>
@@ -1801,16 +2985,38 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
             )}
           </div>
 
-          {/* Single Save Action & Proof Button */}
-          <div style={{ marginTop: "1rem" }}>
-            <button 
-              type="submit" 
-              className="primary" 
-              style={{ width: "100%", padding: "12px", background: "#2563eb" }}
-              onClick={() => setUpdate((prev) => ({ ...prev, assignToSelf: true }))}
-            >
-              💾 Save Action & Proof Details
-            </button>
+          {/* Action Buttons */}
+          <div style={{ marginTop: "1rem", display: "flex", gap: "10px", flexDirection: "column" }}>
+            {isDistrictAdmin && (
+              <button 
+                type="submit" 
+                className="primary" 
+                style={{ width: "100%", padding: "12px", background: "#2563eb" }}
+                onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "submit_to_super_admin" }))}
+              >
+                🚀 Submit to Super Admin
+              </button>
+            )}
+            {isSuperAdmin && (
+              <>
+                <button 
+                  type="submit" 
+                  className="primary" 
+                  style={{ width: "100%", padding: "12px", background: "#059669" }}
+                  onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "approve_resolve" }))}
+                >
+                  ✅ Approve & Resolve
+                </button>
+                <button 
+                  type="submit" 
+                  className="secondary" 
+                  style={{ width: "100%", padding: "12px", background: "#dc2626", color: "white" }}
+                  onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "return_correction" }))}
+                >
+                  ❌ Return for Correction
+                </button>
+              </>
+            )}
           </div>
         </form>
       )}

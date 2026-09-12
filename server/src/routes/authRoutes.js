@@ -1,5 +1,5 @@
 import express from "express";
-import { createSubAdmin, deleteSubAdmin, listSubAdmins, login, loginUser, registerUser, requestOtp, updateSubAdmin, verifyOtp, requestPasswordResetOtp, verifyPasswordReset } from "../controllers/authController.js";
+import { createSubAdmin, deleteSubAdmin, listSubAdmins, login, loginUser, registerUser, googleAuthUser, requestOtp, updateSubAdmin, verifyOtp, requestPasswordResetOtp, verifyPasswordReset } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -7,6 +7,7 @@ const router = express.Router();
 router.post("/login", login);
 router.post("/users/register", registerUser);
 router.post("/users/login", loginUser);
+router.post("/users/google", googleAuthUser);
 router.post("/users/otp/request", requestOtp);
 router.post("/users/otp/verify", verifyOtp);
 router.post("/users/forgot-password/request", requestPasswordResetOtp);

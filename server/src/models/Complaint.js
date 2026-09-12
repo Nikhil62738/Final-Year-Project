@@ -51,6 +51,7 @@ const complaintSchema = new mongoose.Schema(
     fssaiNumber: { type: String, trim: true, index: true },
     address: { type: String, required: true, trim: true },
     district: { type: String, required: true, trim: true, index: true },
+    taluka: { type: String, trim: true },
     lat: { type: Number },
     lng: { type: Number },
     evidence: [evidenceSchema],
@@ -67,7 +68,10 @@ const complaintSchema = new mongoose.Schema(
       index: true
     },
     assignedOfficerId: { type: mongoose.Schema.Types.ObjectId, ref: "Officer" },
+    assignedToDistrict: { type: Boolean, default: false },
     pendingDistrictUpdate: { type: Boolean, default: false },
+    districtUpdated: { type: Boolean, default: false },
+    superAdminFinalized: { type: Boolean, default: false },
     actionNotes: [actionNoteSchema],
     statusHistory: [statusHistorySchema],
     upvotes: { type: Number, default: 0 },

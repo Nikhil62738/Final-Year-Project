@@ -95,10 +95,11 @@ export async function findDuplicateMatches(payload) {
   const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
   const category = payload.category;
   const incomingFssai = normalizeFssai(payload.fssaiNumber);
+  const incomingDistrict = String(payload.district || "").toLowerCase().trim();
+  const incomingVendor = String(payload.vendorName || "").toLowerCase().trim();
 
   const candidates = await Complaint.find({
     status: { $in: OPEN_STATUSES },
-    category,
     createdAt: { $gte: sixtyDaysAgo }
   }).sort({ createdAt: -1 });
 
@@ -106,20 +107,29 @@ export async function findDuplicateMatches(payload) {
 
   for (const complaint of candidates) {
     const existingFssai = normalizeFssai(complaint.fssaiNumber);
+    const existingDistrict = String(complaint.district || "").toLowerCase().trim();
+    const existingVendor = String(complaint.vendorName || "").toLowerCase().trim();
     const distanceMeters = haversineMeters(payload.lat, payload.lng, complaint.lat, complaint.lng);
     const similarity = nameSimilarity(payload.vendorName, complaint.vendorName);
     const sameFssai = incomingFssai && existingFssai && incomingFssai === existingFssai;
+    const sameCategory = category === complaint.category;
+    const sameDistrict = incomingDistrict && existingDistrict && incomingDistrict === existingDistrict;
 
-    if (sameFssai) {
+    if (sameFssai && sameCategory) {
       matches.push({ complaint, strength: "strong", reason: "Same FSSAI license number and category", distanceMeters, similarity });
       continue;
     }
 
-    if (distanceMeters !== null && distanceMeters <= 150) {
-      if (similarity >= 0.45) {
-        matches.push({ complaint, strength: "strong", reason: "Same category, nearby location, and similar vendor name", distanceMeters, similarity });
+    if (sameCategory && sameDistrict && (similarity >= 0.35 || incomingVendor === existingVendor || (incomingVendor.length > 3 && existingVendor.includes(incomingVendor)))) {
+      matches.push({ complaint, strength: "strong", reason: "Duplicate issue reported for same vendor in this district", distanceMeters, similarity });
+      continue;
+    }
+
+    if (sameCategory && distanceMeters !== null && distanceMeters <= 200) {
+      if (similarity >= 0.35) {
+        matches.push({ complaint, strength: "strong", reason: "Same category, nearby vendor location, and matching vendor name", distanceMeters, similarity });
       } else {
-        matches.push({ complaint, strength: "weak", reason: "Same category and nearby location; vendor name differs", distanceMeters, similarity });
+        matches.push({ complaint, strength: "weak", reason: "Same category and nearby location", distanceMeters, similarity });
       }
     }
   }
@@ -130,6 +140,7 @@ export async function findDuplicateMatches(payload) {
     category: complaint.category,
     vendorName: complaint.vendorName,
     address: complaint.address,
+    district: complaint.district,
     status: complaint.status,
     createdAt: complaint.createdAt,
     strength,

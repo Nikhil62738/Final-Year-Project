@@ -22,12 +22,12 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://maps.googleapis.com", "https://maps.gstatic.com", "https://cdnjs.cloudflare.com", "https://accounts.google.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://accounts.google.com"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "blob:", "https://maps.gstatic.com", "https://maps.googleapis.com", "https://*.tile.openstreetmap.org", "https://unpkg.com", "https://*.googleusercontent.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https://*.basemaps.cartocdn.com", "https://unpkg.com", "https://*.googleusercontent.com"],
         mediaSrc: ["'self'", "blob:"],
-        connectSrc: ["'self'", "https://maps.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://accounts.google.com"],
+        connectSrc: ["'self'", "https://*.basemaps.cartocdn.com", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://accounts.google.com"],
         frameSrc: ["'self'", "https://accounts.google.com"]
       }
     },
@@ -41,7 +41,7 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/config.js", (_req, res) => {
   res.type("application/javascript").send(
-    `window.SAFEWATCH_GOOGLE_MAPS_API_KEY=${JSON.stringify(process.env.GOOGLE_MAPS_API_KEY || "")};\n` +
+    `window.SAFEWATCH_CARTO_BASEMAPS_API_KEY=${JSON.stringify(process.env.CARTO_BASEMAPS_API_KEY || "")};\n` +
     `window.SAFEWATCH_GOOGLE_CLIENT_ID=${JSON.stringify(process.env.GOOGLE_CLIENT_ID || "")};`
   );
 });

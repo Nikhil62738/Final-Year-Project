@@ -3768,5 +3768,144 @@ body:has(.login-page) {
   }
 }
 
+/* Keep the desktop administrative sign-in view entirely within the viewport. */
+@media (min-width: 993px) {
+  .admin-portal-shell {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .admin-white-header {
+    flex: 0 0 auto;
+  }
+
+  .admin-split-page {
+    min-height: 0;
+    height: auto;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .admin-split-hero,
+  .admin-split-form-panel {
+    min-height: 0;
+  }
+
+  .admin-split-hero {
+    padding: 38px 52px 28px;
+  }
+
+  .admin-split-tagline-hero {
+    margin-bottom: 26px;
+  }
+
+  .admin-split-features {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .admin-split-form-panel {
+    padding: 20px 32px;
+    /* When the browser has limited vertical room, keep the top of the form
+       reachable instead of letting the parent clip the card's footer. */
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .admin-white-login-card {
+    padding: 22px 32px 18px;
+    margin: auto;
+  }
+
+  .admin-split-fda-logo {
+    height: 92px;
+    width: 92px;
+  }
+
+  .admin-split-card-sub {
+    margin-bottom: 10px;
+  }
+
+  .admin-split-clearance-pill {
+    margin-bottom: 12px;
+  }
+
+  .admin-split-demo-chip {
+    margin-bottom: 12px;
+  }
+
+  .admin-split-form-group {
+    margin-bottom: 12px;
+  }
+
+  .admin-split-submit-btn {
+    height: 46px;
+  }
+
+  .admin-split-warning-box {
+    margin-top: 12px;
+    padding: 9px 12px;
+  }
+
+  .admin-split-footer {
+    margin-top: 12px;
+  }
+}
+
+/* Compact the sign-in card on short desktop viewports (including a browser
+   zoomed above 100%) so the complete form remains visible without clipping. */
+@media (min-width: 993px) and (max-height: 850px) {
+  .admin-white-login-card {
+    padding: 16px 28px 14px;
+  }
+
+  .admin-white-login-card > div:first-child {
+    margin-bottom: 8px !important;
+  }
+
+  .admin-split-fda-logo {
+    height: 68px;
+    width: 68px;
+  }
+
+  .admin-split-card-title {
+    font-size: 1.4rem;
+  }
+
+  .admin-split-card-sub,
+  .admin-split-clearance-pill,
+  .admin-split-demo-chip {
+    margin-bottom: 8px;
+  }
+
+  .admin-split-form-group {
+    margin-bottom: 8px;
+  }
+
+  .admin-split-input {
+    height: 42px;
+  }
+
+  .admin-split-submit-btn {
+    height: 42px;
+    margin-top: 2px;
+  }
+
+  .admin-split-warning-box {
+    margin-top: 8px;
+    padding: 7px 10px;
+  }
+
+  .admin-split-warning-box p {
+    font-size: 0.68rem;
+  }
+
+  .admin-split-footer {
+    margin-top: 8px;
+  }
+}
+
 
 

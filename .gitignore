@@ -2,7 +2,8 @@ node_modules/
 client/node_modules/
 client/node_modules.broken.*/
 server/node_modules/
-
+map-data/*.pbf
+map-data/*.jar
 .env
 server/.env
 client/.env

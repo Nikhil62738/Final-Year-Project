@@ -6,6 +6,25 @@ const FDA_LOGO_IMG = window.FDA_ASSETS?.FDA_LOGO || "/fda_logo.png";
 const HERO_BG_IMG = "/hero_bg.png";
 
 const API_BASE = "";
+const CARTO_BASEMAPS_API_KEY = window.SAFEWATCH_CARTO_BASEMAPS_API_KEY || "";
+// Maharashtra's outer extent. It is deliberately shared by both Leaflet maps
+// so neither map can pan or zoom out into the rest of India.
+const MAHARASHTRA_MAP_BOUNDS = [[15.60, 72.60], [22.00, 80.90]];
+
+function addBaseMap(map) {
+  if (!CARTO_BASEMAPS_API_KEY) {
+    console.error("CARTO basemaps API key is missing. Set CARTO_BASEMAPS_API_KEY in server/.env.");
+    return;
+  }
+
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key={apiKey}", {
+    apiKey: CARTO_BASEMAPS_API_KEY,
+    subdomains: "abcd",
+    noWrap: true,
+    maxZoom: 16,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(map);
+}
 
 const categories = [
   ["adulteration", "Adulteration", "AD"],
@@ -217,6 +236,15 @@ function App() {
     window.addEventListener("hashchange", syncPage);
     return () => window.removeEventListener("hashchange", syncPage);
   }, []);
+
+  // A hash navigation preserves the scroll position of the previous view. Reset
+  // it before showing a new screen so fixed-height views (such as Admin) cannot
+  // render with their header clipped above the viewport.
+  useEffect(() => {
+    // Use the two-argument form: unlike the options form it is supported by
+    // every browser used by this project and always resets both axes.
+    window.scrollTo(0, 0);
+  }, [page]);
 
   function navigate(target, options = {}) {
     setNavOpen(false);
@@ -937,21 +965,16 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
     const initialLat = Number(lat) || 18.5204;
     const initialLng = Number(lng) || 73.8567;
 
-    const maharashtraBounds = L.latLngBounds(
-      L.latLng(15.60, 72.60),
-      L.latLng(22.00, 80.90)
-    );
+    const maharashtraBounds = L.latLngBounds(MAHARASHTRA_MAP_BOUNDS);
 
     const map = L.map(mapRef.current, {
       maxBounds: maharashtraBounds,
       maxBoundsViscosity: 1.0,
-      minZoom: 6,
-      maxZoom: 18
+      minZoom: 8,
+      maxZoom: 16
     }).setView([initialLat, initialLng], 12);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '\u00a9 OpenStreetMap contributors'
-    }).addTo(map);
+    addBaseMap(map);
 
     const marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
 
@@ -2495,26 +2518,23 @@ function TabHeatmap({ complaints }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersLayer = useRef(null);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [districtFilter, setDistrictFilter] = useState("");
 
   useEffect(() => {
     if (typeof L === "undefined" || !mapRef.current) return;
     if (mapInstance.current) return;
 
-    const maharashtraBounds = L.latLngBounds(
-      L.latLng(15.60, 72.60),
-      L.latLng(22.00, 80.90)
-    );
+    const maharashtraBounds = L.latLngBounds(MAHARASHTRA_MAP_BOUNDS);
 
     const map = L.map(mapRef.current, {
       maxBounds: maharashtraBounds,
       maxBoundsViscosity: 1.0,
-      minZoom: 6,
-      maxZoom: 18
+      minZoom: 7,
+      maxZoom: 16
     }).setView([19.7515, 75.7139], 7);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '\u00a9 OpenStreetMap contributors'
-    }).addTo(map);
+    addBaseMap(map);
 
     markersLayer.current = L.layerGroup().addTo(map);
     mapInstance.current = map;
@@ -2525,7 +2545,13 @@ function TabHeatmap({ complaints }) {
     if (!mapInstance.current || !markersLayer.current) return;
     markersLayer.current.clearLayers();
 
-    complaints.forEach((c) => {
+    const filteredComplaints = complaints.filter((c) => {
+      if (statusFilter && c.status !== statusFilter) return false;
+      if (districtFilter && c.district !== districtFilter) return false;
+      return true;
+    });
+
+    filteredComplaints.forEach((c) => {
       if (c.lat && c.lng) {
         const color = c.status === "resolved" ? "#22c55e" : (c.status === "submitted" ? "#ef4444" : "#f59e0b");
         const circle = L.circleMarker([Number(c.lat), Number(c.lng)], {
@@ -2542,17 +2568,30 @@ function TabHeatmap({ complaints }) {
         markersLayer.current.addLayer(circle);
       }
     });
-  }, [complaints]);
+  }, [complaints, statusFilter, districtFilter]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "550px", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--gov-border)" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%", minHeight: "550px" }}></div>
-      <div style={{ position: "absolute", top: "1rem", left: "1rem", background: "white", padding: "1rem", borderRadius: "8px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", width: "220px", zIndex: 1000 }}>
-        <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem", fontWeight: "800", color: "#0f172a" }}>Predictive Risk Mapper</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.75rem", fontWeight: "700", color: "#64748b" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ef4444" }}></div> SUBMITTED / HIGH</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#f59e0b" }}></div> UNDER REVIEW</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#22c55e" }}></div> RESOLVED</div>
+      <div style={{ position: "absolute", top: "1rem", left: "1rem", background: "white", padding: "1rem", borderRadius: "8px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", width: "240px", zIndex: 1000 }}>
+        <h3 style={{ margin: "0 0 0.9rem 0", fontSize: "1rem", fontWeight: "800", color: "#0f172a" }}>Map Filters</h3>
+        <label style={{ display: "block", marginBottom: "0.75rem", fontSize: "0.68rem", fontWeight: "800", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          Status
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ width: "100%", marginTop: "0.35rem", padding: "0.55rem", border: "1px solid #cbd5e1", borderRadius: "6px", color: "#0f172a", background: "#fff" }}>
+            <option value="">All statuses</option>
+            {statuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label style={{ display: "block", marginBottom: "0.75rem", fontSize: "0.68rem", fontWeight: "800", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          District
+          <select value={districtFilter} onChange={(e) => setDistrictFilter(e.target.value)} style={{ width: "100%", marginTop: "0.35rem", padding: "0.55rem", border: "1px solid #cbd5e1", borderRadius: "6px", color: "#0f172a", background: "#fff" }}>
+            <option value="">All districts</option>
+            {maharashtraDistricts.map((district) => <option key={district} value={district}>{district}</option>)}
+          </select>
+        </label>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: "700", color: "#475569" }}>
+          <span>{complaints.filter((c) => (!statusFilter || c.status === statusFilter) && (!districtFilter || c.district === districtFilter) && c.lat && c.lng).length} locations</span>
+          {(statusFilter || districtFilter) && <button type="button" onClick={() => { setStatusFilter(""); setDistrictFilter(""); }} style={{ border: 0, background: "none", color: "#ea580c", fontWeight: "800", cursor: "pointer", padding: 0 }}>Clear</button>}
         </div>
       </div>
     </div>

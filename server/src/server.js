@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import { connectDb } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
@@ -34,7 +35,7 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
-app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(",") || "*", credentials: true }));
+app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(",") || "*", credentials: true, methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] }));
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
@@ -70,6 +71,7 @@ app.get("/api/geocode", async (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/api/users", userRoutes);
 
 app.get(/.*/, (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();

@@ -1,6 +1,18 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+const savedProductSchema = new mongoose.Schema(
+  {
+    barcode: { type: String, required: true },
+    name: { type: String, required: true },
+    brand: { type: String, default: "" },
+    imageUrl: { type: String, default: "" },
+    nutriscoreGrade: { type: String, default: "" },
+    savedAt: { type: Date, default: Date.now }
+  },
+  { _id: true }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -11,6 +23,8 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String },
     authProvider: { type: String, default: "local" },
     active: { type: Boolean, default: true },
+    preferredLanguage: { type: String, default: "en" },
+    savedProducts: [savedProductSchema],
     otp: { type: String },
     otpExpires: { type: Date },
     mcVerificationId: { type: String },   // Message Central VerifyNow session ID

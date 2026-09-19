@@ -6,72 +6,237 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connectDb } from "./config/db.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Prefer an optional server/.env, then fall back to the repository .env. This
-// keeps local development and a separately deployed server predictable.
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
-dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
+
+// Load environment variables
+dotenv.config({
+  path: path.join(__dirname, "..", ".env"),
+});
+
+dotenv.config({
+  path: path.join(__dirname, "..", "..", ".env"),
+});
 
 const app = express();
+
+// ==================================================
+// SECURITY
+// ==================================================
 
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://accounts.google.com"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "blob:", "https://*.basemaps.cartocdn.com", "https://unpkg.com", "https://*.googleusercontent.com"],
-        mediaSrc: ["'self'", "blob:"],
-        connectSrc: ["'self'", "https://*.basemaps.cartocdn.com", "https://cdnjs.cloudflare.com", "https://unpkg.com", "https://accounts.google.com"],
-        frameSrc: ["'self'", "https://accounts.google.com"]
-      }
+
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://unpkg.com",
+          "https://cdnjs.cloudflare.com",
+          "https://accounts.google.com",
+        ],
+
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://unpkg.com",
+        ],
+
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com",
+        ],
+
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://*.basemaps.cartocdn.com",
+          "https://unpkg.com",
+          "https://*.googleusercontent.com",
+        ],
+
+        mediaSrc: [
+          "'self'",
+          "blob:",
+        ],
+
+        connectSrc: [
+          "'self'",
+          "https://*.basemaps.cartocdn.com",
+          "https://cdnjs.cloudflare.com",
+          "https://unpkg.com",
+          "https://accounts.google.com",
+        ],
+
+        frameSrc: [
+          "'self'",
+          "https://accounts.google.com",
+        ],
+      },
     },
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
   })
 );
-app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(",") || "*", credentials: true, methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] }));
+
+// ==================================================
+// MIDDLEWARE
+// ==================================================
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN?.split(",") || "*",
+    credentials: true,
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS",
+    ],
+  })
+);
+
 app.use(express.json({ limit: "1mb" }));
+
 app.use(morgan("dev"));
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
+app.use(
+  "/uploads",
+  express.static(
+    path.join(__dirname, "..", "uploads")
+  )
+);
+
+// ==================================================
+// ROOT ROUTE
+// ==================================================
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "FDA SafeWatch API is running",
+  });
+});
+
+// ==================================================
+// HEALTH CHECK
+// ==================================================
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ==================================================
+// API HEALTH CHECK
+// ==================================================
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "FDA SafeWatch API" });
+  res.status(200).json({
+    ok: true,
+    service: "FDA SafeWatch API",
+  });
 });
+
+// ==================================================
+// GEOCODING
+// ==================================================
 
 app.get("/api/geocode", async (req, res) => {
   const q = req.query.q;
-  if (!q) return res.status(400).json({ error: "Missing q parameter" });
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`;
-    const response = await fetch(url, {
-      headers: { "User-Agent": "FDA-SafeWatch/1.0 (contact@maharashtra.gov.in)" }
+
+  if (!q) {
+    return res.status(400).json({
+      error: "Missing q parameter",
     });
+  }
+
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/search` +
+      `?format=json&q=${encodeURIComponent(q)}`;
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "FDA-SafeWatch/1.0 (contact@maharashtra.gov.in)",
+      },
+    });
+
     const data = await response.json();
+
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: "Geocoding failed" });
+    console.error("Geocoding error:", err);
+
+    res.status(500).json({
+      error: "Geocoding failed",
+    });
   }
 });
 
+// ==================================================
+// API ROUTES
+// ==================================================
+
 app.use("/api/auth", authRoutes);
-app.use("/api/complaints", complaintRoutes);
-app.use("/api/users", userRoutes);
+
+app.use(
+  "/api/complaints",
+  complaintRoutes
+);
+
+app.use(
+  "/api/users",
+  userRoutes
+);
+
+// ==================================================
+// ERROR HANDLING
+// ==================================================
 
 app.use(notFound);
+
 app.use(errorHandler);
+
+// ==================================================
+// START SERVER
+// ==================================================
 
 const port = process.env.PORT || 5000;
 
-connectDb().then(() => {
-  app.listen(port, () => {
-    console.log(`FDA SafeWatch API listening on http://localhost:${port}`);
+connectDb()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(
+        `FDA SafeWatch API listening on http://localhost:${port}`
+      );
+    });
+  })
+  .catch((err) => {
+    console.error(
+      "Database connection failed:",
+      err
+    );
+
+    process.exit(1);
   });
-});

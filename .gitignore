@@ -7,6 +7,7 @@ map-data/*.jar
 .env
 server/.env
 client/.env
+client/dist/
 
 uploads/
 server/uploads/

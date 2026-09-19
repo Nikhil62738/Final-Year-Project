@@ -5,24 +5,19 @@ const EMBLEM_IMG = window.FDA_ASSETS?.EMBLEM || "/emblem.png";
 const FDA_LOGO_IMG = window.FDA_ASSETS?.FDA_LOGO || "/fda_logo.png";
 const HERO_BG_IMG = "/hero_bg.png";
 
-const API_BASE = "";
-const CARTO_BASEMAPS_API_KEY = window.SAFEWATCH_CARTO_BASEMAPS_API_KEY || "";
+// Change this value in public/config.js after deploying the API.  It must not
+// end with a slash (for example: https://api.example.com).
+const API_BASE = (window.SAFEWATCH_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 // Maharashtra's outer extent. It is deliberately shared by both Leaflet maps
 // so neither map can pan or zoom out into the rest of India.
 const MAHARASHTRA_MAP_BOUNDS = [[15.60, 72.60], [22.00, 80.90]];
 
 function addBaseMap(map) {
-  if (!CARTO_BASEMAPS_API_KEY) {
-    console.error("CARTO basemaps API key is missing. Set CARTO_BASEMAPS_API_KEY in server/.env.");
-    return;
-  }
-
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key={apiKey}", {
-    apiKey: CARTO_BASEMAPS_API_KEY,
-    subdomains: "abcd",
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    subdomains: "abc",
     noWrap: true,
     maxZoom: 16,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 }
 
@@ -324,7 +319,7 @@ function App() {
                 onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
               />
               <div className="brand-titles">
-                <h1 className="brand-main-title">FDA SafeWatch</h1>
+                <div className="brand-main-title">FDA SafeWatch</div>
                 <p className="brand-sub-title">Food Safety Complaint & Action Tracking Platform - Maharashtra</p>
               </div>
             </div>
@@ -367,7 +362,7 @@ function App() {
                 onError={(e) => { e.target.onerror = null; e.target.src = "/emblem.png"; }}
               />
               <div className="brand-titles" onClick={() => navigate("home")} style={{ cursor: "pointer" }}>
-                <h1 className="brand-main-title">FDA SafeWatch</h1>
+                <div className="brand-main-title">FDA SafeWatch</div>
                 <p className="brand-sub-title">Food Safety Complaint & Action Tracking Platform - Maharashtra</p>
                 <p className="brand-tagline">A step towards Safe Food, Healthier Maharashtra</p>
               </div>
@@ -385,7 +380,10 @@ function App() {
                 className="btn-admin-login-brand"
                 onClick={() => navigate("admin")} 
               >
-                🏛️ Admin Login
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                Admin Login
               </button>
             </div>
           </div>
@@ -405,19 +403,24 @@ function App() {
             </button>
             <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
               <button className={`nav-link-item ${page === "home" ? "active" : ""}`} onClick={() => navigate("home")}>
-                <span className="nav-icon">🏠</span> Home
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
               </button>
               <button className={`nav-link-item ${page === "submit" ? "active" : ""}`} onClick={() => navigate("submit")}>
-                <span className="nav-icon">📝</span> Submit Complaint
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Submit Complaint
               </button>
               <button className={`nav-link-item ${page === "track" ? "active" : ""}`} onClick={() => navigate("track")}>
-                <span className="nav-icon">🔍</span> Track Complaint
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                Track Complaint
               </button>
               <button className={`nav-link-item ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
-                <span className="nav-icon">📊</span> Transparency Register
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Transparency Register
               </button>
               <button className="nav-link-item" onClick={() => { navigate("home"); setTimeout(() => document.querySelector('.portal-info-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>
-                <span className="nav-icon">📜</span> Food Safety Information
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Food Safety Information
               </button>
 
               {!citizen ? (
@@ -483,14 +486,14 @@ function App() {
         <footer className="site-portal-footer">
           <div className="footer-container">
             <div className="footer-col">
-              <h4>FDA SafeWatch - Maharashtra State</h4>
+              <h3>FDA SafeWatch - Maharashtra State</h3>
               <p>
                 Food and Drug Administration, Maharashtra State (अन्न व औषध प्रशासन, महाराष्ट्र राज्य).
                 Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.
               </p>
             </div>
             <div className="footer-col">
-              <h4>Quick Links</h4>
+              <h3>Quick Links</h3>
               <ul>
                 <li><a href="#home" onClick={() => navigate("home")}>Home Desk</a></li>
                 <li><a href="#submit" onClick={() => navigate("submit")}>Submit Complaint</a></li>
@@ -499,7 +502,7 @@ function App() {
               </ul>
             </div>
             <div className="footer-col">
-              <h4>Helpline & Info</h4>
+              <h3>Helpline & Info</h3>
               <p><strong>Toll Free:</strong> 1800-222-365</p>
               <p><strong>Emergency:</strong> 112</p>
               <p><strong>Email:</strong> support.fda@maharashtra.gov.in</p>
@@ -595,7 +598,7 @@ function Home({ navigate, citizen }) {
                 <path d="M45 10 L58 15 L62 28 L78 32 L88 48 L82 64 L68 78 L52 88 L35 72 L22 62 L18 46 L28 32 Z" />
                 <path d="M30 40 L50 45 L70 38 M40 60 L60 58" strokeDasharray="2 2" />
               </svg>
-              <h3>Safe Food<br />Healthy Citizens<br />Stronger Maharashtra</h3>
+              <h2>Safe Food<br />Healthy Citizens<br />Stronger Maharashtra</h2>
               <div className="flag-stripe-mini">
                 <span className="stripe-orange"></span>
                 <span className="stripe-green"></span>
@@ -1049,7 +1052,7 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
 
     const fetchBounds = async () => {
       try {
-        const response = await fetch(`/api/geocode?q=${encodeURIComponent(locationQuery)}`);
+        const response = await fetch(`${API_BASE}/api/geocode?q=${encodeURIComponent(locationQuery)}`);
         const data = await response.json();
         if (data && data.length > 0 && data[0].boundingbox) {
           const bb = data[0].boundingbox;
@@ -2347,8 +2350,8 @@ function Dashboard({ officer, setPage, onLogout }) {
           GOVPORTAL
         </div>
         <div className="gov-header-right">
-          <span>OFFICIAL GOV ADMIN | {officer.email || "GOV@CITY.ORG"}</span>
-          <button className="gov-signout" onClick={onLogout}>SIGN OUT &rarr;</button>
+          <span>Official admin · {officer.email || "gov@city.org"}</span>
+          <button className="gov-signout" onClick={onLogout}>Sign out</button>
         </div>
       </header>
 
@@ -2358,7 +2361,7 @@ function Dashboard({ officer, setPage, onLogout }) {
             <h1>Headquarters</h1>
             <p>FDA Infrastructure & Complaint Analytics</p>
           </div>
-          <div className="gov-tabs">
+          <div className="gov-tabs" role="tablist" aria-label="Admin sections">
             <button className={`gov-tab ${activeTab === "overview" ? "active" : ""}`} onClick={() => setActiveTab("overview")}>Overview</button>
             <button className={`gov-tab ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>Analytics</button>
             <button className={`gov-tab ${activeTab === "heatmap" ? "active" : ""}`} onClick={() => setActiveTab("heatmap")}>Heatmap</button>
@@ -2369,7 +2372,7 @@ function Dashboard({ officer, setPage, onLogout }) {
           </div>
         </div>
 
-        {activeTab === "overview" && <TabOverview complaints={complaints} />}
+        {activeTab === "overview" && <TabOverview complaints={complaints} onViewAnalytics={() => setActiveTab("analytics")} />}
         {activeTab === "analytics" && <TabAnalytics complaints={complaints} />}
         {activeTab === "heatmap" && <TabHeatmap complaints={complaints} />}
         {activeTab === "managedb" && (
@@ -2388,7 +2391,7 @@ function Dashboard({ officer, setPage, onLogout }) {
   );
 }
 
-function TabOverview({ complaints }) {
+function TabOverview({ complaints, onViewAnalytics }) {
   const [filter, setFilter] = useState("today");
 
   const total = complaints.length;
@@ -2404,58 +2407,61 @@ function TabOverview({ complaints }) {
   return (
     <div>
       <div className="gov-filter-bar">
-        {["TODAY", "WEEKLY", "MONTHLY", "ALL"].map(f => (
-          <button key={f} className={`gov-filter-pill ${filter === f.toLowerCase() ? "active" : ""}`} onClick={() => setFilter(f.toLowerCase())}>{f}</button>
+        {["Today", "Weekly", "Monthly", "All"].map(f => (
+          <button key={f} aria-pressed={filter === f.toLowerCase()} className={`gov-filter-pill ${filter === f.toLowerCase() ? "active" : ""}`} onClick={() => setFilter(f.toLowerCase())}>{f}</button>
         ))}
-        <span style={{ marginLeft: "auto", fontSize: "0.875rem", color: "var(--gov-text-muted)", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <IconMark>📅</IconMark> ANALYZING TRENDS
+        <span className="gov-filter-status">
+          <IconMark>📅</IconMark> Analyzing trends
         </span>
       </div>
-      <div className="gov-grid gov-grid-3">
+      <div className="gov-kpi-grid">
         <div className="gov-card gov-metric">
-          <span className="gov-metric-label">Total Complaints</span>
+          <span className="gov-metric-label">Total complaints</span>
           <span className="gov-metric-value">{total}</span>
         </div>
         <div className="gov-card gov-metric">
-          <span className="gov-metric-label">Resolution Rate</span>
+          <span className="gov-metric-label">Resolution rate</span>
           <span className="gov-metric-value green">{resRate}%</span>
         </div>
         <div className="gov-card gov-metric">
-          <span className="gov-metric-label">Avg Res Time</span>
+          <span className="gov-metric-label">Average resolution time</span>
           <span className="gov-metric-value orange">24.5 <span style={{ fontSize: "1.5rem", color: "var(--gov-text-muted)" }}>hrs</span></span>
         </div>
       </div>
       <div className="gov-grid gov-grid-2" style={{ marginTop: "1.5rem" }}>
         <div className="gov-dark-card">
           <div className="gov-card-title"><IconMark>🔄</IconMark> City Pipeline Flow</div>
-          <p style={{ fontSize: "0.875rem", color: "#cbd5e1", marginBottom: "1.5rem" }}>RESOURCE ALLOCATION AND STATUS TRACKING PER DISTRICT</p>
+          <p className="gov-card-description">Resource allocation and status tracking per district</p>
           <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
             <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
               <div style={{ color: "var(--gov-green)", fontSize: "0.75rem", fontWeight: "700" }}>DONE</div>
               <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{resolved}</div>
             </div>
             <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
-              <div style={{ color: "#3b82f6", fontSize: "0.75rem", fontWeight: "700" }}>DOING</div>
+              <div style={{ color: "var(--gov-info)", fontSize: "0.75rem", fontWeight: "700" }}>DOING</div>
               <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{complaints.filter(c => c.status === "action_taken").length}</div>
             </div>
             <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
-              <div style={{ color: "#fbbf24", fontSize: "0.75rem", fontWeight: "700" }}>WAIT</div>
+              <div style={{ color: "var(--gov-warning)", fontSize: "0.75rem", fontWeight: "700" }}>WAIT</div>
               <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{complaints.filter(c => c.status === "submitted" || c.status === "under_review").length}</div>
             </div>
           </div>
-          <div className="gov-card-title" style={{ color: "#f87171" }}><IconMark>⚠️</IconMark> Risk Profile Assessment</div>
+          <button className="gov-risk-action" type="button" onClick={onViewAnalytics}>
+            <span><IconMark>⚠️</IconMark> View risk assessment</span>
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
         <div className="gov-card">
-          <div className="gov-card-title">🏅 City Rankings</div>
+          <div className="gov-card-title"><IconMark>🏅</IconMark> City Rankings</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
             {byDistrict.map(([district, count], i) => (
               <div key={district} style={{ display: "flex", alignItems: "center", gap: "1rem", border: "1px solid var(--gov-border)", padding: "1rem", borderRadius: "8px" }}>
-                <div style={{ background: i < 3 ? "var(--gov-orange)" : "#e2e8f0", color: i < 3 ? "white" : "var(--gov-text-muted)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px", fontWeight: "700" }}>{i + 1}</div>
+                <div style={{ background: i < 3 ? "var(--gov-orange)" : "var(--gov-border)", color: i < 3 ? "white" : "var(--gov-text-muted)", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px", fontWeight: "700" }}>{i + 1}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: "700", textTransform: "uppercase" }}>{district}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)" }}>{count} COMPLAINTS</div>
+                  <div style={{ fontWeight: "700" }}>{district}</div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)" }}>{count} complaints</div>
                 </div>
-                <div style={{ color: "var(--gov-orange)", fontWeight: "700" }}>{Math.round(Math.random() * 40 + 60)}% Score</div>
+                <div className="gov-score"><strong>{Math.round(Math.random() * 40 + 60)}%</strong><span>Score</span></div>
               </div>
             ))}
           </div>
@@ -2475,7 +2481,7 @@ function TabAnalytics({ complaints }) {
       <div className="gov-dark-card">
         <div className="gov-card-title" style={{ justifyContent: "space-between" }}>
           <span>🏆 Category Performance Score</span>
-          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>RANKED BY RESOLUTION & SPEED</span>
+          <span style={{ fontSize: "0.75rem", color: "var(--gov-text-muted)" }}>Ranked by resolution & speed</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1.5rem" }}>
           {byCategory.map((cat, i) => (

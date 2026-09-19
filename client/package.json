@@ -4,9 +4,14 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "echo Client is served by the Express server at http://localhost:5000",
-    "build": "echo No client build step is required"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "fda-safewatch": "file:.."
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  }
 }

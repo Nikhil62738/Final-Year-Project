@@ -11,12 +11,14 @@ import complaintRoutes from "./routes/complaintRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
-dotenv.config();
-
-const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const clientDir = path.join(__dirname, "..", "..", "client");
+// Prefer an optional server/.env, then fall back to the repository .env. This
+// keeps local development and a separately deployed server predictable.
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
+
+const app = express();
 
 app.use(
   helmet({
@@ -40,16 +42,6 @@ app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
-app.get("/config.js", (_req, res) => {
-  res.type("application/javascript").send(
-    `window.SAFEWATCH_CARTO_BASEMAPS_API_KEY=${JSON.stringify(process.env.CARTO_BASEMAPS_API_KEY || "")};\n` +
-    `window.SAFEWATCH_GOOGLE_CLIENT_ID=${JSON.stringify(process.env.GOOGLE_CLIENT_ID || "")};`
-  );
-});
-
-app.use(express.static(clientDir));
-app.use(express.static(path.join(clientDir, "public")));
-
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "FDA SafeWatch API" });
 });
@@ -72,11 +64,6 @@ app.get("/api/geocode", async (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/users", userRoutes);
-
-app.get(/.*/, (req, res, next) => {
-  if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(clientDir, "index.html"));
-});
 
 app.use(notFound);
 app.use(errorHandler);

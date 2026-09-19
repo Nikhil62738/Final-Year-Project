@@ -4,10 +4,11 @@ Public food-safety complaint reporting and action tracking platform built with *
 
 ## Public site behavior
 
-- **Home page** opens by default at `http://localhost:5000`
+- **Frontend** runs at `http://localhost:5173`
+- **API** runs at `http://localhost:5000`
 - **Report an Issue** requires citizen login/registration first
 - **Track Issue** is public — anyone with a tracking code can check status
-- **Admin panel is not linked** on the public site. Officers use the hidden URL: `http://localhost:5000/#admin`
+- **Admin panel is not linked** on the public site. Officers use the hidden URL: `http://localhost:5173/#admin`
 
 ## Run locally
 
@@ -18,7 +19,7 @@ Public food-safety complaint reporting and action tracking platform built with *
    npm run install:all
    ```
 
-2. Create `server/.env` from `server/.env.example`.
+2. Create `server/.env` from `.env.example`. Set `CLIENT_ORIGIN=http://localhost:5173` for local development.
 
 3. Start MongoDB locally, or set `MONGO_URI` to an Atlas connection string.
 
@@ -34,7 +35,15 @@ Public food-safety complaint reporting and action tracking platform built with *
    npm run dev
    ```
 
-Default URL: `http://localhost:5000` (Express serves the React frontend and API together)
+Open `http://localhost:5173`. The backend is available separately at `http://localhost:5000`.
+
+## Deploy separately
+
+1. Deploy the `server` folder as a Node service. Set its `MONGO_URI`, `JWT_SECRET`, other server variables, and `CLIENT_ORIGIN` to the deployed frontend URL.
+2. Deploy the `client` folder as a static site with build command `npm run build` and publish directory `dist`.
+3. Before the frontend build, set `SAFEWATCH_API_BASE_URL` in `client/public/config.js` to the deployed API URL. Set the public Carto and Google client values there too if used.
+
+The client has no server secrets. Do not copy the backend `.env` file into it.
 
 ## Demo credentials
 
@@ -42,7 +51,7 @@ Default URL: `http://localhost:5000` (Express serves the React frontend and API 
 
 - Phone: `9999999999`
 - Password: `Admin@12345`
-- Admin URL: `http://localhost:5000/#admin`
+- Admin URL: `http://localhost:5173/#admin`
 
 **Citizens**
 

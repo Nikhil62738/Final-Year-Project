@@ -27,11 +27,28 @@ export default function MyComplaintsScreen({ navigation }: MyComplaintsScreenPro
     if (!silent) setLoading(true);
     setError('');
     try {
+      // const { data } = await complaintsAPI.getMyHistory();
+      // setComplaints(Array.isArray(data) ? data : []);
       const { data } = await complaintsAPI.getMyHistory();
-      setComplaints(Array.isArray(data) ? data : []);
+
+const complaints = Array.isArray(data)
+  ? data
+  : Array.isArray(data?.complaints)
+  ? data.complaints
+  : Array.isArray(data?.data)
+  ? data.data
+  : [];
+
+setComplaints(complaints);
+
+console.log('MY COMPLAINTS RESPONSE:', data);
     } catch (err: any) {
-      setError('Failed to load complaints. Check your connection.');
-    } finally {
+  console.log('MY COMPLAINTS ERROR STATUS:', err?.response?.status);
+  console.log('MY COMPLAINTS ERROR DATA:', err?.response?.data);
+  console.log('MY COMPLAINTS ERROR MESSAGE:', err?.message);
+
+  setError('Failed to load complaints. Check your connection.');
+}finally {
       setLoading(false);
       setRefreshing(false);
     }

@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 
 // In Expo, EXPO_PUBLIC_API_URL can be set in .env
 // Defaults to localhost or local network fallback
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://fda-safewatch.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

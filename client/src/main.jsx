@@ -7,7 +7,7 @@ const HERO_BG_IMG = "/hero_bg.png";
 
 // Change this value in public/config.js after deploying the API.  It must not
 // end with a slash (for example: https://api.example.com).
-const API_BASE = (window.SAFEWATCH_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
+const API_BASE = (window.SAFEWATCH_API_BASE_URL || "https://fda-safewatch.onrender.com").replace(/\/$/, "");
 // Maharashtra's outer extent. It is deliberately shared by both Leaflet maps
 // so neither map can pan or zoom out into the rest of India.
 const MAHARASHTRA_MAP_BOUNDS = [[15.60, 72.60], [22.00, 80.90]];

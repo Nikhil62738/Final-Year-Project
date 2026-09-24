@@ -43,15 +43,41 @@ export default function TrackComplaintScreen({
       return;
     }
     if (!silent) setLoadingMyComplaints(true);
+    // try {
+    //   const { data } = await complaintsAPI.getMyHistory();
+    //   setMyComplaints(Array.isArray(data) ? data : []);
+    // } catch {
+    //   // silent catch
+    // } finally {
+    //   setLoadingMyComplaints(false);
+    //   setRefreshing(false);
+    // }
     try {
-      const { data } = await complaintsAPI.getMyHistory();
-      setMyComplaints(Array.isArray(data) ? data : []);
-    } catch {
-      // silent catch
-    } finally {
-      setLoadingMyComplaints(false);
-      setRefreshing(false);
-    }
+  const { data } = await complaintsAPI.getMyHistory();
+
+  const complaints = Array.isArray(data)
+    ? data
+    : Array.isArray(data?.complaints)
+    ? data.complaints
+    : Array.isArray(data?.data)
+    ? data.data
+    : [];
+
+  setMyComplaints(complaints);
+
+  console.log('MY COMPLAINTS RESPONSE:', data);
+  console.log('MY COMPLAINTS:', complaints);
+} catch (err: any) {
+  console.log(
+    'MY COMPLAINTS ERROR:',
+    err?.response?.status,
+    err?.response?.data || err?.message
+  );
+  setMyComplaints([]);
+} finally {
+  setLoadingMyComplaints(false);
+  setRefreshing(false);
+}
   };
 
   useEffect(() => {

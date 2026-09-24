@@ -424,3 +424,131 @@
   font-size: 0.75rem;
   color: var(--gov-on-dark);
 }
+
+/* Analytics Charts Custom Styles */
+.chart-tooltip {
+  pointer-events: none;
+  font-size: 0.75rem;
+  box-shadow: var(--shadow-md);
+  border-radius: 6px;
+}
+.donut-slice {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.donut-slice:hover {
+  opacity: 0.85;
+}
+.bar-row {
+  transition: background-color 0.15s ease;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+.bar-row:hover {
+  background: #f1f5f9;
+}
+
+
+/* ========================================================
+   COMPREHENSIVE RESPONSIVE STYLES (Mobile, Tablet, Desktop)
+   ======================================================== */
+
+@media (max-width: 1024px) {
+  .gov-main {
+    padding: 1.25rem 1rem;
+  }
+  .gov-subheader-area {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    min-height: auto;
+  }
+  .gov-tabs {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    justify-content: flex-start;
+    padding: 0.35rem 0.5rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .gov-tabs::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .gov-header {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .gov-header-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+  }
+  .gov-subheader-left h1 {
+    font-size: 1.75rem;
+  }
+  .gov-subheader-left p {
+    font-size: 0.95rem;
+  }
+  .gov-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .gov-metric-value {
+    font-size: 2.25rem;
+  }
+  .gov-filter-bar {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .gov-table-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .gov-table-header input,
+  .gov-table-header select {
+    width: 100%;
+    min-width: 0;
+  }
+  .gov-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .gov-table th,
+  .gov-table td {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  .map-container-large {
+    height: 380px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gov-main {
+    padding: 0.75rem 0.5rem;
+  }
+  .gov-card,
+  .gov-dark-card {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  .gov-tab {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+  }
+  .gov-filter-pill {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.78rem;
+  }
+  .map-container-large {
+    height: 300px;
+  }
+}

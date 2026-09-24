@@ -171,6 +171,7 @@ export async function listComplaints(req, res) {
 
   const complaints = await Complaint.find(query)
     .sort({ createdAt: -1 })
+    .populate("assignedOfficerId", "name email role district")
     .populate("userId", "name email phone");
   res.json(complaints);
 }

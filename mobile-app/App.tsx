@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Screens
 import SplashScreen from './screens/SplashScreen';
@@ -44,6 +45,7 @@ const TAB_ICONS: Record<string, string> = {
 
 function TabNavigator({ navigation }: any) {
   const user = useAuthStore((s) => s.user);
+  const insets = useSafeAreaInsets();
 
   const requireAuth = (cb: () => void) => {
     if (!user) {
@@ -67,9 +69,9 @@ function TabNavigator({ navigation }: any) {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
-          paddingBottom: 6,
           paddingTop: 6,
-          height: 62,
+          paddingBottom: Math.max(insets.bottom, 6),
+          height: 62 + insets.bottom,
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E2E8F0',

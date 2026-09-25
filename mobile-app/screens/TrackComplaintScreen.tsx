@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+
 import { Colors, FontSizes, Radius, Spacing } from '../constants/colors';
 import StatusTimeline from '../components/StatusTimeline';
 import ComplaintCard from '../components/ComplaintCard';
@@ -29,61 +30,150 @@ export default function TrackComplaintScreen({
   initialCode = '',
 }: TrackScreenProps = {}) {
   const codeParam = route?.params?.initialCode || initialCode;
+
   const [code, setCode] = useState(codeParam);
   const [complaint, setComplaint] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
+
+  // Public complaints
   const [myComplaints, setMyComplaints] = useState<any[]>([]);
-  const [loadingMyComplaints, setLoadingMyComplaints] = useState(false);
+  const [loadingMyComplaints, setLoadingMyComplaints] =
+    useState(false);
+
   const [refreshing, setRefreshing] = useState(false);
+  const [votedMap, setVotedMap] = useState<Record<string, boolean>>({});
+  const [myComplaintIds, setMyComplaintIds] = useState<Set<string>>(
+    new Set()
+  );
   const user = useAuthStore((s) => s.user);
 
+  /**
+   * Load ALL PUBLIC complaints.
+   *
+   * Track Complaint should not depend on the logged-in user.
+   */
   const fetchMyComplaints = async (silent = false) => {
-    if (!user) {
-      setMyComplaints([]);
-      return;
+    if (!silent) {
+      setLoadingMyComplaints(true);
     }
-    if (!silent) setLoadingMyComplaints(true);
-    // try {
-    //   const { data } = await complaintsAPI.getMyHistory();
-    //   setMyComplaints(Array.isArray(data) ? data : []);
-    // } catch {
-    //   // silent catch
-    // } finally {
-    //   setLoadingMyComplaints(false);
-    //   setRefreshing(false);
-    // }
+
     try {
-  const { data } = await complaintsAPI.getMyHistory();
+      const { data } = await complaintsAPI.getPublic();
 
-  const complaints = Array.isArray(data)
-    ? data
-    : Array.isArray(data?.complaints)
-    ? data.complaints
-    : Array.isArray(data?.data)
-    ? data.data
-    : [];
+      const complaints = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.complaints)
+        ? data.complaints
+        : Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.data?.complaints)
+        ? data.data.complaints
+        : [];
 
-  setMyComplaints(complaints);
+      setMyComplaints(complaints);
 
-  console.log('MY COMPLAINTS RESPONSE:', data);
-  console.log('MY COMPLAINTS:', complaints);
-} catch (err: any) {
-  console.log(
-    'MY COMPLAINTS ERROR:',
-    err?.response?.status,
-    err?.response?.data || err?.message
-  );
-  setMyComplaints([]);
-} finally {
-  setLoadingMyComplaints(false);
-  setRefreshing(false);
-}
+      // Identify complaints registered by the current user.
+      // These complaints stay visible, but their Vote button is hidden.
+      if (user) {
+        try {
+          const { data: myData } = await complaintsAPI.getMyHistory();
+
+          const myList = Array.isArray(myData)
+            ? myData
+            : Array.isArray(myData?.complaints)
+            ? myData.complaints
+            : Array.isArray(myData?.data)
+            ? myData.data
+            : Array.isArray(myData?.data?.complaints)
+            ? myData.data.complaints
+            : [];
+
+          const ids = new Set<string>(
+            myList
+              .map((item: any) => item?._id)
+              .filter(Boolean)
+          );
+
+          setMyComplaintIds(ids);
+        } catch (historyError: any) {
+          console.log(
+            'MY COMPLAINT OWNERSHIP CHECK ERROR:',
+            historyError?.response?.data || historyError?.message
+          );
+
+          // If ownership cannot be checked, do not hide votes
+          // for public complaints.
+          setMyComplaintIds(new Set());
+        }
+      } else {
+        setMyComplaintIds(new Set());
+      }
+
+      // Restore the current user's vote state for each public complaint.
+      if (user) {
+        const userId = user.id || user._id;
+        const votes: Record<string, boolean> = {};
+
+        if (userId) {
+          complaints.forEach((item: any) => {
+            if (
+              item._id &&
+              Array.isArray(item.voters)
+            ) {
+              votes[item._id] = item.voters.includes(userId);
+            }
+          });
+        }
+
+        setVotedMap(votes);
+      } else {
+        setVotedMap({});
+      }
+
+      console.log(
+        'TRACK PUBLIC COMPLAINTS RESPONSE:',
+        JSON.stringify(data, null, 2)
+      );
+
+      console.log(
+        'TRACK PUBLIC COMPLAINTS:',
+        JSON.stringify(complaints, null, 2)
+      );
+    } catch (err: any) {
+      console.log(
+        'TRACK PUBLIC COMPLAINTS ERROR STATUS:',
+        err?.response?.status
+      );
+
+      console.log(
+        'TRACK PUBLIC COMPLAINTS ERROR DATA:',
+        err?.response?.data
+      );
+
+      console.log(
+        'TRACK PUBLIC COMPLAINTS ERROR MESSAGE:',
+        err?.message
+      );
+
+      setMyComplaints([]);
+    } finally {
+      setLoadingMyComplaints(false);
+      setRefreshing(false);
+    }
   };
 
+  /**
+   * Load public complaints when Track screen opens.
+   */
   useEffect(() => {
     fetchMyComplaints();
   }, [user]);
 
+  /**
+   * If screen was opened with a tracking code,
+   * automatically track that complaint.
+   */
   useEffect(() => {
     if (codeParam) {
       setCode(codeParam);
@@ -91,30 +181,154 @@ export default function TrackComplaintScreen({
     }
   }, [codeParam]);
 
+  /**
+   * Pull-to-refresh
+   */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchMyComplaints(true);
   }, [user]);
 
-  const handleTrack = async (lookupCode?: string) => {
-    const codeToSearch = (lookupCode || code).trim();
-    if (!codeToSearch) {
-      Alert.alert('Tracking Code Required', 'Please enter your FDA tracking code (e.g. FDA-2026-000001).');
+  /**
+   * Vote on a public complaint.
+   * Voting is available from Track Status for logged-in users.
+   */
+  const handleVote = async (complaintId: string) => {
+    if (!user) {
+      Alert.alert(
+        'Login Required',
+        'Please log in to vote on citizen reports.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Login',
+            onPress: () => navigation?.navigate('Login'),
+          },
+        ]
+      );
       return;
     }
+
+    if (!complaintId) {
+      return;
+    }
+
+    const isCurrentlyVoted = !!votedMap[complaintId];
+
+    // Optimistic UI update
+    setVotedMap((prev) => ({
+      ...prev,
+      [complaintId]: !isCurrentlyVoted,
+    }));
+
+    setMyComplaints((prev) =>
+      prev.map((item) => {
+        if (item._id === complaintId) {
+          const delta = isCurrentlyVoted ? -1 : 1;
+
+          return {
+            ...item,
+            upvotes: Math.max(
+              0,
+              (item.upvotes || 0) + delta
+            ),
+          };
+        }
+
+        return item;
+      })
+    );
+
+    try {
+      await complaintsAPI.vote(complaintId);
+    } catch (err: any) {
+      console.log(
+        'VOTE ERROR:',
+        err?.response?.data || err?.message
+      );
+
+      // Revert optimistic update if the API call fails.
+      setVotedMap((prev) => ({
+        ...prev,
+        [complaintId]: isCurrentlyVoted,
+      }));
+
+      setMyComplaints((prev) =>
+        prev.map((item) => {
+          if (item._id === complaintId) {
+            const delta = isCurrentlyVoted ? 1 : -1;
+
+            return {
+              ...item,
+              upvotes: Math.max(
+                0,
+                (item.upvotes || 0) + delta
+              ),
+            };
+          }
+
+          return item;
+        })
+      );
+
+      Alert.alert(
+        'Vote Failed',
+        'Could not register vote. Please try again.'
+      );
+    }
+  };
+
+  /**
+   * Track any complaint using tracking code.
+   */
+  const handleTrack = async (lookupCode?: string) => {
+    const codeToSearch = (lookupCode || code).trim();
+
+    if (!codeToSearch) {
+      Alert.alert(
+        'Tracking Code Required',
+        'Please enter your FDA tracking code (e.g. FDA-2026-000001).'
+      );
+      return;
+    }
+
     setLoading(true);
+
     try {
       const { data } = await complaintsAPI.track(codeToSearch);
+
       setComplaint(data);
+
+      console.log(
+        'TRACKED COMPLAINT:',
+        JSON.stringify(data, null, 2)
+      );
     } catch (err: any) {
       setComplaint(null);
+
+      console.log(
+        'TRACK COMPLAINT ERROR STATUS:',
+        err?.response?.status
+      );
+
+      console.log(
+        'TRACK COMPLAINT ERROR DATA:',
+        err?.response?.data
+      );
+
       if (err?.response?.status === 404) {
         Alert.alert(
           'Complaint Not Found',
           `No food safety complaint found for code "${codeToSearch}". Please check the code and try again.`
         );
       } else {
-        Alert.alert('Connection Error', 'Could not reach server. Please check your backend connection.');
+        Alert.alert(
+          'Connection Error',
+          'Could not reach server. Please check your backend connection.'
+        );
       }
     } finally {
       setLoading(false);
@@ -123,16 +337,24 @@ export default function TrackComplaintScreen({
 
   return (
     <View style={styles.flex}>
+
       {/* Top Header */}
       <View style={styles.topHeader}>
         {navigation && (
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backBtn}
+          >
             <Text style={styles.backArrow}>‹</Text>
           </TouchableOpacity>
         )}
+
         <Text style={styles.headerTitle}>
-          {complaint ? 'Complaint Investigation Details' : 'Track & Manage Complaints'}
+          {complaint
+            ? 'Complaint Investigation Details'
+            : 'Track & Manage Complaints'}
         </Text>
+
         <View style={{ width: 32 }} />
       </View>
 
@@ -140,11 +362,21 @@ export default function TrackComplaintScreen({
         style={styles.flex}
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+          />
+        }
       >
-        {/* Search by Tracking Code Input Card */}
+
+        {/* Search by Tracking Code */}
         <View style={styles.searchCard}>
-          <Text style={styles.inputLabel}>Track by FDA Tracking Code</Text>
+          <Text style={styles.inputLabel}>
+            Track by FDA Tracking Code
+          </Text>
+
           <View style={styles.inputRow}>
             <TextInput
               style={styles.textInput}
@@ -154,54 +386,99 @@ export default function TrackComplaintScreen({
               onChangeText={setCode}
               autoCapitalize="characters"
             />
-            <TouchableOpacity style={styles.trackBtn} onPress={() => handleTrack()}>
+
+            <TouchableOpacity
+              style={styles.trackBtn}
+              onPress={() => handleTrack()}
+            >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator
+                  size="small"
+                  color="#FFFFFF"
+                />
               ) : (
-                <Text style={styles.trackBtnText}>Track</Text>
+                <Text style={styles.trackBtnText}>
+                  Track
+                </Text>
               )}
             </TouchableOpacity>
           </View>
+
           <Text style={styles.hintText}>
-            Enter any tracking code to view live officer inspection & resolution status.
+            Enter any tracking code to view live officer inspection &
+            resolution status.
           </Text>
         </View>
 
-        {/* LOADING SINGLE COMPLAINT */}
+        {/* Loading Single Complaint */}
         {loading && !complaint && (
           <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingSub}>Retrieving official inspection records…</Text>
+            <ActivityIndicator
+              size="large"
+              color={Colors.primary}
+            />
+
+            <Text style={styles.loadingSub}>
+              Retrieving official inspection records…
+            </Text>
           </View>
         )}
 
-        {/* SINGLE COMPLAINT DETAIL & TIMELINE VIEW */}
+        {/* Single Complaint Details */}
         {complaint && !loading && (
           <View style={styles.resultContainer}>
+
             <View style={styles.resultHeaderRow}>
-              <Text style={styles.sectionHeader}>Official Complaint Record</Text>
+              <Text style={styles.sectionHeader}>
+                Official Complaint Record
+              </Text>
+
               <TouchableOpacity
                 onPress={() => {
                   setComplaint(null);
                   setCode('');
                 }}
               >
-                <Text style={styles.viewAllLink}>‹ All My Complaints</Text>
+                <Text style={styles.viewAllLink}>
+                  ‹ All Complaints
+                </Text>
               </TouchableOpacity>
             </View>
 
-            <ComplaintCard complaint={complaint} showVote={false} />
+            <ComplaintCard
+              complaint={complaint}
+              showVote={
+                !!user &&
+                !!complaint?._id &&
+                !myComplaintIds.has(complaint._id)
+              }
+              hasVoted={
+                !!complaint?._id &&
+                !!votedMap[complaint._id]
+              }
+              onVote={() => {
+                if (complaint?._id) {
+                  handleVote(complaint._id);
+                }
+              }}
+            />
 
-            {/* Status Progress Timeline */}
+            {/* Status Timeline */}
             <View style={styles.timelineCard}>
-              <Text style={styles.timelineTitle}>🏛️ Investigation & Resolution Progress</Text>
+              <Text style={styles.timelineTitle}>
+                🏛️ Investigation & Resolution Progress
+              </Text>
+
               <StatusTimeline
                 history={
                   complaint.statusHistory || [
                     {
                       status: 'submitted',
-                      at: complaint.createdAt || new Date().toISOString(),
-                      publicNote: 'Complaint registered and verified in FDA SafeWatch.',
+                      at:
+                        complaint.createdAt ||
+                        new Date().toISOString(),
+                      publicNote:
+                        'Complaint registered and verified in FDA SafeWatch.',
                     },
                   ]
                 }
@@ -210,12 +487,19 @@ export default function TrackComplaintScreen({
             </View>
 
             {/* Officer Resolution Proof */}
-            {complaint.resolutionProof && complaint.resolutionProof.length > 0 && (
-              <View style={styles.proofBox}>
-                <Text style={styles.proofTitle}>📸 Officer Resolution Proof</Text>
-                <Text style={styles.proofSub}>Verified evidence provided by assigned Food Safety Officer.</Text>
-              </View>
-            )}
+            {complaint.resolutionProof &&
+              complaint.resolutionProof.length > 0 && (
+                <View style={styles.proofBox}>
+                  <Text style={styles.proofTitle}>
+                    📸 Officer Resolution Proof
+                  </Text>
+
+                  <Text style={styles.proofSub}>
+                    Verified evidence provided by assigned Food
+                    Safety Officer.
+                  </Text>
+                </View>
+              )}
 
             <Button
               title="Track Another Code"
@@ -230,72 +514,117 @@ export default function TrackComplaintScreen({
           </View>
         )}
 
-        {/* MY REGISTERED COMPLAINTS LIST (Shown when no specific complaint is active) */}
+        {/* ALL PUBLIC COMPLAINTS */}
         {!complaint && !loading && (
           <View style={styles.myComplaintsSection}>
+
             <View style={styles.myComplaintsHeaderRow}>
-              <Text style={styles.myComplaintsTitle}>📋 My Registered Complaints</Text>
+              <Text style={styles.myComplaintsTitle}>
+                📋 All Complaints
+              </Text>
+
               <Text style={styles.myComplaintsCount}>
-                {myComplaints.length} {myComplaints.length === 1 ? 'Report' : 'Reports'}
+                {myComplaints.length}{' '}
+                {myComplaints.length === 1
+                  ? 'Report'
+                  : 'Reports'}
               </Text>
             </View>
 
             {loadingMyComplaints ? (
               <View style={styles.loadingBox}>
-                <ActivityIndicator size="small" color={Colors.primary} />
-                <Text style={styles.loadingSub}>Loading your registered complaints…</Text>
-              </View>
-            ) : !user ? (
-              <View style={styles.authNoticeCard}>
-                <Text style={{ fontSize: 28, marginBottom: 6 }}>🔒</Text>
-                <Text style={styles.authNoticeTitle}>Log In to View Your Complaints</Text>
-                <Text style={styles.authNoticeSub}>
-                  Log in to see all food safety reports registered by your account and track their resolution status in one tap.
+                <ActivityIndicator
+                  size="small"
+                  color={Colors.primary}
+                />
+
+                <Text style={styles.loadingSub}>
+                  Loading complaints…
                 </Text>
-                <TouchableOpacity
-                  style={styles.loginActionBtn}
-                  onPress={() => navigation?.navigate('Login')}
-                >
-                  <Text style={styles.loginActionText}>Log In to Account</Text>
-                </TouchableOpacity>
               </View>
             ) : myComplaints.length === 0 ? (
               <View style={styles.emptyMyComplaints}>
-                <Text style={{ fontSize: 36, marginBottom: 8 }}>📝</Text>
-                <Text style={styles.emptyTitle}>No Complaints Registered</Text>
-                <Text style={styles.emptySub}>
-                  You haven't filed any food safety reports yet. When you report an issue, it will automatically appear here with real-time status tracking.
+
+                <Text
+                  style={{
+                    fontSize: 36,
+                    marginBottom: 8,
+                  }}
+                >
+                  📂
                 </Text>
+
+                <Text style={styles.emptyTitle}>
+                  No Complaints Available
+                </Text>
+
+                <Text style={styles.emptySub}>
+                  There are currently no public complaints
+                  available to display.
+                </Text>
+
                 <TouchableOpacity
                   style={styles.reportNewBtn}
-                  onPress={() => navigation?.navigate('Report')}
+                  onPress={() =>
+                    fetchMyComplaints()
+                  }
                 >
-                  <Text style={styles.reportNewBtnText}>+ Report a Food Issue</Text>
+                  <Text style={styles.reportNewBtnText}>
+                    Refresh Complaints
+                  </Text>
                 </TouchableOpacity>
+
               </View>
             ) : (
               myComplaints.map((item) => (
                 <ComplaintCard
-                  key={item._id}
+                  key={
+                    item._id ||
+                    item.trackingCode
+                  }
                   complaint={item}
-                  showVote={false}
+                  showVote={
+                    !!user &&
+                    !!item?._id &&
+                    !myComplaintIds.has(item._id)
+                  }
+                  hasVoted={
+                    !!item?._id &&
+                    !!votedMap[item._id]
+                  }
+                  onVote={() => handleVote(item._id)}
                   onPress={() => {
-                    setCode(item.trackingCode);
-                    handleTrack(item.trackingCode);
+                    if (item.trackingCode) {
+                      setCode(
+                        item.trackingCode
+                      );
+
+                      handleTrack(
+                        item.trackingCode
+                      );
+                    }
                   }}
                 />
               ))
             )}
           </View>
         )}
+
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#F8FAFC' },
-  container: { paddingBottom: 40 },
+  flex: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+
+  container: {
+    paddingBottom: 40,
+  },
+
   topHeader: {
     paddingTop: 52,
     paddingBottom: 14,
@@ -307,9 +636,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
-  backBtn: { padding: 4, width: 32 },
-  backArrow: { fontSize: 28, color: '#1E293B' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: '#1E293B' },
+
+  backBtn: {
+    padding: 4,
+    width: 32,
+  },
+
+  backArrow: {
+    fontSize: 28,
+    color: '#1E293B',
+  },
+
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+
   searchCard: {
     backgroundColor: '#FFFFFF',
     margin: 16,
@@ -318,16 +661,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
+
   inputLabel: {
     fontSize: 14,
     fontWeight: '800',
     color: '#1E293B',
     marginBottom: 8,
   },
+
   inputRow: {
     flexDirection: 'row',
     gap: 10,
   },
+
   textInput: {
     flex: 1,
     borderWidth: 1.5,
@@ -340,6 +686,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     fontWeight: '700',
   },
+
   trackBtn: {
     backgroundColor: '#0F4C3A',
     paddingHorizontal: 20,
@@ -347,44 +694,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   trackBtnText: {
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 14,
   },
+
   hintText: {
     fontSize: 11,
     color: '#94A3B8',
     marginTop: 8,
   },
+
   loadingBox: {
     alignItems: 'center',
     paddingVertical: 30,
   },
+
   loadingSub: {
     marginTop: 8,
     fontSize: 12,
     color: '#64748B',
   },
+
   resultContainer: {
     paddingHorizontal: 16,
   },
+
   resultHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
+
   sectionHeader: {
     fontSize: 14,
     fontWeight: '800',
     color: '#1E293B',
   },
+
   viewAllLink: {
     fontSize: 12,
     fontWeight: '700',
     color: '#0F4C3A',
   },
+
   timelineCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -393,12 +749,14 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     marginTop: 8,
   },
+
   timelineTitle: {
     fontSize: 15,
     fontWeight: '800',
     color: '#0F4C3A',
     marginBottom: 14,
   },
+
   proofBox: {
     backgroundColor: '#EFF6FF',
     borderRadius: 12,
@@ -407,31 +765,37 @@ const styles = StyleSheet.create({
     borderColor: '#BFDBFE',
     marginTop: 12,
   },
+
   proofTitle: {
     fontSize: 13,
     fontWeight: '800',
     color: '#1E40AF',
     marginBottom: 2,
   },
+
   proofSub: {
     fontSize: 11,
     color: '#3B82F6',
   },
+
   myComplaintsSection: {
     paddingHorizontal: 16,
     marginTop: 8,
   },
+
   myComplaintsHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
+
   myComplaintsTitle: {
     fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
   },
+
   myComplaintsCount: {
     fontSize: 12,
     fontWeight: '700',
@@ -441,38 +805,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 10,
   },
-  authNoticeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  authNoticeTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1E293B',
-    marginBottom: 4,
-  },
-  authNoticeSub: {
-    fontSize: 12,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 17,
-    marginBottom: 14,
-  },
-  loginActionBtn: {
-    backgroundColor: '#0F4C3A',
-    paddingHorizontal: 20,
-    paddingVertical: 9,
-    borderRadius: 8,
-  },
-  loginActionText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
+
   emptyMyComplaints: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -481,12 +814,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
+
   emptyTitle: {
     fontSize: 15,
     fontWeight: '800',
     color: '#1E293B',
     marginBottom: 4,
   },
+
   emptySub: {
     fontSize: 12,
     color: '#64748B',
@@ -494,12 +829,14 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 16,
   },
+
   reportNewBtn: {
     backgroundColor: '#0F4C3A',
     paddingHorizontal: 18,
     paddingVertical: 9,
     borderRadius: 8,
   },
+
   reportNewBtnText: {
     color: '#FFFFFF',
     fontSize: 12,

@@ -23,7 +23,10 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nikhil6273.fdasafewatch"
+      "package": "com.nikhil6273.fdasafewatch",
+      "permissions": [
+        "REQUEST_INSTALL_PACKAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

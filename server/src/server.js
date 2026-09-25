@@ -240,3 +240,12 @@ connectDb()
 
     process.exit(1);
   });
+
+app.get('/api/app-version', (req, res) => {
+  res.json({
+    version: '1.0.1',
+    apkUrl: 'YOUR_DIRECT_APK_DOWNLOAD_URL',
+    forceUpdate: false,
+    releaseNotes: 'Bug fixes and performance improvements.'
+  });
+});

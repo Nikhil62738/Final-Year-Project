@@ -260,49 +260,61 @@ export async function createSubAdmin(req, res) {
     return res.status(403).json({ message: "Only super admin can create district subadmins" });
   }
 
-  const { name, email, phone, password, district } = req.body;
+  try {
+    const { name, email, phone, password, district } = req.body;
 
-  if (!name || !email || !password || !district) {
-    return res.status(400).json({ message: "Name, email, password, and district are required" });
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ message: "Enter a valid email address" });
-  }
-
-  if (!MAHARASHTRA_DISTRICTS.includes(district)) {
-    return res.status(400).json({ message: "Select a valid Maharashtra district" });
-  }
-
-  // Enforce 1 admin per district rule
-  const existingDistrictAdmin = await Officer.findOne({ district, active: true });
-  if (existingDistrictAdmin) {
-    return res.status(400).json({ message: `District '${district}' already has an active admin (${existingDistrictAdmin.name}). Edit or delete the existing admin first.` });
-  }
-
-  const existingEmail = await Officer.findOne({ email: String(email).toLowerCase() });
-  if (existingEmail) {
-    return res.status(409).json({ message: "An admin with this email already exists" });
-  }
-
-  const officer = await Officer.create({
-    name,
-    email: String(email).toLowerCase(),
-    phone: phone || "0000000000",
-    district,
-    role: "admin",
-    passwordHash: await bcrypt.hash(password, 12)
-  });
-
-  res.status(201).json({
-    officer: {
-      id: officer.id,
-      name: officer.name,
-      email: officer.email,
-      role: officer.role,
-      district: officer.district
+    if (!name || !email || !password || !district) {
+      return res.status(400).json({ message: "Name, email, password, and district are required" });
     }
-  });
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Enter a valid email address" });
+    }
+
+    if (!MAHARASHTRA_DISTRICTS.includes(district)) {
+      return res.status(400).json({ message: "Select a valid Maharashtra district" });
+    }
+
+    // Enforce 1 admin per district rule — exclude super_admin from this check
+    const existingDistrictAdmin = await Officer.findOne({ district, active: true, role: { $ne: "super_admin" } });
+    if (existingDistrictAdmin) {
+      return res.status(400).json({ message: `District '${district}' already has an active admin (${existingDistrictAdmin.name}). Edit or delete the existing admin first.` });
+    }
+
+    const existingEmail = await Officer.findOne({ email: String(email).toLowerCase() });
+    if (existingEmail) {
+      return res.status(409).json({ message: "An admin with this email already exists" });
+    }
+
+    // Use phone if provided, otherwise derive a unique placeholder from email
+    const phoneValue = phone && phone.trim() ? phone.trim() : `ph_${String(email).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 14)}`;
+
+    const officer = await Officer.create({
+      name,
+      email: String(email).toLowerCase(),
+      phone: phoneValue,
+      district,
+      role: "admin",
+      passwordHash: await bcrypt.hash(password, 12)
+    });
+
+    res.status(201).json({
+      officer: {
+        id: officer.id,
+        name: officer.name,
+        email: officer.email,
+        role: officer.role,
+        district: officer.district
+      }
+    });
+  } catch (error) {
+    console.error("createSubAdmin error:", error);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "field";
+      return res.status(409).json({ message: `An admin with this ${field} already exists.` });
+    }
+    res.status(500).json({ message: error.message || "Failed to create district admin" });
+  }
 }
 
 export async function listSubAdmins(req, res) {
@@ -427,8 +439,8 @@ export async function requestOtp(req, res) {
     message: smsSent && emailSent
       ? `OTP sent to your mobile (${user.phone}) via Message Central. A notification has also been sent to ${user.email}.`
       : smsSent
-      ? `OTP sent to your registered mobile (${user.phone}) via Message Central.`
-      : `OTP sent to your registered email (${user.email}).`
+        ? `OTP sent to your registered mobile (${user.phone}) via Message Central.`
+        : `OTP sent to your registered email (${user.email}).`
   });
 }
 
@@ -536,8 +548,8 @@ export async function requestPasswordResetOtp(req, res) {
     message: account.phone && account.email
       ? `Password reset OTP sent to your mobile (${account.phone}) and email (${account.email})`
       : account.phone
-      ? `Password reset OTP sent to your mobile (${account.phone})`
-      : `Password reset OTP sent to your email (${account.email})`
+        ? `Password reset OTP sent to your mobile (${account.phone})`
+        : `Password reset OTP sent to your email (${account.email})`
   });
 }
 

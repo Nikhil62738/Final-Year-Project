@@ -28,20 +28,26 @@ export default function ComplaintCard({
     complaint.status === 'submitted'
       ? 'Submitted'
       : complaint.status === 'under_review'
-      ? 'Under Review'
-      : complaint.status === 'action_taken'
-      ? 'Action Taken'
-      : complaint.status === 'resolved'
-      ? 'Resolved'
-      : complaint.status === 'closed'
-      ? 'Closed'
-      : 'Submitted';
+        ? 'Under Review'
+        : complaint.status === 'action_taken'
+          ? 'Action Taken'
+          : complaint.status === 'resolved'
+            ? 'Resolved'
+            : complaint.status === 'closed'
+              ? 'Closed'
+              : 'Submitted';
+
+  const distTalukaPart = complaint.district
+    ? complaint.taluka
+      ? `${complaint.taluka}, ${complaint.district}`
+      : complaint.district
+    : complaint.taluka || 'Maharashtra';
 
   const locationStr = complaint.address
     ? complaint.district
-      ? `${complaint.address} (${complaint.district})`
+      ? `${complaint.address} (${distTalukaPart})`
       : complaint.address
-    : complaint.district || 'Maharashtra';
+    : distTalukaPart;
 
   return (
     <TouchableOpacity
@@ -80,8 +86,8 @@ export default function ComplaintCard({
               complaint.status === 'resolved'
                 ? styles.statusPillGreen
                 : complaint.status === 'under_review'
-                ? styles.statusPillBlue
-                : styles.statusPillAmber,
+                  ? styles.statusPillBlue
+                  : styles.statusPillAmber,
             ]}
           >
             <Text
@@ -90,8 +96,8 @@ export default function ComplaintCard({
                 complaint.status === 'resolved'
                   ? styles.statusTextGreen
                   : complaint.status === 'under_review'
-                  ? styles.statusTextBlue
-                  : styles.statusTextAmber,
+                    ? styles.statusTextBlue
+                    : styles.statusTextAmber,
               ]}
             >
               {statusLabel}

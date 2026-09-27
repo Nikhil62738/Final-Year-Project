@@ -31,24 +31,24 @@ export default function MyComplaintsScreen({ navigation }: MyComplaintsScreenPro
       // setComplaints(Array.isArray(data) ? data : []);
       const { data } = await complaintsAPI.getMyHistory();
 
-const complaints = Array.isArray(data)
-  ? data
-  : Array.isArray(data?.complaints)
-  ? data.complaints
-  : Array.isArray(data?.data)
-  ? data.data
-  : [];
+      const complaints = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.complaints)
+          ? data.complaints
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
 
-setComplaints(complaints);
+      setComplaints(complaints);
 
-console.log('MY COMPLAINTS RESPONSE:', data);
+      console.log('MY COMPLAINTS RESPONSE:', data);
     } catch (err: any) {
-  console.log('MY COMPLAINTS ERROR STATUS:', err?.response?.status);
-  console.log('MY COMPLAINTS ERROR DATA:', err?.response?.data);
-  console.log('MY COMPLAINTS ERROR MESSAGE:', err?.message);
+      console.log('MY COMPLAINTS ERROR STATUS:', err?.response?.status);
+      console.log('MY COMPLAINTS ERROR DATA:', err?.response?.data);
+      console.log('MY COMPLAINTS ERROR MESSAGE:', err?.message);
 
-  setError('Failed to load complaints. Check your connection.');
-}finally {
+      setError('Failed to load complaints. Check your connection.');
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
@@ -131,7 +131,7 @@ console.log('MY COMPLAINTS RESPONSE:', data);
                   <Text style={styles.category}>{c.category?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</Text>
                   {c.vendorName ? <Text style={styles.vendor}>{c.vendorName}</Text> : null}
                   {c.district ? (
-                    <Text style={styles.location}>📍 {c.district}</Text>
+                    <Text style={styles.location}>📍 {c.taluka ? `${c.taluka}, ` : ''}{c.district}</Text>
                   ) : null}
 
                   <View style={styles.cardFooter}>

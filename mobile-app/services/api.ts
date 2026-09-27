@@ -60,6 +60,7 @@ export const complaintsAPI = {
     category: string;
     description: string;
     district: string;
+    taluka?: string;
     vendorName?: string;
   }) => api.post('/api/complaints/check-duplicates', data),
 

@@ -63,6 +63,7 @@ export function publicComplaint(complaint) {
     vendorName: complaint.vendorName,
     address: complaint.address,
     district: complaint.district,
+    taluka: complaint.taluka || "",
     status: complaint.status,
     upvotes: complaint.upvotes || 0,
     voters: complaint.voters || [],

@@ -9,11 +9,13 @@ import {
   Switch,
   Platform,
   Image,
+  Modal,
+  TextInput,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Colors, FontSizes, Radius, Spacing } from '../constants/colors';
-import { COMPLAINT_CATEGORIES, MAHARASHTRA_DISTRICTS } from '../constants/categories';
+import { COMPLAINT_CATEGORIES, MAHARASHTRA_DISTRICTS, MAHARASHTRA_TALUKAS } from '../constants/categories';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { complaintsAPI } from '../services/api';
@@ -42,7 +44,7 @@ export default function ReportComplaintScreen({
     description: '',
     vendorName: '',
     district: 'Mumbai Suburban',
-    taluka: '',
+    taluka: 'Andheri',
     address: '',
     lat: '19.0760',
     lng: '72.8777',
@@ -53,6 +55,11 @@ export default function ReportComplaintScreen({
     receivesSms: true,
     receivesWhatsapp: true,
   });
+
+  const [showDistrictModal, setShowDistrictModal] = useState(false);
+  const [showTalukaModal, setShowTalukaModal] = useState(false);
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [talukaSearch, setTalukaSearch] = useState('');
 
   const [evidence, setEvidence] = useState<any[]>([]);
   const [aiSuggestion, setAiSuggestion] = useState('');
@@ -93,7 +100,7 @@ export default function ReportComplaintScreen({
       if (!result.canceled) {
         setEvidence((prev) => [...prev, ...result.assets].slice(0, 5));
       }
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const detectLocation = async () => {
@@ -113,10 +120,28 @@ export default function ReportComplaintScreen({
       if (geo) {
         const fullAddr = `${geo.name || geo.street || ''} ${geo.subregion || geo.city || ''}, ${geo.district || ''}, ${geo.region || ''}`.trim();
         update('address', fullAddr || 'Current Location');
-        if (geo.district || geo.subregion) {
-          update('district', geo.district || geo.subregion || 'Mumbai Suburban');
+        
+        // Find best matching Maharashtra district
+        const geoText = `${geo.district || ''} ${geo.subregion || ''} ${geo.city || ''} ${geo.region || ''}`.toLowerCase();
+        const matchedDistrict = MAHARASHTRA_DISTRICTS.find((d) =>
+          geoText.includes(d.toLowerCase())
+        );
+
+        const currentDistrict = matchedDistrict || geo.district || form.district || 'Mumbai Suburban';
+        update('district', currentDistrict);
+
+        // Find best matching taluka in this district
+        const availableTalukas = MAHARASHTRA_TALUKAS[currentDistrict] || [];
+        const matchedTaluka = availableTalukas.find((t) =>
+          `${geo.name || ''} ${geo.street || ''} ${geo.subregion || ''} ${geo.city || ''}`.toLowerCase().includes(t.toLowerCase())
+        );
+        if (matchedTaluka) {
+          update('taluka', matchedTaluka);
+        } else if (availableTalukas.length > 0 && !form.taluka) {
+          update('taluka', availableTalukas[0]);
         }
-        Alert.alert('Live Location Detected', `${fullAddr}\n(Coordinates: ${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)})`);
+
+        Alert.alert('Live Location Detected', `${fullAddr}\nDistrict: ${currentDistrict}${matchedTaluka ? `\nTaluka: ${matchedTaluka}` : ''}\n(Coordinates: ${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)})`);
       }
     } catch {
       Alert.alert('Location Detect', 'Unable to detect automatically. Using current pin.');
@@ -132,6 +157,7 @@ export default function ReportComplaintScreen({
           category: form.category,
           description: form.description,
           district: form.district,
+          taluka: form.taluka,
           vendorName: form.vendorName,
         });
         if (dupRes.data?.matches && dupRes.data.matches.length > 0) {
@@ -156,15 +182,16 @@ export default function ReportComplaintScreen({
             return;
           }
         }
-      } catch (_) {}
+      } catch (_) { }
 
-      // 2. Submit complaint
+      // 2. Submit complaint with District and Taluka
       const formData = new FormData();
       formData.append('category', form.category);
       formData.append('description', form.description);
       formData.append('vendorName', form.vendorName || 'Unspecified Vendor');
       formData.append('district', form.district);
-      formData.append('address', form.address || 'Unspecified');
+      formData.append('taluka', form.taluka || '');
+      formData.append('address', form.address || `${form.taluka ? `${form.taluka}, ` : ''}${form.district}`);
       formData.append('lat', form.lat);
       formData.append('lng', form.lng);
       formData.append('anonymous', String(form.anonymous));
@@ -184,7 +211,7 @@ export default function ReportComplaintScreen({
       const { data } = await complaintsAPI.submit(formData);
       Alert.alert(
         'Complaint Submitted Successfully',
-        `Your official FSSAI tracking code is: ${data.trackingCode}\n\nYou can track the investigation progress anytime using this code.`,
+        `Your official FSSAI tracking code is: ${data.trackingCode}\nDistrict: ${form.district}\nTaluka: ${form.taluka || 'N/A'}\n\nYou can track the investigation progress anytime using this code.`,
         [
           {
             text: 'Track Status Now',
@@ -350,15 +377,55 @@ export default function ReportComplaintScreen({
         )}
 
         {/* STEP 2: Location & Evidence (Screen 8) */}
+        {/* STEP 2: Location & Evidence (Screen 8) */}
         {step === 1 && (
           <View>
             <TouchableOpacity style={styles.detectBtn} onPress={detectLocation}>
-              <Text style={styles.detectBtnText}>📍 Detect Current Location</Text>
+              <Text style={styles.detectBtnText}>📍 Detect Current Location (Auto-fills District/Taluka)</Text>
             </TouchableOpacity>
 
+            {/* District & Taluka Selectors */}
+            <View style={styles.pickerSection}>
+              <Text style={styles.fieldLabel}>District *</Text>
+              <TouchableOpacity
+                style={styles.selectCard}
+                onPress={() => {
+                  setDistrictSearch('');
+                  setShowDistrictModal(true);
+                }}
+              >
+                <View style={styles.selectCardContent}>
+                  <Text style={styles.selectCardIcon}>🏛️</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.selectCardLabel}>Selected District</Text>
+                    <Text style={styles.selectCardValue}>{form.district || 'Select District'}</Text>
+                  </View>
+                  <Text style={styles.selectCardArrow}>▼</Text>
+                </View>
+              </TouchableOpacity>
+
+              <Text style={[styles.fieldLabel, { marginTop: 12 }]}>Taluka / Sub-Division *</Text>
+              <TouchableOpacity
+                style={styles.selectCard}
+                onPress={() => {
+                  setTalukaSearch('');
+                  setShowTalukaModal(true);
+                }}
+              >
+                <View style={styles.selectCardContent}>
+                  <Text style={styles.selectCardIcon}>📍</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.selectCardLabel}>Selected Taluka ({form.district})</Text>
+                    <Text style={styles.selectCardValue}>{form.taluka || 'Select Taluka'}</Text>
+                  </View>
+                  <Text style={styles.selectCardArrow}>▼</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
             <Input
-              label="Address"
-              placeholder="Enter address or landmark"
+              label="Specific Street / Landmark Address"
+              placeholder="e.g. Near Station Road, Opp Central Bank"
               value={form.address}
               onChangeText={(v) => update('address', v)}
             />
@@ -367,7 +434,7 @@ export default function ReportComplaintScreen({
             <View style={styles.mapPlaceholder}>
               <Text style={styles.mapPin}>📍</Text>
               <View style={styles.mapBadge}>
-                <Text style={styles.mapBadgeText}>Use This Location</Text>
+                <Text style={styles.mapBadgeText}>{form.taluka ? `${form.taluka}, ${form.district}` : form.district}</Text>
               </View>
             </View>
 
@@ -472,9 +539,10 @@ export default function ReportComplaintScreen({
             <View style={styles.reviewList}>
               {[
                 { icon: '🏷️', label: 'Category', val: COMPLAINT_CATEGORIES.find((c) => c.id === form.category)?.label || 'Expired Product' },
-                { icon: '📝', label: 'Description', val: form.description || 'Milk packet expired by 2 days...' },
-                { icon: '🏪', label: 'Vendor', val: form.vendorName || 'Shree Dairy' },
-                { icon: '📍', label: 'Location', val: `${form.address || 'Mumbai, Maharashtra'} (${form.lat}, ${form.lng})` },
+                { icon: '📝', label: 'Description', val: form.description || 'Food safety issue reported...' },
+                { icon: '🏪', label: 'Vendor', val: form.vendorName || 'Unspecified Vendor' },
+                { icon: '🏛️', label: 'District & Taluka', val: `${form.district}${form.taluka ? ` (Taluka: ${form.taluka})` : ''}` },
+                { icon: '📍', label: 'Address & Coordinates', val: `${form.address || form.district} (${form.lat}, ${form.lng})` },
                 { icon: '📷', label: 'Evidence', val: `${evidence.length} photos attached` },
                 {
                   icon: '👤',
@@ -504,6 +572,10 @@ export default function ReportComplaintScreen({
                   Alert.alert('Incomplete Details', 'Please choose a category and enter a brief description.');
                   return;
                 }
+                if (step === 1 && !form.district) {
+                  Alert.alert('District Required', 'Please select your District to proceed.');
+                  return;
+                }
                 setStep(step + 1);
               }}
               fullWidth
@@ -520,6 +592,112 @@ export default function ReportComplaintScreen({
           )}
         </View>
       </ScrollView>
+
+      {/* District Selection Modal */}
+      <Modal
+        visible={showDistrictModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDistrictModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select District</Text>
+              <TouchableOpacity onPress={() => setShowDistrictModal(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.modalSearchInput}
+              placeholder="🔍 Search district..."
+              placeholderTextColor="#94A3B8"
+              value={districtSearch}
+              onChangeText={setDistrictSearch}
+            />
+
+            <ScrollView style={styles.modalList}>
+              {MAHARASHTRA_DISTRICTS.filter((d) =>
+                d.toLowerCase().includes(districtSearch.toLowerCase())
+              ).map((d) => {
+                const isSelected = form.district === d;
+                return (
+                  <TouchableOpacity
+                    key={d}
+                    style={[styles.modalItem, isSelected && styles.modalItemSelected]}
+                    onPress={() => {
+                      update('district', d);
+                      const talukas = MAHARASHTRA_TALUKAS[d] || [];
+                      if (talukas.length > 0) {
+                        update('taluka', talukas[0]);
+                      } else {
+                        update('taluka', '');
+                      }
+                      setShowDistrictModal(false);
+                    }}
+                  >
+                    <Text style={[styles.modalItemText, isSelected && styles.modalItemTextSelected]}>
+                      {d}
+                    </Text>
+                    {isSelected && <Text style={styles.modalCheckMark}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Taluka Selection Modal */}
+      <Modal
+        visible={showTalukaModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowTalukaModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Taluka ({form.district})</Text>
+              <TouchableOpacity onPress={() => setShowTalukaModal(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.modalSearchInput}
+              placeholder="🔍 Search taluka..."
+              placeholderTextColor="#94A3B8"
+              value={talukaSearch}
+              onChangeText={setTalukaSearch}
+            />
+
+            <ScrollView style={styles.modalList}>
+              {(MAHARASHTRA_TALUKAS[form.district] || ['Headquarters', 'Rural Area', 'Other'])
+                .filter((t) => t.toLowerCase().includes(talukaSearch.toLowerCase()))
+                .map((t) => {
+                  const isSelected = form.taluka === t;
+                  return (
+                    <TouchableOpacity
+                      key={t}
+                      style={[styles.modalItem, isSelected && styles.modalItemSelected]}
+                      onPress={() => {
+                        update('taluka', t);
+                        setShowTalukaModal(false);
+                      }}
+                    >
+                      <Text style={[styles.modalItemText, isSelected && styles.modalItemTextSelected]}>
+                        {t}
+                      </Text>
+                      {isSelected && <Text style={styles.modalCheckMark}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -593,7 +771,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -665,6 +843,7 @@ const styles = StyleSheet.create({
   detectBtn: {
     backgroundColor: '#0F4C3A',
     paddingVertical: 12,
+    paddingHorizontal: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 16,
@@ -673,16 +852,53 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700',
+    textAlign: 'center',
+  },
+  pickerSection: {
+    marginBottom: 16,
+  },
+  selectCard: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  selectCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  selectCardIcon: {
+    fontSize: 20,
+  },
+  selectCardLabel: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  selectCardValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F4C3A',
+    marginTop: 1,
+  },
+  selectCardArrow: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginLeft: 'auto',
   },
   mapPlaceholder: {
-    height: 140,
+    height: 120,
     borderRadius: 12,
     backgroundColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
-  mapPin: { fontSize: 32 },
+  mapPin: { fontSize: 28 },
   mapBadge: {
     backgroundColor: '#0F4C3A',
     paddingHorizontal: 12,
@@ -789,5 +1005,75 @@ const styles = StyleSheet.create({
   reviewVal: { fontSize: 13, color: '#1E293B', fontWeight: '700', marginTop: 1 },
   bottomBar: {
     marginTop: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '75%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0F4C3A',
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  modalCloseText: {
+    fontSize: 18,
+    color: '#64748B',
+    fontWeight: '700',
+  },
+  modalSearchInput: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  modalList: {
+    maxHeight: 350,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalItemSelected: {
+    backgroundColor: '#EAF4F1',
+    borderRadius: 8,
+  },
+  modalItemText: {
+    fontSize: 14,
+    color: '#334155',
+    fontWeight: '500',
+  },
+  modalItemTextSelected: {
+    color: '#0F4C3A',
+    fontWeight: '700',
+  },
+  modalCheckMark: {
+    color: '#0F4C3A',
+    fontSize: 16,
+    fontWeight: '800',
   },
 });

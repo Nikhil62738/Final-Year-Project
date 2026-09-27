@@ -332,8 +332,8 @@ function App() {
                 </svg>
                 <span>Towards Safe Food, Healthier Maharashtra</span>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn-admin-header-back"
                 onClick={() => navigate("home")}
               >
@@ -375,10 +375,10 @@ function App() {
                 className="fssai-logo"
                 onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn-admin-login-brand"
-                onClick={() => navigate("admin")} 
+                onClick={() => navigate("admin")}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -403,23 +403,23 @@ function App() {
             </button>
             <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
               <button className={`nav-link-item ${page === "home" ? "active" : ""}`} onClick={() => navigate("home")}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 Home
               </button>
               <button className={`nav-link-item ${page === "submit" ? "active" : ""}`} onClick={() => navigate("submit")}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                 Submit Complaint
               </button>
               <button className={`nav-link-item ${page === "track" ? "active" : ""}`} onClick={() => navigate("track")}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
                 Track Complaint
               </button>
               <button className={`nav-link-item ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
                 Transparency Register
               </button>
               <button className="nav-link-item" onClick={() => { navigate("home"); setTimeout(() => document.querySelector('.portal-info-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
                 Food Safety Information
               </button>
 
@@ -543,7 +543,7 @@ function Home({ navigate, citizen }) {
             <div className="hero-features-trio">
               <div className="feature-item">
                 <div className="feature-icon-circle">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
                 </div>
                 <div>
                   <strong>Report</strong>
@@ -553,7 +553,7 @@ function Home({ navigate, citizen }) {
 
               <div className="feature-item">
                 <div className="feature-icon-circle">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 </div>
                 <div>
                   <strong>Track</strong>
@@ -563,7 +563,7 @@ function Home({ navigate, citizen }) {
 
               <div className="feature-item">
                 <div className="feature-icon-circle">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 </div>
                 <div>
                   <strong>Ensure</strong>
@@ -586,7 +586,7 @@ function Home({ navigate, citizen }) {
                 <span className="search-icon">🔍</span> Track Your Complaint
               </button>
             </div>
-            
+
             <p className="hero-subtext-note">
               <span className="lock-icon">🔒</span> No app required. Report online or via SMS/WhatsApp.
             </p>
@@ -734,7 +734,7 @@ function SubmitComplaint({ navigate, citizen }) {
             qrScannerRef.current = null;
           }).catch(console.error);
         },
-        () => {}
+        () => { }
       ).catch((err) => {
         console.error("QR Scanner error:", err);
         setQrScanning(false);
@@ -820,8 +820,8 @@ function SubmitComplaint({ navigate, citizen }) {
               {duplicateInfo.message}
             </p>
             {duplicateInfo.existingTrackingCode && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 style={{ background: "#dc2626", color: "white", border: "none", padding: "10px 18px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", fontSize: "0.85rem" }}
                 onClick={() => navigate("track")}
               >
@@ -830,7 +830,7 @@ function SubmitComplaint({ navigate, citizen }) {
             )}
           </div>
         )}
-        
+
         <form className="report-form-single" onSubmit={submitComplaint}>
           <div className="field-group">
             <label>ISSUE TITLE</label>
@@ -939,7 +939,7 @@ function SubmitComplaint({ navigate, citizen }) {
           <button type="submit" className="submit-report-btn" disabled={busy}>
             {busy ? "SUBMITTING..." : "SUBMIT REPORT"}
           </button>
-          
+
           {message && <p className="notice">{message}</p>}
         </form>
       </div>
@@ -1168,7 +1168,7 @@ function MyHistory({ citizen, navigate }) {
                   </div>
                   <StatusBadge status={c.status} />
                 </div>
-                
+
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "12px", borderTop: "1px solid #f1f5f9", fontSize: "0.85rem", color: "#94a3b8" }}>
                   <span>Reported on: {new Date(c.createdAt).toLocaleDateString()}</span>
                   <span>Upvotes: ❤️ {c.upvotes || 0}</span>
@@ -1216,7 +1216,7 @@ function TrackComplaint({ citizen, navigate }) {
 
     try {
       const updated = await api(`/api/complaints/${complaintId}/vote`, { method: "POST" });
-      
+
       setPublicFeed((prev) => prev.map((item) => item._id === complaintId ? updated : item));
       if (searchedComplaint && searchedComplaint._id === complaintId) {
         setSearchedComplaint(updated);
@@ -1251,13 +1251,13 @@ function TrackComplaint({ citizen, navigate }) {
 
         {/* Navigation Tabs */}
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "28px" }}>
-          <button 
+          <button
             style={{ padding: "10px 24px", borderRadius: "8px", border: "none", fontWeight: 700, cursor: "pointer", background: activeTab === "feed" ? "#0f172a" : "#e2e8f0", color: activeTab === "feed" ? "#ffffff" : "#475569" }}
             onClick={() => setActiveTab("feed")}
           >
             🔥 Public Feed & Top Voted
           </button>
-          <button 
+          <button
             style={{ padding: "10px 24px", borderRadius: "8px", border: "none", fontWeight: 700, cursor: "pointer", background: activeTab === "search" ? "#0f172a" : "#e2e8f0", color: activeTab === "search" ? "#ffffff" : "#475569" }}
             onClick={() => setActiveTab("search")}
           >
@@ -1268,12 +1268,12 @@ function TrackComplaint({ citizen, navigate }) {
         {activeTab === "search" ? (
           <div>
             <form className="track-form" onSubmit={track} style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-              <input 
-                className="mono" 
+              <input
+                className="mono"
                 style={{ flex: 1, padding: "12px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "1rem" }}
-                value={code} 
-                onChange={(e) => setCode(e.target.value)} 
-                placeholder="Enter Tracking Code (e.g. FDA-2026-000001)" 
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Enter Tracking Code (e.g. FDA-2026-000001)"
               />
               <button className="primary" style={{ padding: "12px 24px" }}><IconMark>TR</IconMark> Track</button>
             </form>
@@ -1376,10 +1376,10 @@ function TrackComplaint({ citizen, navigate }) {
 function GoogleIcon() {
   return (
     <svg className="google-icon" viewBox="0 0 24 24">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
     </svg>
   );
 }
@@ -1632,7 +1632,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
     <section className="page login-page">
       <div className="auth-split-wrapper">
         <div className="auth-split-container">
-          
+
           {/* Left Column: Branding & Features matching reference mockup */}
           <div className="auth-left-brand">
             <div className="auth-badge-pill">
@@ -1824,7 +1824,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                       required
                     />
                   </div>
-                  
+
                   <label className="swift-label">Password</label>
                   <div className="swift-input-wrap">
                     <span className="swift-input-icon"><IconLock /></span>
@@ -1846,7 +1846,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                       <IconEye show={showPassword} />
                     </button>
                   </div>
-                  
+
                   <div className="auth-row-between">
                     <label className="auth-checkbox-label">
                       <input
@@ -1897,7 +1897,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                       required
                     />
                   </div>
-                  
+
                   <button className="swift-button auth-submit-btn">
                     <span>Send OTP</span>
                     <span className="btn-arrow">→</span>
@@ -1916,7 +1916,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                     <span className="swift-input-icon"><IconLock /></span>
                     <input className="swift-input swift-input-with-icon" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" required />
                   </div>
-                  
+
                   <button className="swift-button auth-submit-btn">
                     <span>Verify & Login</span>
                     <span className="btn-arrow">→</span>
@@ -1932,7 +1932,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                     <span className="swift-input-icon"><IconMail /></span>
                     <input className="swift-input swift-input-with-icon" value={emailOrPhone} onChange={(e) => setEmailOrPhone(e.target.value)} placeholder="Enter email or mobile" required />
                   </div>
-                  
+
                   <button className="swift-button auth-submit-btn">
                     <span>Send Reset OTP</span>
                     <span className="btn-arrow">→</span>
@@ -1954,7 +1954,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                     <span className="swift-input-icon"><IconLock /></span>
                     <input className="swift-input swift-input-with-icon" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New password" required />
                   </div>
-                  
+
                   <button className="swift-button auth-submit-btn">
                     <span>Reset Password</span>
                     <span className="btn-arrow">→</span>
@@ -2023,7 +2023,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                       <IconEye show={showPassword} />
                     </button>
                   </div>
-                  
+
                   <div className="auth-terms-row">
                     <label className="auth-checkbox-label">
                       <input
@@ -2047,7 +2047,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                 </>
               )}
             </form>
-            {message && <p className="notice" style={{marginTop: "0.65rem"}}>{message}</p>}
+            {message && <p className="notice" style={{ marginTop: "0.65rem" }}>{message}</p>}
           </div>
 
         </div>
@@ -2167,11 +2167,11 @@ function AdminLogin({ setOfficer, setPage }) {
       {/* Right Column: Floating White Login Card */}
       <div className="admin-split-form-panel">
         <div className="admin-white-login-card">
-          
+
           <div style={{ textAlign: "center", marginBottom: "16px" }}>
-            <img 
-              src={FDA_LOGO_IMG} 
-              alt="Food and Drug Administration Maharashtra Logo" 
+            <img
+              src={FDA_LOGO_IMG}
+              alt="Food and Drug Administration Maharashtra Logo"
               className="admin-split-fda-logo"
               onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
             />
@@ -2194,8 +2194,8 @@ function AdminLogin({ setOfficer, setPage }) {
           )}
 
           {/* 1-Click Demo Credentials Chip */}
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="admin-split-demo-chip"
             onClick={fillDemoAdmin}
             title="Click to auto-fill default admin credentials"
@@ -2209,14 +2209,14 @@ function AdminLogin({ setOfficer, setPage }) {
               <label className="admin-split-label">Official Email Address</label>
               <div className="admin-split-input-wrap">
                 <span className="admin-split-input-icon"><IconMail /></span>
-                <input 
-                  className="admin-split-input" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  placeholder="fda@gmail.com" 
+                <input
+                  className="admin-split-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="fda@gmail.com"
                   autoComplete="username"
-                  required 
+                  required
                 />
               </div>
             </div>
@@ -2225,17 +2225,17 @@ function AdminLogin({ setOfficer, setPage }) {
               <label className="admin-split-label">Master Password</label>
               <div className="admin-split-input-wrap">
                 <span className="admin-split-input-icon"><IconLock /></span>
-                <input 
-                  className="admin-split-input admin-split-input-with-eye" 
-                  type={showPassword ? "text" : "password"} 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  className="admin-split-input admin-split-input-with-eye"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
                   autoComplete="current-password"
-                  required 
+                  required
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="admin-split-eye-btn"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
@@ -2245,8 +2245,8 @@ function AdminLogin({ setOfficer, setPage }) {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="admin-split-submit-btn"
               disabled={loading}
             >
@@ -2267,8 +2267,8 @@ function AdminLogin({ setOfficer, setPage }) {
 
             {/* Back to Public Portal Link */}
             <div className="admin-split-footer">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="admin-split-back-link"
                 onClick={() => { window.location.hash = ""; setPage("home"); }}
               >
@@ -2467,7 +2467,7 @@ function TabOverview({ complaints, onViewAnalytics }) {
           </div>
         </div>
       </div>
-        </div>
+    </div>
   );
 }
 
@@ -3735,7 +3735,7 @@ function TabDistrictAdmins() {
       <div className="gov-card">
         <h2 style={{ marginTop: 0, display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--gov-nav)" }}>➕ REGISTER DISTRICT ADMIN</h2>
         <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "-6px 0 16px 0" }}>* Note: Each district can have only 1 active admin.</p>
-        
+
         <form onSubmit={createSubAdmin}>
           <div className="gov-form-group">
             <label>FULL NAME</label>
@@ -3831,20 +3831,28 @@ function TabDistrictAdmins() {
 
 function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
   const [proofFiles, setProofFiles] = useState([]);
+  const [superAdminRemarks, setSuperAdminRemarks] = useState("");
   const files = [...(selected.evidence || []), ...(selected.supportingEvidence || [])];
   const proofMedia = selected.resolutionProof || [];
 
   const isSuperAdmin = officer && officer.role === "super_admin";
   const isDistrictAdmin = officer && officer.role !== "super_admin";
+  const hasDistrictAdmin = !!(selected.assignedOfficerId || selected.assignedToDistrict);
 
-  // Rule 1: Super Admin is Read-Only when complaint is pending District Admin review or has not been touched yet.
-  const isReadOnlyForSuperAdmin = isSuperAdmin && (selected.pendingDistrictUpdate || selected.status === "submitted");
-  
-  // Rule 2: District Admin is Read-Only once they submit it to Super Admin (i.e. pendingDistrictUpdate is false)
-  // However, if status is 'submitted', it means it's a new complaint (even if it missed assignment due to older bugs), so they can edit it.
-  const isReadOnlyForDistrictAdmin = isDistrictAdmin && (!selected.pendingDistrictUpdate && selected.status !== "submitted");
+  const isFinalized = selected.superAdminFinalized || selected.status === "resolved" || selected.status === "closed";
 
-  const isReadOnly = isReadOnlyForSuperAdmin || isReadOnlyForDistrictAdmin || selected.superAdminFinalized;
+  // Requirement 4: District Admin has taken action and submitted it for Super Admin review
+  const isDistrictAdminActionSubmitted = hasDistrictAdmin && (selected.districtUpdated || !selected.pendingDistrictUpdate) && selected.status !== "submitted";
+
+  // Requirement 3: If no District Admin exists for this district, Super Admin has direct write access
+  const isSuperAdminDirectAction = isSuperAdmin && !hasDistrictAdmin && !isFinalized;
+
+  // District Admin can edit if it's assigned to their district and not yet finalized or submitted
+  const isDistrictAdminActionPending = isDistrictAdmin && !isDistrictAdminActionSubmitted && !isFinalized;
+
+  const isSuperAdminAwaitingDistrict = isSuperAdmin && hasDistrictAdmin && !isDistrictAdminActionSubmitted && !isFinalized;
+
+  const isReadOnly = isFinalized || isSuperAdminAwaitingDistrict || (isDistrictAdmin && isDistrictAdminActionSubmitted);
 
   return (
     <article className="case-detail">
@@ -3853,24 +3861,29 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
         <StatusBadge status={selected.status} />
       </div>
       <h2>{selected.vendorName}</h2>
-      <p className="case-address">{selected.address} ({selected.district})</p>
+      <p className="case-address">{selected.address} {selected.taluka ? `(${selected.taluka}, ${selected.district})` : `(${selected.district})`}</p>
       <p>{selected.description}</p>
 
       {/* Complainant Profile Card */}
       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "16px", margin: "16px 0" }}>
-        <h4 style={{ margin: "0 0 8px 0", color: "#0f172a", fontSize: "0.95rem" }}>👤 Complainant Profile</h4>
-        {selected.anonymous ? (
-          <p style={{ margin: 0, color: "#64748b", fontSize: "0.85rem", fontWeight: 600 }}>
-            🕵️ Filed Anonymously (Identity protected on official records)
-          </p>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem", color: "#334155" }}>
-            <div><strong>Name:</strong> {selected.complainantName || selected.userId?.name || "Citizen"}</div>
-            <div><strong>Phone:</strong> {selected.complainantPhone || selected.userId?.phone || "N/A"}</div>
-            <div><strong>Email:</strong> {selected.userId?.email || "N/A"}</div>
-            <div><strong>District:</strong> {selected.district}</div>
+        <h4 style={{ margin: "0 0 8px 0", color: "#0f172a", fontSize: "0.95rem" }}>👤 Complainant & Jurisdiction Profile</h4>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem", color: "#334155" }}>
+          <div><strong>Complainant:</strong> {selected.anonymous ? "🕵️ Anonymous Report" : (selected.complainantName || selected.userId?.name || "Citizen User")}</div>
+          <div><strong>Contact:</strong> {selected.anonymous ? "Protected" : (selected.complainantPhone || selected.userId?.phone || "N/A")}</div>
+          <div><strong>District & Taluka:</strong> {selected.taluka ? `${selected.taluka}, ` : ""}{selected.district}</div>
+          <div>
+            <strong>Jurisdiction:</strong>{" "}
+            {hasDistrictAdmin ? (
+              <span style={{ color: "#2563eb", fontWeight: 700 }}>
+                👮 District Admin ({selected.district})
+              </span>
+            ) : (
+              <span style={{ color: "#d97706", fontWeight: 700 }}>
+                🏛️ Unassigned District (Super Admin Direct Action)
+              </span>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <section className="evidence-gallery">
@@ -3932,35 +3945,136 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
         </div>
       </section>
 
-      {isReadOnly ? (
+      {/* REQUIREMENT 4: When District Admin takes action, Super Admin gets ONLY TWO OPTIONS: Approve or Reject with Note */}
+      {isSuperAdmin && isDistrictAdminActionSubmitted ? (
+        <div style={{ marginTop: "1.5rem", background: "#f0fdf4", border: "2px solid #16a34a", borderRadius: "12px", padding: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+            <span style={{ fontSize: "1.5rem" }}>⚖️</span>
+            <div>
+              <h3 style={{ margin: 0, color: "#065f46", fontSize: "1.1rem", fontWeight: 800 }}>
+                Super Admin Final Action Approval
+              </h3>
+              <p style={{ margin: 0, color: "#047857", fontSize: "0.85rem" }}>
+                District Admin ({selected.district}) has submitted action. Please select <strong>Approve</strong> or <strong>Reject</strong> with your official note.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={(e) => submitUpdate(e, proofFiles)}>
+            <div style={{ marginBottom: "14px" }}>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#1e293b", marginBottom: "6px" }}>
+                SUPER ADMIN OFFICIAL NOTE (Required)
+              </label>
+              <textarea
+                required
+                rows={3}
+                style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #94a3b8", fontSize: "0.9rem" }}
+                placeholder="Enter approval note or rejection reasons..."
+                value={update.note || superAdminRemarks}
+                onChange={(e) => {
+                  setSuperAdminRemarks(e.target.value);
+                  setUpdate({ ...update, note: e.target.value, publicNote: e.target.value });
+                }}
+              />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <button
+                type="submit"
+                style={{
+                  padding: "14px",
+                  background: "#16a34a",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "800",
+                  fontSize: "0.95rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+                onClick={() => setUpdate((prev) => ({
+                  ...prev,
+                  workflowAction: "approve_resolve",
+                  status: "resolved",
+                  actionType: "other",
+                  note: superAdminRemarks || prev.note || "Approved and resolved by Super Admin."
+                }))}
+              >
+                ✅ 1. APPROVE & RESOLVE
+              </button>
+
+              <button
+                type="submit"
+                style={{
+                  padding: "14px",
+                  background: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "800",
+                  fontSize: "0.95rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+                onClick={() => setUpdate((prev) => ({
+                  ...prev,
+                  workflowAction: "return_correction",
+                  status: "under_review",
+                  actionType: "other",
+                  note: superAdminRemarks || prev.note || "Returned for correction by Super Admin."
+                }))}
+              >
+                ❌ 2. REJECT (RETURN WITH NOTE)
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : isReadOnly ? (
         <div style={{ marginTop: "1.5rem", padding: "16px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", color: "#1e40af" }}>
           <h4 style={{ margin: "0 0 6px 0", fontSize: "0.95rem" }}>👁️ Read-Only Mode</h4>
           <p style={{ margin: 0, fontSize: "0.85rem" }}>
-            {isSuperAdmin ? (
-              <>This complaint was assigned to the District Admin. <strong>Super Admin is in Read-Only view</strong> until the District Admin reviews and saves an update on this case.</>
+            {isFinalized ? (
+              <>This complaint has reached a final outcome and is <strong>resolved/closed</strong>.</>
+            ) : isSuperAdminAwaitingDistrict ? (
+              <>This complaint is assigned to <strong>District Admin ({selected.district})</strong>. Super Admin will be prompted to Approve/Reject once the District Admin submits their action.</>
             ) : (
-              <>This complaint is in <strong>Read-Only view</strong> for District Admins until the Super Admin assigns it to your district for official action.</>
+              <>Your action on this complaint has been submitted to <strong>Super Admin for final review</strong>.</>
             )}
           </p>
         </div>
       ) : (
+        /* REQUIREMENT 3: Super Admin has write access when no District Admin exists, and District Admin has write access to take action */
         <form className="update-form" onSubmit={(e) => submitUpdate(e, proofFiles)}>
-          <h4 style={{ margin: "1rem 0 0.5rem 0", color: "#0f172a" }}>Update Case & Upload Resolution Proof</h4>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "1rem 0 0.5rem 0" }}>
+            <h4 style={{ margin: 0, color: "#0f172a" }}>
+              {isSuperAdminDirectAction ? "🏛️ Super Admin Direct Action (No District Admin in District)" : "👮 District Admin Action Log"}
+            </h4>
+            <span style={{ fontSize: "0.75rem", background: "#f1f5f9", padding: "3px 8px", borderRadius: "4px", fontWeight: 700, color: "#475569" }}>
+              {isSuperAdminDirectAction ? "Direct Headquarters Write Access" : "District Enforcement"}
+            </span>
+          </div>
+
           <div className="field-row">
             <select value={update.status} onChange={(e) => setUpdate({ ...update, status: e.target.value })}>{statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
             <select value={update.actionType} onChange={(e) => setUpdate({ ...update, actionType: e.target.value })}>{actionTypes.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
           </div>
-          <textarea required placeholder="Internal action note" value={update.note} onChange={(e) => setUpdate({ ...update, note: e.target.value })} />
-          <textarea placeholder="Public-safe note" value={update.publicNote} onChange={(e) => setUpdate({ ...update, publicNote: e.target.value })} />
-          
+          <textarea required placeholder="Internal action note (Details of inspection, sample analysis, or penalty)" value={update.note} onChange={(e) => setUpdate({ ...update, note: e.target.value })} />
+          <textarea placeholder="Public-safe note (Visible to citizen in timeline tracking)" value={update.publicNote} onChange={(e) => setUpdate({ ...update, publicNote: e.target.value })} />
+
           <div style={{ margin: "12px 0", background: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
             <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#334155", display: "block", marginBottom: "6px" }}>
-              📷 UPLOAD RESOLUTION PROOF (PHOTOS / VIDEOS)
+              📷 UPLOAD RESOLUTION PROOF (PHOTOS / INSPECTION REPORTS)
             </label>
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*,video/mp4" 
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/mp4"
               onChange={(e) => setProofFiles([...e.target.files].slice(0, 5))}
               style={{ fontSize: "0.85rem" }}
             />
@@ -3974,34 +4088,24 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
           {/* Action Buttons */}
           <div style={{ marginTop: "1rem", display: "flex", gap: "10px", flexDirection: "column" }}>
             {isDistrictAdmin && (
-              <button 
-                type="submit" 
-                className="primary" 
-                style={{ width: "100%", padding: "12px", background: "#2563eb" }}
+              <button
+                type="submit"
+                className="primary"
+                style={{ width: "100%", padding: "12px", background: "#2563eb", fontWeight: "800" }}
                 onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "submit_to_super_admin" }))}
               >
-                🚀 Submit to Super Admin
+                🚀 Submit Action to Super Admin
               </button>
             )}
-            {isSuperAdmin && (
-              <>
-                <button 
-                  type="submit" 
-                  className="primary" 
-                  style={{ width: "100%", padding: "12px", background: "#059669" }}
-                  onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "approve_resolve" }))}
-                >
-                  ✅ Approve & Resolve
-                </button>
-                <button 
-                  type="submit" 
-                  className="secondary" 
-                  style={{ width: "100%", padding: "12px", background: "#dc2626", color: "white" }}
-                  onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "return_correction" }))}
-                >
-                  ❌ Return for Correction
-                </button>
-              </>
+            {isSuperAdminDirectAction && (
+              <button
+                type="submit"
+                className="primary"
+                style={{ width: "100%", padding: "12px", background: "#059669", fontWeight: "800" }}
+                onClick={() => setUpdate((prev) => ({ ...prev, workflowAction: "approve_resolve", superAdminFinalized: true }))}
+              >
+                ✅ Save Action & Resolve (Super Admin)
+              </button>
             )}
           </div>
         </form>

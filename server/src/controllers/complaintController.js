@@ -11,6 +11,7 @@ function parseComplaintBody(body) {
     fssaiNumber: body.fssaiNumber || "",
     address: body.address || (body.district ? `${body.taluka || ""}, ${body.district}` : "Location provided via map"),
     district: body.district || "Unassigned",
+    taluka: body.taluka || "",
     lat: body.lat === "" || body.lat === undefined ? undefined : Number(body.lat),
     lng: body.lng === "" || body.lng === undefined ? undefined : Number(body.lng),
     complainantName: body.anonymous === "true" || body.anonymous === true ? "" : body.complainantName,
@@ -160,7 +161,7 @@ export async function listComplaints(req, res) {
     const Officer = (await import("../models/Officer.js")).default;
     // Check if there is an active district admin or officer for this officer's district
     const districtOfficers = await Officer.find({ district: { $regex: new RegExp(`^${req.officer.district}$`, 'i') }, active: true });
-    
+
     // If no active officer exists for this district, only super_admin can see it
     if (!districtOfficers.length) {
       return res.json([]);
@@ -314,7 +315,7 @@ export async function listPublicComplaints(req, res) {
     const complaints = await Complaint.find({})
       .sort({ upvotes: -1, createdAt: -1 })
       .limit(50);
-    
+
     const formatted = complaints.map((c) => publicComplaint(c));
     res.json(formatted);
   } catch (error) {

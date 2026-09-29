@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { sendEmail } from "../utils/email.js";
 import { sendSMS } from "../utils/sms.js";
 import { sendMCOtp, validateMCOtp } from "../utils/messagecentral.js";
+import { recordSessionLog } from "./logController.js";
 
 const MAHARASHTRA_DISTRICTS = [
   "Ahmednagar",
@@ -74,8 +75,30 @@ export async function login(req, res) {
   });
 
   if (!officer || !(await officer.matchPassword(password))) {
+    recordSessionLog({
+      userType: "officer",
+      name: identifier,
+      email: identifier,
+      ipAddress: req.ip || req.headers["x-forwarded-for"] || "127.0.0.1",
+      userAgent: req.headers["user-agent"] || "Web Browser",
+      status: "failed",
+      failureReason: "Invalid officer credentials"
+    });
     return res.status(401).json({ message: "Invalid officer credentials" });
   }
+
+  recordSessionLog({
+    userType: "officer",
+    userId: officer._id,
+    name: officer.name,
+    email: officer.email,
+    phone: officer.phone,
+    role: officer.role,
+    district: officer.district,
+    ipAddress: req.ip || req.headers["x-forwarded-for"] || "127.0.0.1",
+    userAgent: req.headers["user-agent"] || "Web Browser",
+    status: "success"
+  });
 
   res.json({
     token: signOfficerToken(officer),
@@ -168,8 +191,29 @@ export async function loginUser(req, res) {
   });
 
   if (!user || !user.active || !(await user.matchPassword(password))) {
+    recordSessionLog({
+      userType: "user",
+      name: emailOrPhone,
+      email: emailOrPhone,
+      ipAddress: req.ip || req.headers["x-forwarded-for"] || "127.0.0.1",
+      userAgent: req.headers["user-agent"] || "Web Browser",
+      status: "failed",
+      failureReason: "Invalid citizen credentials"
+    });
     return res.status(401).json({ message: "Invalid user credentials" });
   }
+
+  recordSessionLog({
+    userType: "user",
+    userId: user._id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: "user",
+    ipAddress: req.ip || req.headers["x-forwarded-for"] || "127.0.0.1",
+    userAgent: req.headers["user-agent"] || "Web Browser",
+    status: "success"
+  });
 
   res.json({
     token: signUserToken(user),

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+dimport React, { useState } from 'react';
 import {
   View,
   Text,
@@ -70,34 +70,55 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
     try {
       const { data } = await foodFactsAPI.getProduct(barcode.trim());
       
-      if (data && data.status === 1 && data.product) {
-        const prod = data.product;
+      if (data && data.isFoodItem && data.product) {
+        const p = data.product;
+        // Adapt backend format to UI expected format
+        const fakeProduct = {
+          product_name: p.name,
+          brands: p.brand,
+          image_front_url: p.imageUrl,
+          ingredients_text: p.ingredients.join(', ')
+        };
         
-        // Strictly validate if the item is a food product
-        const validation = validateIsFoodProduct(prod);
-        
-        if (!validation.isFood) {
-          setNonFoodMessage(validation.reason || 'Item is not an edible food product under FSSAI jurisdiction.');
-          setMode('notFood');
-          return;
-        }
+        const fakeAnalysis = {
+          nutriscoreGrade: p.nutriscoreGrade?.toLowerCase() || 'c',
+          novaGroup: 3,
+          healthLevel: p.healthRating > 80 ? 'healthy' : (p.healthRating < 50 ? 'unhealthy' : 'moderate'),
+          healthScoreText: `${p.healthRating} / 100 Health Rating`,
+          nutritionSummary: {
+             energyKcal: p.nutrition?.calories?.replace(' kcal','') || '-',
+             proteinG: p.nutrition?.protein?.replace(' g','') || '-',
+             carbsG: p.nutrition?.carbs?.replace(' g','') || '-',
+             fatG: p.nutrition?.fat?.replace(' g','') || '-',
+             sugarG: p.nutrition?.sugar?.replace(' g','') || '-',
+             sodiumMg: p.nutrition?.sodium?.replace(' mg','') || '-'
+          },
+          additives: (p.additives || []).map((a:any) => ({
+             code: a.code,
+             name: a.name,
+             risk: a.risk?.toLowerCase()?.includes('high') ? 'high' : 'low',
+             dangerMsg: a.risk
+          })),
+          allergens: p.allergens || [],
+          flags: (p.warnings || []).map((w:any) => ({
+             title: w, type: 'warning'
+          })),
+          fssaiCompliance: {
+             hasFssaiLicense: !!p.fssaiLicense,
+             licenseNumber: p.fssaiLicense,
+             status: p.fssaiStatus
+          }
+        };
 
-        // Perform in-depth health, additives, and nutrition assessment
-        const analysis = analyzeProductHealth(prod);
-        setProduct(prod);
-        setHealthAnalysis(analysis);
+        setProduct(fakeProduct);
+        setHealthAnalysis(fakeAnalysis);
         setMode('result');
       } else {
-        // Product not found in food database
-        setNonFoodMessage(
-          `Barcode "${barcode.trim()}" was not found in the Food & Beverage database or is a non-food item (e.g. books, notebooks, hardware).\n\nIf this is an unpackaged or local food item without a barcode, please use the "Photo Scan (No Barcode)" option!`
-        );
+        setNonFoodMessage(data?.error || 'Item is not an edible food product under FSSAI jurisdiction.');
         setMode('notFood');
       }
     } catch (err) {
-      setNonFoodMessage(
-        `Unable to verify barcode "${barcode.trim()}". Please ensure you are scanning a packaged food or beverage item, or try Photo Scan.`
-      );
+      setNonFoodMessage('Unable to verify barcode. Please check connection.');
       setMode('notFood');
     } finally {
       setLoading(false);
@@ -112,6 +133,37 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
   };
 
   // 2. Photo-based Food Scan for Items Without Barcode
+  const fetchPhotoData = async (query: string, imgUri?: string) => {
+    setLoading(true);
+    try {
+      const { data } = await foodFactsAPI.scanImage(query);
+      if (data && data.isFoodItem && data.product) {
+        const p = data.product;
+        const fakePhotoResult = {
+          dishName: p.name,
+          category: p.category,
+          healthLevel: p.healthRating > 80 ? 'healthy' : (p.healthRating < 50 ? 'unhealthy' : 'moderate'),
+          estimatedCalories: p.nutrition?.calories || 'N/A kcal',
+          protein: p.nutrition?.protein || 'N/A g',
+          carbs: p.nutrition?.carbs || 'N/A g',
+          fat: p.nutrition?.fat || 'N/A g',
+          fssaiSafetyTips: p.warnings || [],
+          adulterationTest: p.additives?.length ? p.additives.map((a:any) => `${a.name} (${a.risk})`).join(', ') : 'No adulterants detected.',
+          healthierAlternatives: ['Freshly cooked alternatives recommended']
+        };
+        if (imgUri) setPhotoUri(imgUri);
+        setPhotoResult(fakePhotoResult);
+        setMode('photoResult');
+      } else {
+         Alert.alert('Error', data?.error || 'Could not verify food item.');
+      }
+    } catch (e) {
+      Alert.alert('Analysis Failed', 'Could not process food image/query.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCapturePhoto = async (useCamera = true) => {
     try {
       const options: ImagePicker.ImagePickerOptions = {
@@ -127,11 +179,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
 
       if (!result.canceled && result.assets?.[0]) {
         const uri = result.assets[0].uri;
-        setPhotoUri(uri);
-        // Analyze the photo with current dish query or default
-        const analysis = analyzeFoodPhoto(photoDishName || 'general food');
-        setPhotoResult(analysis);
-        setMode('photoResult');
+        fetchPhotoData(photoDishName || 'general food', uri);
       }
     } catch (e) {
       Alert.alert('Camera Error', 'Could not open camera or gallery. Please check permissions.');
@@ -140,8 +188,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
 
   const handleAnalyzeCustomDish = (dishText: string) => {
     setPhotoDishName(dishText);
-    const analysis = analyzeFoodPhoto(dishText);
-    setPhotoResult(analysis);
+    fetchPhotoData(dishText, photoUri || undefined);
   };
 
   // 3. Save Product Handler

@@ -75,7 +75,12 @@ const complaintSchema = new mongoose.Schema(
     actionNotes: [actionNoteSchema],
     statusHistory: [statusHistorySchema],
     upvotes: { type: Number, default: 0 },
-    voters: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
+    voters: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    rating: {
+      stars: { type: Number, min: 1, max: 5 },
+      feedback: { type: String, trim: true },
+      ratedAt: { type: Date }
+    }
   },
   { timestamps: true }
 );

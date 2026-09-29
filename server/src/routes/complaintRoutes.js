@@ -8,7 +8,9 @@ import {
   listPublicComplaints,
   trackComplaint,
   updateComplaintStatus,
-  voteComplaint
+  voteComplaint,
+  rateComplaint,
+  getOfficerWorkload
 } from "../controllers/complaintController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { protectUser } from "../middleware/userAuthMiddleware.js";
@@ -18,6 +20,8 @@ const router = express.Router();
 
 router.get("/public", listPublicComplaints);
 router.get("/history", protectUser, listMyHistory);
+router.get("/workload", protect, getOfficerWorkload);
+router.post("/:id/rate", protectUser, rateComplaint);
 router.post("/:id/vote", protectUser, voteComplaint);
 router.post("/check-duplicates", protectUser, checkDuplicates);
 router.post("/", protectUser, uploadEvidence.array("evidence", 5), createComplaint);

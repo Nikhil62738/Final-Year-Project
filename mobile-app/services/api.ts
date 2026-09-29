@@ -85,9 +85,9 @@ export const complaintsAPI = {
 
 export const foodFactsAPI = {
   getProduct: (barcode: string) =>
-    axios.get(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`, {
-      timeout: 10000,
-    }),
+    api.post('/api/products/scan', { barcode }),
+  scanImage: (query: string) =>
+    api.post('/api/products/scan', { query, isImageUpload: true }),
 };
 
 export const userAPI = {

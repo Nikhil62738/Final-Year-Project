@@ -10,6 +10,11 @@ import { connectDb } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import safetyAlertRoutes from "./routes/safetyAlertRoutes.js";
+import announcementRoutes from "./routes/announcementRoutes.js";
+import logRoutes from "./routes/logRoutes.js";
+import vendorRoutes from "./routes/vendorRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
@@ -65,6 +70,7 @@ app.use(
           "https://*.basemaps.cartocdn.com",
           "https://unpkg.com",
           "https://*.googleusercontent.com",
+          "https://images.unsplash.com",
         ],
 
         mediaSrc: [
@@ -209,6 +215,12 @@ app.use(
   "/api/users",
   userRoutes
 );
+
+app.use("/api/alerts", safetyAlertRoutes);
+app.use("/api/announcements", announcementRoutes);
+app.use("/api/logs", logRoutes);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/products", productRoutes);
 
 // ==================================================
 // ERROR HANDLING

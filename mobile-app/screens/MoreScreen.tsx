@@ -28,7 +28,7 @@ const MENU_SECTIONS: MenuSection[] = [
       { icon: '📝', label: 'Report Complaint', screen: 'Report', requiresAuth: true },
       { icon: '📷', label: 'Scan Food Product', screen: 'Scan Food' },
       { icon: '🔍', label: 'Track Complaint', screen: 'Track', requiresAuth: true },
-      { icon: '🏛️', label: 'Transparency Register', screen: 'Transparency', requiresAuth: true },
+      { icon: '🏛️', label: 'My Complaint', screen: 'Transparency', requiresAuth: true },
     ],
   },
   {

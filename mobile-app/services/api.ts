@@ -86,8 +86,10 @@ export const complaintsAPI = {
 export const foodFactsAPI = {
   getProduct: (barcode: string) =>
     api.post('/api/products/scan', { barcode }),
-  scanImage: (query: string) =>
-    api.post('/api/products/scan', { query, isImageUpload: true }),
+  scanImage: (imageBase64: string) =>
+    api.post('/api/products/scan', { imageBase64, isImageUpload: true }, { timeout: 60000 }),
+  askAssistant: (question: string) =>
+    api.post('/api/assistant/ask', { question }, { timeout: 30000 }),
 };
 
 export const userAPI = {

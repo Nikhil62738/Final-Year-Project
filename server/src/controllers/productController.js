@@ -1,134 +1,7 @@
-// Accurate dataset of Indian & Global Food Products
-const FOOD_DATABASE = [
-  {
-    barcode: "8901058852378",
-    name: "Parle-G Glucose Biscuits",
-    brand: "Parle",
-    category: "Biscuits & Bakery",
-    fssaiLicense: "10012022000085",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "C",
-    healthRating: 72,
-    imageUrl: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Wheat Flour (Maida)", "Sugar", "Refined Palm Oil", "Invert Sugar Syrup", "Raising Agents (E503ii, E500ii)", "Milk Solids", "Salt", "Emulsifier (E322)"],
-    additives: [
-      { code: "E503ii", name: "Ammonium Bicarbonate", risk: "Low", purpose: "Raising Agent" },
-      { code: "E500ii", name: "Sodium Bicarbonate", risk: "Safe", purpose: "Baking Soda" },
-      { code: "E322", name: "Lecithin (Soy)", risk: "Safe", purpose: "Emulsifier" }
-    ],
-    allergens: ["Wheat / Gluten", "Milk", "Soy"],
-    nutrition: { calories: "450 kcal", protein: "6.5 g", carbs: "78 g", fat: "13 g", sugar: "26.3 g", sodium: "280 mg" },
-    warnings: ["Contains added sugar", "Refined wheat flour base"]
-  },
-  {
-    barcode: "8901058852385",
-    name: "Amul Pasteurised Butter",
-    brand: "Amul",
-    category: "Dairy Products",
-    fssaiLicense: "10012021000071",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "D",
-    healthRating: 80,
-    imageUrl: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Butter (Milk Fat 80%)", "Common Salt", "Permitted Natural Color (E160ai - Annatto)"],
-    additives: [
-      { code: "E160ai", name: "Annatto Natural Color", risk: "Safe", purpose: "Natural Plant Color" }
-    ],
-    allergens: ["Milk / Dairy"],
-    nutrition: { calories: "720 kcal", protein: "0.6 g", carbs: "0 g", fat: "80 g", saturatedFat: "51 g", sodium: "800 mg" },
-    warnings: ["High saturated fat content - consume in moderation"]
-  },
-  {
-    barcode: "8901058852392",
-    name: "Maggi 2-Minute Masala Noodles",
-    brand: "Nestle",
-    category: "Instant Noodles",
-    fssaiLicense: "10012011000168",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "D",
-    healthRating: 58,
-    imageUrl: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Wheat Flour (Maida)", "Palm Oil", "Salt", "Wheat Gluten", "Mineral (Calcium Carbonate)", "Thickeners (E508, E412)", "Spices & Condiments", "Flavor Enhancers (E635)"],
-    additives: [
-      { code: "E508", name: "Potassium Chloride", risk: "Safe", purpose: "Gelling Agent" },
-      { code: "E412", name: "Guar Gum", risk: "Safe", purpose: "Thickener" },
-      { code: "E635", name: "Disodium 5'-Ribonucleotides", risk: "Moderate", purpose: "Flavor Enhancer" }
-    ],
-    allergens: ["Wheat / Gluten", "May contain Soy & Milk traces"],
-    nutrition: { calories: "427 kcal", protein: "8.2 g", carbs: "63.5 g", fat: "15.7 g", sugar: "1.2 g", sodium: "1020 mg" },
-    warnings: ["High Sodium content (1020mg)", "Contains palm oil"]
-  },
-  {
-    barcode: "8901058852408",
-    name: "Britannia Good Day Butter Biscuits",
-    brand: "Britannia",
-    category: "Biscuits & Bakery",
-    fssaiLicense: "10015043001129",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "C",
-    healthRating: 68,
-    imageUrl: "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Refined Wheat Flour", "Sugar", "Edible Vegetable Oil (Palm)", "Butter (2%)", "Milk Solids", "Raising Agents (E503ii, E500ii)", "Emulsifiers (E322, E471)"],
-    additives: [
-      { code: "E322", name: "Soya Lecithin", risk: "Safe", purpose: "Emulsifier" },
-      { code: "E471", name: "Mono and Diglycerides", risk: "Safe", purpose: "Texture Stabilizer" }
-    ],
-    allergens: ["Wheat / Gluten", "Milk", "Soy"],
-    nutrition: { calories: "492 kcal", protein: "7 g", carbs: "67 g", fat: "22 g", sugar: "23 g", sodium: "310 mg" },
-    warnings: ["High sugar level"]
-  },
-  {
-    barcode: "8901058852415",
-    name: "Lay's Classic Salted Potato Chips",
-    brand: "PepsiCo",
-    category: "Snacks & Chips",
-    fssaiLicense: "10014064000435",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "C",
-    healthRating: 62,
-    imageUrl: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Fresh Potatoes", "Edible Vegetable Oil (Palmolein)", "Salt"],
-    additives: [],
-    allergens: ["Gluten-free", "No artificial colors or preservatives"],
-    nutrition: { calories: "544 kcal", protein: "7 g", carbs: "52 g", fat: "35 g", sugar: "0.5 g", sodium: "530 mg" },
-    warnings: ["High Fat (35g per 100g)", "Contains Palmolein Oil"]
-  },
-  {
-    barcode: "8901058852422",
-    name: "Tata Salt Vacuum Evaporated Iodized Salt",
-    brand: "Tata Consumer Products",
-    category: "Staples & Spices",
-    fssaiLicense: "10012022000257",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "A",
-    healthRating: 95,
-    imageUrl: "https://images.unsplash.com/photo-1518110165400-880946115865?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Edible Common Salt", "Potassium Iodate", "Anti-caking Agent (E551)"],
-    additives: [
-      { code: "E551", name: "Silicon Dioxide", risk: "Safe", purpose: "Anti-caking Agent" }
-    ],
-    allergens: ["None"],
-    nutrition: { calories: "0 kcal", sodium: "38700 mg", iodine: "15 ppm" },
-    warnings: ["Essential iodine source. Consume recommended daily allowance."]
-  },
-  {
-    barcode: "8901058852446",
-    name: "Tropicana 100% Orange Juice",
-    brand: "Tropicana",
-    category: "Beverages & Juices",
-    fssaiLicense: "10012063000134",
-    fssaiStatus: "Verified & Active",
-    nutriscoreGrade: "B",
-    healthRating: 88,
-    imageUrl: "https://images.unsplash.com/photo-1613478223719-2ab802602423?w=500&auto=format&fit=crop&q=60",
-    ingredients: ["Water", "Orange Juice Concentrate (100% Juice reconstituted)", "Vitamin C"],
-    additives: [],
-    allergens: ["No added sugar", "No artificial preservatives"],
-    nutrition: { calories: "48 kcal", protein: "0.7 g", carbs: "11 g", fat: "0 g", naturalSugar: "10.2 g", vitaminC: "40 mg" },
-    warnings: ["Natural fruit sugars present"]
-  }
-];
+import { lookupIfctFood } from "../services/ifctFoodData.js";
+import { estimateFoodDetailsWithGroq } from "../services/groqFoodFallback.js";
 
+// Accurate dataset of Indian & Global Food Products
 // E-Numbers and Additives Reference Dictionary
 const ADDITIVES_DICT = {
   "E102": { name: "Tartrazine", risk: "High Risk", category: "Artificial Color", notes: "Yellow dye. Linked to hyperactivity in children and asthmatic reactions." },
@@ -162,12 +35,210 @@ const ALLERGEN_KEYWORDS = {
   "sulfite": "Sulfites"
 };
 
-// @desc    Scan barcode or photo (Food items only)
+function formatNutrition(nutriments = {}) {
+  const kcal = nutriments["energy-kcal_100g"] ?? (nutriments.energy_100g != null ? nutriments.energy_100g / 4.184 : null);
+  const format = (value, unit) => value == null || !Number.isFinite(Number(value)) ? null : `${Number(value).toFixed(1)} ${unit}`;
+  return {
+    calories: format(kcal, "kcal"),
+    protein: format(nutriments.proteins_100g, "g"),
+    carbs: format(nutriments.carbohydrates_100g, "g"),
+    fat: format(nutriments.fat_100g, "g"),
+    saturatedFat: format(nutriments["saturated-fat_100g"], "g"),
+    sugar: format(nutriments.sugars_100g, "g"),
+    fiber: format(nutriments.fiber_100g, "g"),
+    salt: format(nutriments.salt_100g, "g"),
+    sodium: nutriments.sodium_100g != null
+      ? format(Number(nutriments.sodium_100g) * 1000, "mg")
+      : nutriments.salt_100g != null ? format(Number(nutriments.salt_100g) * 393, "mg") : null
+  };
+}
+
+function healthReport(nutriments = {}, grade, novaGroup) {
+  const number = (value) => value == null || !Number.isFinite(Number(value)) ? null : Number(value);
+  const sodium = number(nutriments.sodium_100g) ?? (number(nutriments.salt_100g) == null ? null : number(nutriments.salt_100g) * 393);
+  const sugar = number(nutriments.sugars_100g);
+  const saturatedFat = number(nutriments["saturated-fat_100g"]);
+  const flags = [];
+  if (sodium != null && sodium >= 0.6) flags.push({ level: "high", title: "High sodium / salt", detail: `${Math.round(sodium * 1000)} mg sodium per 100 g. Frequent high salt intake can raise blood pressure.` });
+  if (saturatedFat != null && saturatedFat >= 5) flags.push({ level: "high", title: "High saturated fat", detail: `${saturatedFat.toFixed(1)} g per 100 g. Consider choosing products lower in saturated fat.` });
+  if (sugar != null && sugar >= 15) flags.push({ level: "high", title: "High sugars", detail: `${sugar.toFixed(1)} g per 100 g. Check the label for added sugars.` });
+  const gradeValue = String(grade || "").toLowerCase();
+  const nova = number(novaGroup);
+  const isHighRisk = ["d", "e"].includes(gradeValue) || flags.length >= 2;
+  const headline = isHighRisk
+    ? "Higher health concern — limit frequent consumption"
+    : flags.length ? "Review the nutrition alerts below" : "No configured sugar, sodium, or saturated-fat alerts";
+  return {
+    healthRisk: { level: isHighRisk ? "high" : flags.length ? "moderate" : "low", headline },
+    safetyAlerts: flags,
+    novaGroup: nova,
+    processingLabel: nova ? `NOVA ${nova}` : null,
+    positiveFactors: [
+      number(nutriments.proteins_100g) >= 8 ? "Good source of protein (at least 8 g per 100 g)" : null,
+      number(nutriments.fiber_100g) >= 3 ? "Good source of dietary fibre (at least 3 g per 100 g)" : null
+    ].filter(Boolean),
+    adulterationAssessment: "Not assessed by barcode or photo scanning. Laboratory testing is required to confirm adulteration."
+  };
+}
+
+function healthierAlternatives(productName, grade, nutrition = {}) {
+  const lowGrade = ["d", "e"].includes(String(grade || "").toLowerCase());
+  const highSugar = Number.parseFloat(nutrition.sugar) >= 15;
+  const highSodium = Number.parseFloat(nutrition.sodium) >= 600;
+  if (!lowGrade && !highSugar && !highSodium) return [];
+
+  const name = String(productName || "").toLowerCase();
+  if (/drink|soda|cola|soft drink|juice/.test(name) || highSugar) {
+    return ["Water or unsweetened tea", "Whole fruit instead of sweetened drinks"];
+  }
+  if (/chip|crisps|snack|namkeen|noodle|instant/.test(name) || highSodium) {
+    return ["Unsalted nuts or roasted chickpeas", "Fresh fruit or plain yogurt"];
+  }
+  return ["Choose a similar product with Nutri-Score A or B", "Prefer options with less added sugar, salt, and saturated fat"];
+}
+
+async function lookupNutritionReference(foodName) {
+  const normalizedFood = String(foodName || "").toLowerCase().trim();
+  const queryTerms = [...new Set([normalizedFood, normalizedFood.replace(/\b(cooked|grilled|fried|baked|roasted|homemade|style)\b/g, "").trim()])].filter(Boolean);
+  const candidates = [];
+  for (const term of queryTerms) {
+    const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
+    url.searchParams.set("search_terms", term);
+    url.searchParams.set("search_simple", "1");
+    url.searchParams.set("action", "process");
+    url.searchParams.set("json", "1");
+    url.searchParams.set("page_size", "20");
+    url.searchParams.set("fields", "product_name,nutriments,nutriscore_grade,nova_group,categories,brands,ingredients_text,allergens_tags,additives_tags");
+    const response = await fetch(url, { headers: { "User-Agent": "FDA-SafeWatch/1.0 (support.fda@maharashtra.gov.in)" } });
+    if (!response.ok) continue;
+    const data = await response.json();
+    for (const item of Array.isArray(data.products) ? data.products : []) {
+      const nutrition = formatNutrition(item.nutriments || {});
+      if (item.product_name && Object.values(nutrition).some(Boolean) && !candidates.some((entry) => entry.code && entry.code === item.code)) candidates.push(item);
+    }
+    if (candidates.length) break;
+  }
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => {
+    const aName = String(a.product_name).toLowerCase();
+    const bName = String(b.product_name).toLowerCase();
+    return Number(bName === normalizedFood) - Number(aName === normalizedFood)
+      || Number(bName.includes(normalizedFood)) - Number(aName.includes(normalizedFood));
+  });
+  const match = candidates[0];
+  const nutrition = formatNutrition(match.nutriments);
+  const grade = match.nutriscore_grade || null;
+  return {
+    nutrition,
+    nutritionReferenceName: match.product_name,
+    nutritionSource: "Open Food Facts similar product reference; values are per 100 g and may differ from the pictured recipe or brand.",
+    nutriscoreGrade: grade,
+    ...healthReport(match.nutriments, grade, match.nova_group),
+    ingredients: match.ingredients_text ? match.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : [],
+    allergens: match.allergens_tags || [],
+    additives: (match.additives_tags || []).map((code) => ({ code, name: code.replace(/^en:/, ""), risk: "Not assessed from this record" })),
+    healthierAlternatives: healthierAlternatives(foodName, grade, nutrition)
+  };
+}
+
+// @desc    Scan a known barcode or classify an uploaded food photo
 // @route   POST /api/products/scan
 // @access  Public
 export const scanProduct = async (req, res) => {
   try {
-    const { barcode, query, isImageUpload } = req.body;
+    const { barcode, query, isImageUpload, imageBase64 } = req.body;
+
+    if (imageBase64 && imageBase64.length > 12_000_000) {
+      return res.status(413).json({ isFoodItem: false, error: "Image is too large. Please choose a smaller photo." });
+    }
+
+    if (isImageUpload) {
+      if (!imageBase64 || typeof imageBase64 !== "string") {
+        return res.status(400).json({ isFoodItem: false, error: "Upload a food photo to scan." });
+      }
+
+      let photoEstimate;
+      try {
+        photoEstimate = await estimateFoodDetailsWithGroq({ name: "", imageBase64 });
+      } catch (imageError) {
+        if (imageError.status === 422) return res.status(422).json({ isFoodItem: false, error: imageError.message });
+        throw imageError;
+      }
+      if (!photoEstimate?.isFood || !photoEstimate.foodName?.trim()) {
+        return res.status(422).json({ isFoodItem: false, error: "This photo does not appear to show identifiable food or a drink. Upload a clear photo focused on food." });
+      }
+
+      const prediction = { label: photoEstimate.foodName.trim(), score: null };
+      const foodConfidence = null;
+      let nutritionReference = {
+        ...healthReport(photoEstimate.healthReportData),
+        nutrition: photoEstimate.nutrition,
+        nutritionReferenceName: photoEstimate.foodName,
+        foodGroup: photoEstimate.category,
+        nutritionSource: photoEstimate.nutritionSource,
+        aiFoodOverview: photoEstimate.overview,
+        healthierAlternatives: photoEstimate.healthierAlternatives.length
+          ? photoEstimate.healthierAlternatives
+          : healthierAlternatives(photoEstimate.foodName, null, photoEstimate.nutrition),
+        aiGeneratedEstimate: true,
+        ingredients: photoEstimate.ingredients,
+        allergens: photoEstimate.allergens,
+        additives: photoEstimate.additives
+      };
+
+      try {
+        const ifctMatch = await lookupIfctFood(prediction.label);
+        if (ifctMatch) {
+          const health = healthReport(ifctMatch.healthReportData);
+          nutritionReference = {
+            ...health,
+            nutrition: ifctMatch.nutrition,
+            nutritionReferenceName: ifctMatch.name,
+            foodGroup: ifctMatch.category,
+            foodCompositionCode: ifctMatch.code,
+            nutritionSource: ifctMatch.source,
+            detailedNutrients: ifctMatch.detailedNutrients,
+            healthierAlternatives: healthierAlternatives(ifctMatch.name, null, ifctMatch.nutrition),
+            aiGeneratedEstimate: false,
+            aiFoodOverview: photoEstimate.overview,
+            ingredients: [],
+            allergens: [],
+            additives: []
+          };
+        }
+      } catch (lookupError) {
+        console.warn("IFCT food nutrition lookup failed:", lookupError.message);
+      }
+
+      return res.json({
+        isFoodItem: true,
+        recognition: { name: prediction.label, confidence: prediction.score, foodConfidence },
+        product: {
+          name: prediction.label,
+          category: nutritionReference?.foodGroup || "Image recognized food",
+          brand: "Not identified from photo",
+          nutrition: nutritionReference?.nutrition || null,
+          nutritionSource: nutritionReference?.nutritionSource || "No matching nutrition record was found. Nutrition and ingredient values are left blank rather than estimated.",
+          aiFoodOverview: nutritionReference?.aiFoodOverview || "",
+          nutritionReferenceName: nutritionReference?.nutritionReferenceName || null,
+          detailedNutrients: nutritionReference?.detailedNutrients || [],
+          foodCompositionCode: nutritionReference?.foodCompositionCode || null,
+          foodDataMatch: nutritionReference?.foodCompositionCode ? "IFCT 2017 ingredient record" : null,
+          aiGeneratedEstimate: nutritionReference?.aiGeneratedEstimate || false,
+          nutriscoreGrade: nutritionReference?.nutriscoreGrade || null,
+          novaGroup: nutritionReference?.novaGroup || null,
+          healthRisk: nutritionReference?.healthRisk || null,
+          safetyAlerts: nutritionReference?.safetyAlerts || [],
+          positiveFactors: nutritionReference?.positiveFactors || [],
+          adulterationAssessment: "Not assessed by photo scanning. Laboratory testing is required to confirm adulteration.",
+          healthierAlternatives: nutritionReference?.healthierAlternatives || [],
+          ingredients: nutritionReference?.ingredients || [],
+          allergens: nutritionReference?.allergens || [],
+          additives: nutritionReference?.additives || [],
+          warnings: ["Photo recognition identifies the food only; it cannot verify ingredients, allergens, nutrition, freshness, or safety."]
+        }
+      });
+    }
 
     // Check for explicit Non-Food keywords or Non-Food barcode test
     const nonFoodKeywords = ["phone", "laptop", "shoe", "shirt", "gadget", "book", "camera", "headphone", "charger", "car", "toy", "tool", "electronic"];
@@ -180,42 +251,98 @@ export const scanProduct = async (req, res) => {
       });
     }
 
-    // Search barcode match in our dataset
-    let product = FOOD_DATABASE.find(p => p.barcode === barcode);
-
-    if (!product && query) {
-      product = FOOD_DATABASE.find(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.brand.toLowerCase().includes(query.toLowerCase()));
+    if (!barcode || !/^\d{8,14}$/.test(String(barcode))) {
+      return res.status(400).json({ isFoodItem: false, error: "Enter a valid 8 to 14 digit product barcode." });
     }
 
-    // If barcode not found in local DB, generate an accurate dynamically constructed FSSAI-compliant Food Profile
-    if (!product) {
-      const generatedName = query || (barcode ? `Food Item (Barcode: ${barcode})` : "Packaged Food Product");
-      product = {
-        barcode: barcode || "890105889" + Math.floor(1000 + Math.random() * 9000),
-        name: generatedName,
-        brand: "FSSAI Registered Manufacturer",
-        category: "Packaged Foods & Beverages",
-        fssaiLicense: "100" + Math.floor(10000000000 + Math.random() * 90000000000),
-        fssaiStatus: "Verified & Active",
-        nutriscoreGrade: "B",
-        healthRating: 78,
-        imageUrl: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=60",
-        ingredients: ["Whole Grain Oats / Flour", "Vegetable Fat", "Sugar", "Milk Solids", "Permitted Flavor", "Emulsifier (E322)"],
-        additives: [
-          { code: "E322", name: "Soy Lecithin", risk: "Safe", purpose: "Emulsifier" }
-        ],
-        allergens: ["Milk", "Gluten"],
-        nutrition: { calories: "380 kcal", protein: "7.5 g", carbs: "62 g", fat: "11 g", sugar: "14 g", sodium: "220 mg" },
-        warnings: ["Verified FSSAI Food Product"]
-      };
+    const fields = "code,product_name,brands,categories,ingredients_text,image_front_url,nutriscore_grade,nova_group,nutriments,allergens_tags,additives_tags";
+    const lookup = await fetch(`https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(barcode)}?product_type=food&cc=in&lc=en&tags_lc=en&fields=${fields}`, {
+      headers: { "User-Agent": "FDA-SafeWatch/1.0 (support.fda@maharashtra.gov.in)" }
+    });
+    if (lookup.status === 404) {
+      return res.status(404).json({ isFoodItem: false, error: "This barcode is not listed in Open Food Facts, so its food status and product details could not be verified." });
     }
+    if (!lookup.ok) {
+      return res.status(502).json({ isFoodItem: false, error: "The food product database is temporarily unavailable. Please try again." });
+    }
+    const lookupData = await lookup.json();
+    const record = lookupData?.product;
+    if (!record?.product_name) {
+      return res.status(404).json({
+        isFoodItem: false,
+        error: "This barcode is not listed in Open Food Facts, so its food status and product details could not be verified."
+      });
+    }
+
+    const nutrition = record.nutriments || {};
+    const nutritionDetails = formatNutrition(nutrition);
+    const hasProductNutrition = Object.values(nutritionDetails).some(Boolean);
+    let ifctReference = null;
+    if (!hasProductNutrition) {
+      try {
+        ifctReference = await lookupIfctFood(record.product_name);
+      } catch (lookupError) {
+        console.warn("IFCT ingredient reference lookup failed:", lookupError.message);
+      }
+    }
+    let groqEstimate = null;
+    if (!hasProductNutrition && !ifctReference) {
+      try {
+        groqEstimate = await estimateFoodDetailsWithGroq({
+          name: record.product_name,
+          brand: record.brands || "",
+          category: record.categories || "",
+          ingredients: record.ingredients_text ? record.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : []
+        });
+      } catch (lookupError) {
+        console.warn("Groq package nutrition estimate failed:", lookupError.message);
+      }
+    }
+    const reportedNutrition = hasProductNutrition ? nutritionDetails : ifctReference?.nutrition || groqEstimate?.nutrition || nutritionDetails;
+    const alternatives = healthierAlternatives(record.product_name, record.nutriscore_grade, reportedNutrition);
+    const reportHealth = ifctReference && !hasProductNutrition
+      ? healthReport(ifctReference.healthReportData)
+      : groqEstimate && !hasProductNutrition
+        ? healthReport(groqEstimate.healthReportData)
+      : healthReport(nutrition, record.nutriscore_grade, record.nova_group);
+    const product = {
+      barcode: record.code || String(barcode),
+      name: record.product_name,
+      brand: record.brands || "Brand not listed",
+      category: record.categories || "Food product",
+      fssaiLicense: null,
+      fssaiStatus: "Not verified by this lookup",
+      nutriscoreGrade: record.nutriscore_grade || null,
+      novaGroup: record.nova_group || null,
+      ...reportHealth,
+      nutrition: reportedNutrition,
+      detailedNutrients: ifctReference && !hasProductNutrition ? ifctReference.detailedNutrients : [],
+      foodCompositionCode: ifctReference && !hasProductNutrition ? ifctReference.code : null,
+      nutritionReferenceName: ifctReference && !hasProductNutrition ? ifctReference.name : null,
+      aiGeneratedEstimate: Boolean(groqEstimate && !hasProductNutrition),
+      aiFoodOverview: groqEstimate && !hasProductNutrition ? groqEstimate.overview : "",
+      nutritionSource: ifctReference && !hasProductNutrition
+        ? `Barcode record has no nutrition values. Showing a generic raw-food reference for ${ifctReference.name} from ${ifctReference.source} It may differ from the packaged product${record.brands ? ` (${record.brands})` : ""}.`
+        : groqEstimate && !hasProductNutrition
+          ? groqEstimate.nutritionSource
+          : "Open Food Facts product data; values are per 100 g when available.",
+      healthierAlternatives: groqEstimate && !hasProductNutrition && groqEstimate.healthierAlternatives.length
+        ? groqEstimate.healthierAlternatives
+        : alternatives,
+      healthRating: null,
+      imageUrl: record.image_front_url || "",
+      ingredients: record.ingredients_text ? record.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : [],
+      additives: (record.additives_tags || []).map((code) => ({ code, name: code.replace(/^en:/, ""), risk: "Not assessed", purpose: "" })),
+      allergens: record.allergens_tags || [],
+      warnings: ["Product details come from the community-maintained Open Food Facts database and may be incomplete or outdated. Check the package label."]
+    };
 
     res.json({
       isFoodItem: true,
       product
     });
   } catch (err) {
-    res.status(500).json({ message: "Product scanning failed", error: err.message });
+    res.status(err.status || 500).json({ isFoodItem: false, message: "Product scanning failed", error: err.message });
   }
 };
 
@@ -301,9 +428,9 @@ export const analyzeIngredients = async (req, res) => {
   }
 };
 
-// @desc    Get all available sample food products
+// @desc    List products available to the scanner
 // @route   GET /api/products
 // @access  Public
-export const getFoodProducts = async (req, res) => {
-  res.json(FOOD_DATABASE);
+export const getFoodProducts = async (_req, res) => {
+  res.json({ source: "Open Food Facts", message: "Scan a product barcode to retrieve its current record." });
 };

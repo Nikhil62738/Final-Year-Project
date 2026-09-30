@@ -23,7 +23,7 @@ export const TRANSLATIONS = {
     track: 'Track Status',
     trackSub: 'Check Tracking ID',
     transparency: 'Public Feed',
-    transparencySub: 'Transparency Register',
+    transparencySub: 'My Complaint',
 
     // Stats
     statResolved: 'Complaints Resolved',

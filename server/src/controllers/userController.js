@@ -24,7 +24,13 @@ export async function updateProfile(req, res) {
       user.phone = phone;
     }
     if (preferredLanguage) user.preferredLanguage = preferredLanguage;
-    if (avatar) user.avatar = avatar;
+    if (avatar !== undefined) {
+      const validAvatar = typeof avatar === "string"
+        && avatar.length <= 4_200_000
+        && (!avatar || /^https:\/\//i.test(avatar) || /^data:image\/(jpeg|png|webp);base64,[a-z\d+/]+=*$/i.test(avatar));
+      if (!validAvatar) return res.status(400).json({ message: "Upload a JPG, PNG, or WebP photo up to 3 MB." });
+      user.avatar = avatar;
+    }
 
     await user.save();
     res.json({

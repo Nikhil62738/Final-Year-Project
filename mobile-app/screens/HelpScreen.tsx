@@ -12,6 +12,7 @@ import {
   Animated,
 } from 'react-native';
 import { Colors, Radius, FontSizes, Spacing } from '../constants/colors';
+import api from '../services/api';
 
 interface HelpScreenProps { navigation?: any; }
 
@@ -43,7 +44,7 @@ const QUICK_TOPICS = [
 const INITIAL_MESSAGE: Message = {
   id: '0',
   sender: 'bot',
-  text: '👋 Welcome to FDA SafeWatch! I\'m your AI Guide. Ask me anything or tap a quick topic below to learn about all features.',
+  text: '👋 Hi! I\'m Aaharmitra, your food safety friend. Ask me about complaints, tracking, food scans, alerts, or other app features.',
 };
 
 export default function HelpScreen({ navigation }: HelpScreenProps = {}) {
@@ -62,19 +63,20 @@ export default function HelpScreen({ navigation }: HelpScreenProps = {}) {
     ).start();
   }, []);
 
-  const sendMessage = (text: string) => {
+  const sendMessage = async (text: string) => {
     const userMsg: Message = { id: Date.now().toString(), sender: 'user', text };
-    const matched = QUICK_TOPICS.find(t => t.title.toLowerCase() === text.toLowerCase());
-    const faqMatch = FAQ.find(f => text.toLowerCase().includes(f.q.toLowerCase().split(' ').slice(0, 3).join(' ')));
-    const botAnswer = matched?.answer || faqMatch?.a || findKeywordAnswer(text);
-    const botMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      sender: 'bot',
-      text: botAnswer,
-    };
-    setMessages(prev => [...prev, userMsg, botMsg]);
+    setMessages(prev => [...prev, userMsg]);
     setInputText('');
-    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+    try {
+      const { data } = await api.post('/api/assistant/ask', { question: text });
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'bot', text: data.answer }]);
+    } catch {
+      const matched = QUICK_TOPICS.find(t => t.title.toLowerCase() === text.toLowerCase());
+      const faqMatch = FAQ.find(f => text.toLowerCase().includes(f.q.toLowerCase().split(' ').slice(0, 3).join(' ')));
+      const answer = matched?.answer || faqMatch?.a || findKeywordAnswer(text);
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'bot', text: answer }]);
+    }
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
   };
 
   function findKeywordAnswer(text: string): string {
@@ -115,7 +117,7 @@ export default function HelpScreen({ navigation }: HelpScreenProps = {}) {
           style={[styles.tab, activeTab === 'chat' && styles.tabActive]}
           onPress={() => setActiveTab('chat')}
         >
-          <Text style={[styles.tabText, activeTab === 'chat' && styles.tabTextActive]}>🤖 AI Assistant</Text>
+          <Text style={[styles.tabText, activeTab === 'chat' && styles.tabTextActive]}>🤖 Aaharmitra</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'faq' && styles.tabActive]}

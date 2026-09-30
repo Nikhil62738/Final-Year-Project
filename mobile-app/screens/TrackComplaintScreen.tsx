@@ -46,6 +46,7 @@ export default function TrackComplaintScreen({
   const [myComplaintIds, setMyComplaintIds] = useState<Set<string>>(
     new Set()
   );
+  const [ownershipLoaded, setOwnershipLoaded] = useState(false);
   const user = useAuthStore((s) => s.user);
 
   /**
@@ -72,6 +73,7 @@ export default function TrackComplaintScreen({
         : [];
 
       setMyComplaints(complaints);
+      setOwnershipLoaded(false);
 
       // Identify complaints registered by the current user.
       // These complaints stay visible, but their Vote button is hidden.
@@ -96,18 +98,20 @@ export default function TrackComplaintScreen({
           );
 
           setMyComplaintIds(ids);
+          setOwnershipLoaded(true);
         } catch (historyError: any) {
           console.log(
             'MY COMPLAINT OWNERSHIP CHECK ERROR:',
             historyError?.response?.data || historyError?.message
           );
 
-          // If ownership cannot be checked, do not hide votes
-          // for public complaints.
-          setMyComplaintIds(new Set());
+          // Fail closed: keep vote controls hidden until ownership loads.
+          setMyComplaintIds(new Set(complaints.map((item: any) => item._id).filter(Boolean)));
+          setOwnershipLoaded(true);
         }
       } else {
         setMyComplaintIds(new Set());
+        setOwnershipLoaded(true);
       }
 
       // Restore the current user's vote state for each public complaint.
@@ -449,6 +453,7 @@ export default function TrackComplaintScreen({
               complaint={complaint}
               showVote={
                 !!user &&
+                ownershipLoaded &&
                 !!complaint?._id &&
                 !myComplaintIds.has(complaint._id)
               }
@@ -585,6 +590,7 @@ export default function TrackComplaintScreen({
                   complaint={item}
                   showVote={
                     !!user &&
+                    ownershipLoaded &&
                     !!item?._id &&
                     !myComplaintIds.has(item._id)
                   }

@@ -60,6 +60,7 @@ export function publicComplaint(complaint) {
     trackingCode: complaint.trackingCode,
     category: complaint.category,
     description: complaint.description,
+    userId: complaint.userId ? complaint.userId.toString() : null,
     vendorName: complaint.vendorName,
     address: complaint.address,
     district: complaint.district,

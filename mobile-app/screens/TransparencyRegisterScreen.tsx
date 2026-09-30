@@ -50,7 +50,7 @@ export default function TransparencyRegisterScreen({
     }
 
     try {
-      // Transparency Register is user-specific.
+      // Complaint list is user-specific.
       if (!user) {
         setRecords([]);
         return;
@@ -153,7 +153,7 @@ export default function TransparencyRegisterScreen({
         )}
 
         <Text style={styles.headerTitle}>
-          Transparency Register
+          My Complaint
         </Text>
 
         <View style={{ width: 36 }} />
@@ -242,7 +242,7 @@ export default function TransparencyRegisterScreen({
             />
 
             <Text style={styles.loadingText}>
-              Loading your transparency register…
+              Loading your complaints…
             </Text>
           </View>
         ) : !user ? (

@@ -2442,6 +2442,22 @@ body:has(.login-page) {
   background: #fff;
 }
 
+.header-language-select {
+  flex: 0 0 auto;
+  height: 30px;
+  min-height: 0;
+  width: 92px;
+  max-width: 92px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 2px 5px;
+  background: #fff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 /* Header Brand Section */
 .brand-header-bar {
   padding: 12px 0;
@@ -2449,8 +2465,8 @@ body:has(.login-page) {
 }
 
 .brand-header-container {
-  max-width: 1240px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   padding: 0 20px;
   display: flex;
   justify-content: space-between;
@@ -2468,8 +2484,103 @@ body:has(.login-page) {
   max-height: 88px;
   width: auto;
   object-fit: contain;
+  background: transparent;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
   transition: transform 0.2s ease;
+}
+
+.fssai-logo {
+  background: transparent !important;
+  mix-blend-mode: multiply;
+}
+
+.profile-button-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profile-popover-anchor {
+  position: fixed;
+  top: 80px;
+  right: 12px;
+  z-index: 10030;
+  width: min(420px, calc(100vw - 24px));
+}
+
+.profile-modal-card {
+  position: relative;
+  width: 100%;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.2);
+}
+
+.profile-modal-card .profile-dialog-content {
+  padding: 28px;
+}
+
+.profile-modal-card .report-container {
+  margin: 0 !important;
+  padding: 0;
+  box-shadow: none;
+}
+
+.profile-field-value,
+.profile-edit-input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #0f172a;
+  font: inherit;
+}
+
+.profile-edit-input { background: #fff; }
+.profile-edit-message { margin: 0 0 14px; color: #047857; font-size: 0.9rem; }
+.profile-dialog-actions,
+.profile-edit-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.profile-primary-button,
+.profile-secondary-button,
+.profile-logout-button {
+  flex: 1;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.profile-primary-button { background: #005b45; color: #fff; }
+.profile-secondary-button { background: #e8eef5; color: #334155; }
+.profile-logout-button { background: #fee2e2; color: #b91c1c; }
+.profile-primary-button:disabled { opacity: 0.65; cursor: wait; }
+
+.profile-modal-close {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .profile-modal-card .profile-dialog-content { padding: 24px 18px; }
 }
 
 .brand-titles {
@@ -2503,7 +2614,9 @@ body:has(.login-page) {
 .brand-header-right {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-left: 12px;
   text-align: right;
 }
 
@@ -2521,8 +2634,8 @@ body:has(.login-page) {
 }
 
 .fssai-logo {
-  height: 76px;
-  max-height: 84px;
+  height: 60px;
+  max-height: 60px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
@@ -2543,7 +2656,7 @@ body:has(.login-page) {
   cursor: pointer;
   box-shadow: none !important;
   min-height: 36px !important;
-  margin-left: 6px;
+  margin-left: 0;
   white-space: nowrap !important;
   transition: all 160ms ease;
 }
@@ -3950,6 +4063,117 @@ html, body {
   box-sizing: border-box;
 }
 
+.scanner-mode-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 6px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.scanner-mode-nav button {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scanner-mode-nav button.active {
+  background: #005b45;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 75, 56, 0.2);
+}
+
+.scanner-primary-button,
+.scanner-secondary-button {
+  min-height: 42px;
+  padding: 9px 14px;
+  border-radius: 7px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scanner-primary-button { border: 0; background: #059669; color: #fff; }
+.scanner-secondary-button { border: 1px solid #cbd5e1; background: #fff; color: #334155; }
+
+.food-barcode-reader {
+  max-width: 480px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.scanner-nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scanner-nutrition-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.scanner-nutrition-grid span { color: #64748b; font-size: 0.78rem; text-transform: capitalize; }
+.scanner-nutrition-grid strong { color: #0f172a; font-size: 0.92rem; }
+
+.food-report { display: flex; flex-direction: column; gap: 1rem; }
+.food-report-product { padding: .25rem; }
+.food-report-badges { display: flex; flex-wrap: wrap; gap: .5rem; }
+.food-report-badges span { padding: .45rem .75rem; border-radius: 8px; background: #e2e8f0; color: #334155; font-weight: 800; }
+.food-risk-banner { padding: 1rem; border-radius: 12px; margin-top: .75rem; text-align: center; font-size: 1.1rem; }
+.food-risk-banner.high { background: #fee2e2; color: #b91c1c; }
+.food-risk-banner.moderate { background: #ffedd5; color: #9a3412; }
+.food-risk-banner.low { background: #dcfce7; color: #166534; }
+.food-report-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 12px; }
+.food-report-tab { border: 0; background: transparent; color: #64748b; border-radius: 9px; padding: .65rem .35rem; font-weight: 700; cursor: pointer; }
+.food-report-tab.active { background: #064e3b; color: #fff; }
+.food-report-section { padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px; color: #334155; }
+.food-report-section h3 { margin: 0 0 .8rem; color: #0f172a; font-size: 1.05rem; }
+.food-report-section h3:not(:first-child) { margin-top: 1.15rem; }
+.food-report-section p { line-height: 1.5; }
+.food-highlight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+.food-highlight-grid > div { display: flex; flex-direction: column; gap: .25rem; padding: .8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+.food-highlight-grid strong { color: #0f172a; font-size: 1rem; overflow-wrap: anywhere; }
+.food-highlight-grid span { color: #64748b; text-transform: capitalize; }
+.food-nutrition-table { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+.food-nutrition-table > div { display: flex; justify-content: space-between; gap: .8rem; padding: .7rem .85rem; background: #fff; }
+.food-nutrition-table > div:nth-child(odd) { background: #f8fafc; }
+.food-nutrition-table strong { text-align: right; color: #0f172a; }
+.food-positive-list { padding-left: 1rem; color: #047857; }
+.food-positive-list li { margin: .5rem 0; }
+.food-alert-list { display: grid; gap: .65rem; }
+.food-alert-list > div { display: flex; gap: .75rem; padding: .8rem; background: #fff1f2; border-left: 4px solid #e11d48; border-radius: 10px; color: #9f1239; }
+.food-alert-list p { margin: .25rem 0 0; }
+.food-report-caveat, .food-report-source { padding: .7rem; background: #f8fafc; border-radius: 8px; color: #64748b; font-size: .82rem; line-height: 1.45; }
+.food-alternative-list { display: grid; gap: .65rem; }
+.food-alternative-list > div { display: flex; align-items: center; gap: .75rem; padding: .85rem; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 10px; color: #14532d; }
+.food-alternative-list span { font-size: 1.5rem; }
+.food-report-actions { display: grid; gap: .7rem; }
+.food-report-actions button { min-height: 48px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+.food-save-button { color: #fff; background: #064e3b; border: 1px solid #064e3b; }
+.food-scan-again-button { color: #064e3b; background: #fff; border: 2px solid #064e3b; }
+.food-report-actions p { margin: 0; text-align: center; color: #475569; font-size: .85rem; }
+
+@media (max-width: 520px) {
+  .scanner-mode-nav { gap: 4px; padding: 4px; }
+  .scanner-mode-nav button { padding: 7px 5px; font-size: 0.75rem; }
+  .scanner-nutrition-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+
 /* Base brand header constraints */
 .brand-header-bar {
   width: 100%;
@@ -3994,6 +4218,14 @@ html, body {
 
 /* Mobile Devices (max-width: 768px) */
 @media (max-width: 768px) {
+.food-scanner-page {
+    padding: 1rem !important;
+  }
+
+  .food-scanner-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   .brand-header-bar {
     padding: 10px 0 !important;
   }
@@ -4164,6 +4396,102 @@ html, body {
     flex: 1 1 45% !important;
     font-size: 0.75rem !important;
     padding: 8px 6px !important;
+  }
+}
+
+/* Aaharmitra floating chat launcher */
+.aaharmitra-launcher {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.aaharmitra-greeting {
+  border: 0;
+  border-radius: 20px 20px 5px 20px;
+  padding: 13px 18px;
+  background: #202b3b;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+  font-size: 0.9rem;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.aaharmitra-greeting:hover {
+  background: #172235;
+  transform: translateY(-2px);
+}
+.aaharmitra-fab.chatbot-fab {
+  position: relative;
+  inset: auto;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #f7fbfa;
+  color: #064e3b;
+  box-shadow: 0 7px 22px rgba(15, 23, 42, 0.18);
+  flex-direction: column;
+  gap: 0;
+  font-size: 0.68rem;
+}
+.aaharmitra-fab.chatbot-fab:hover {
+  background: #ecfdf5;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.22);
+}
+.aaharmitra-avatar {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border: 2px solid #54c7b1;
+  border-radius: 50%;
+  background: #e6faf5;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.aaharmitra-name {
+  margin-top: 2px;
+  color: #047857;
+  font-size: 0.55rem;
+  line-height: 1;
+  font-weight: 850;
+}
+.aaharmitra-close {
+  color: #fff;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+.aaharmitra-launcher.is-open .aaharmitra-fab.chatbot-fab {
+  border-color: #047857;
+  background: #047857;
+}
+.chatbot-window {
+  bottom: 96px;
+}
+@media (max-width: 480px) {
+  .aaharmitra-launcher {
+    right: 14px;
+    bottom: 16px;
+    gap: 6px;
+  }
+  .aaharmitra-greeting {
+    padding: 11px 13px;
+    font-size: 0.8rem;
+  }
+  .aaharmitra-fab.chatbot-fab {
+    flex-basis: 54px;
+    width: 54px;
+    height: 54px;
+  }
+  .chatbot-window {
+    bottom: 86px;
   }
 }
 
@@ -4588,3 +4916,12 @@ html, body {
   }
 }
 
+/* Keep the chat window above the taller Aaharmitra avatar launcher. */
+.chatbot-window {
+  bottom: 96px;
+}
+@media (max-width: 768px) {
+  .chatbot-window {
+    bottom: 86px;
+  }
+}

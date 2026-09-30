@@ -5,6 +5,102 @@ const EMBLEM_IMG = window.FDA_ASSETS?.EMBLEM || "/emblem.png";
 const FDA_LOGO_IMG = window.FDA_ASSETS?.FDA_LOGO || "/fda_logo.png";
 const HERO_BG_IMG = "/hero_bg.png";
 
+const SITE_TRANSLATIONS = {
+  hi: {
+    "Home":"\u0939\u094b\u092e", "Submit Complaint":"\u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Track Complaint":"\u0936\u093f\u0915\u093e\u092f\u0924 \u091f\u094d\u0930\u0948\u0915 \u0915\u0930\u0947\u0902", "My Complaint":"\u092e\u0947\u0930\u0940 \u0936\u093f\u0915\u093e\u092f\u0924\u0947\u0902", "Scanner":"\u092b\u0942\u0921 \u0938\u094d\u0915\u0948\u0928\u0930", "Profile":"\u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932", "Login":"\u0932\u0949\u0917\u093f\u0928", "Register":"\u092a\u0902\u091c\u0940\u0915\u0930\u0923", "Logout":"\u0932\u0949\u0917\u0906\u0909\u091f",
+    "FDA SafeWatch":"FDA \u0938\u0947\u092b\u0935\u0949\u091a", "Food Safety Complaint & Action Tracking Platform - Maharashtra":"\u0916\u093e\u0926\u094d\u092f \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u0936\u093f\u0915\u093e\u092f\u0924 \u0914\u0930 \u0915\u093e\u0930\u094d\u0930\u0935\u093e\u0908 \u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u092a\u094d\u0932\u0947\u091f\u092b\u093c\u0949\u0930\u094d\u092e - \u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930", "A step towards Safe Food, Healthier Maharashtra":"\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u092d\u094b\u091c\u0928, \u0938\u094d\u0935\u0938\u094d\u0925 \u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930 \u0915\u0940 \u0913\u0930 \u090f\u0915 \u0915\u0926\u092e",
+    "Report a New Issue":"\u0928\u0908 \u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "ISSUE TITLE":"\u0938\u092e\u0938\u094d\u092f\u093e \u0915\u093e \u0936\u0940\u0930\u094d\u0937\u0915", "CATEGORY":"\u0936\u094d\u0930\u0947\u0923\u0940", "VENDOR / BUSINESS NAME":"\u0935\u093f\u0915\u094d\u0930\u0947\u0924\u093e / \u0935\u094d\u092f\u0935\u0938\u093e\u092f \u0915\u093e \u0928\u093e\u092e", "UPLOAD MEDIA":"\u092b\u094b\u091f\u094b / \u0935\u0940\u0921\u093f\u092f\u094b \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902", "DESCRIPTION":"\u0935\u093f\u0935\u0930\u0923", "ADDRESS / LOCATION":"\u092a\u0924\u093e / \u0938\u094d\u0925\u093e\u0928", "DISTRICT":"\u091c\u093c\u093f\u0932\u093e", "TALUKA":"\u0924\u093e\u0932\u0941\u0915\u093e", "MAP PINPOINT":"\u092e\u093e\u0928\u091a\u093f\u0924\u094d\u0930 \u092a\u0930 \u0938\u094d\u0925\u093e\u0928 \u091a\u0941\u0928\u0947\u0902", "OR TAP MAP":"\u092f\u093e \u092e\u093e\u0928\u091a\u093f\u0924\u094d\u0930 \u092a\u0930 \u091f\u0948\u092a \u0915\u0930\u0947\u0902", "My Reported Issues History":"\u092e\u0947\u0930\u0940 \u0926\u0930\u094d\u091c \u0936\u093f\u0915\u093e\u092f\u0924\u094b\u0902 \u0915\u093e \u0907\u0924\u093f\u0939\u093e\u0938", "Loading your complaint history...":"\u0936\u093f\u0915\u093e\u092f\u0924 \u0907\u0924\u093f\u0939\u093e\u0938 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948...", "You haven't reported any food safety issues yet.":"\u0906\u092a\u0928\u0947 \u0905\u092d\u0940 \u0924\u0915 \u0916\u093e\u0926\u094d\u092f \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u0915\u0940 \u0915\u094b\u0908 \u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0928\u0939\u0940\u0902 \u0915\u0940 \u0939\u0948\u0964",
+    "Public Food Safety Tracker & Feed":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0916\u093e\u0926\u094d\u092f \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u091f\u094d\u0930\u0948\u0915\u0930 \u0914\u0930 \u0936\u093f\u0915\u093e\u092f\u0924 \u0938\u0942\u091a\u0940", "Browse issues reported by citizens across districts, support reports by voting, or look up a specific tracking code.":"\u0928\u093e\u0917\u0930\u093f\u0915\u094b\u0902 \u0926\u094d\u0935\u093e\u0930\u093e \u0926\u0930\u094d\u091c \u0936\u093f\u0915\u093e\u092f\u0924\u0947\u0902 \u0926\u0947\u0916\u0947\u0902, \u0935\u094b\u091f \u0926\u0947\u0915\u0930 \u0938\u092e\u0930\u094d\u0925\u0928 \u0915\u0930\u0947\u0902 \u092f\u093e \u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0916\u094b\u091c\u0947\u0902\u0964", "Timeline History":"\u0938\u092e\u092f\u0930\u0947\u0916\u093e \u0907\u0924\u093f\u0939\u093e\u0938", "Loading live public grievances...":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0936\u093f\u0915\u093e\u092f\u0924\u0947\u0902 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u0940 \u0939\u0948\u0902...", "No public reports found yet.":"\u0905\u092d\u0940 \u0915\u094b\u0908 \u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0936\u093f\u0915\u093e\u092f\u0924 \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940\u0964",
+    "My Profile":"\u092e\u0947\u0930\u0940 \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932", "Manage your citizen account details.":"\u0905\u092a\u0928\u0947 \u0928\u093e\u0917\u0930\u093f\u0915 \u0916\u093e\u0924\u0947 \u0915\u0940 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u092a\u094d\u0930\u092c\u0902\u0927\u093f\u0924 \u0915\u0930\u0947\u0902", "Profile photo":"\u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932 \u092b\u094b\u091f\u094b", "Full Name":"\u092a\u0942\u0930\u093e \u0928\u093e\u092e", "Email Address":"\u0908\u092e\u0947\u0932 \u092a\u0924\u093e", "Phone Number":"\u092b\u093c\u094b\u0928 \u0928\u0902\u092c\u0930", "Preferred Language":"\u092a\u0938\u0902\u0926\u0940\u0926\u093e \u092d\u093e\u0937\u093e", "Cancel":"\u0930\u0926\u094d\u0926 \u0915\u0930\u0947\u0902", "Edit details":"\u0935\u093f\u0935\u0930\u0923 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u0947\u0902", "Close":"\u092c\u0902\u0926 \u0915\u0930\u0947\u0902", "Save changes":"\u092c\u0926\u0932\u093e\u0935 \u0938\u0939\u0947\u091c\u0947\u0902",
+    "Unsafe Food":"\u0905\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u092d\u094b\u091c\u0928", "Should Not Be on":"\u0928\u0939\u0940\u0902 \u0939\u094b\u0928\u093e \u091a\u093e\u0939\u093f\u090f", "Anyone's Plate":"\u0915\u093f\u0938\u0940 \u0915\u0940 \u0925\u093e\u0932\u0940 \u092e\u0947\u0902", "Report":"\u0936\u093f\u0915\u093e\u092f\u0924", "Unsafe food practices":"\u0905\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0916\u093e\u0926\u094d\u092f \u0935\u094d\u092f\u0935\u0939\u093e\u0930", "Track":"\u091f\u094d\u0930\u0948\u0915 \u0915\u0930\u0947\u0902", "Real-time status":"\u0930\u0940\u092f\u0932-\u091f\u093e\u0907\u092e \u0938\u094d\u0925\u093f\u0924\u093f", "Ensure":"\u0938\u0941\u0928\u093f\u0936\u094d\u091a\u093f\u0924 \u0915\u0930\u0947\u0902", "Safer food for all":"\u0938\u092d\u0940 \u0915\u0947 \u0932\u093f\u090f \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u092d\u094b\u091c\u0928", "Submit a Complaint":"\u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Track Your Complaint":"\u0905\u092a\u0928\u0940 \u0936\u093f\u0915\u093e\u092f\u0924 \u091f\u094d\u0930\u0948\u0915 \u0915\u0930\u0947\u0902", "No app required. Report online or via SMS/WhatsApp.":"\u0910\u092a \u0915\u0940 \u0906\u0935\u0936\u094d\u092f\u0915\u0924\u093e \u0928\u0939\u0940\u0902. \u0911\u0928\u0932\u093e\u0907\u0928 \u092f\u093e SMS/WhatsApp \u0938\u0947 \u0936\u093f\u0915\u093e\u092f\u0924 \u0915\u0930\u0947\u0902", "Complaints Received":"\u092a\u094d\u0930\u093e\u092a\u094d\u0924 \u0936\u093f\u0915\u093e\u092f\u0924\u0947\u0902", "Resolved":"\u0938\u092e\u093e\u0927\u093e\u0928 \u0939\u0941\u0906", "Vendors Penalized":"\u0926\u0902\u0921\u093f\u0924 \u0935\u093f\u0915\u094d\u0930\u0947\u0924\u093e", "Average Resolution Rate":"\u0914\u0938\u0924 \u0938\u092e\u093e\u0927\u093e\u0928 \u0926\u0930", "View Dashboard ?":"\u0921\u0948\u0936\u092c\u094b\u0930\u094d\u0921 \u0926\u0947\u0916\u0947\u0902 ?", "Quick Links":"\u0924\u094d\u0935\u0930\u093f\u0924 \u0932\u093f\u0902\u0915", "Helpline & Info":"\u0939\u0947\u0932\u094d\u092a\u0932\u093e\u0907\u0928 \u0914\u0930 \u091c\u093e\u0928\u0915\u093e\u0930\u0940",
+    "Choose File":"\u092b\u093c\u093e\u0907\u0932 \u091a\u0941\u0928\u0947\u0902", "REPORT AN ISSUE":"\u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Public Feed & Top Voted":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0936\u093f\u0915\u093e\u092f\u0924\u0947\u0902 \u0914\u0930 \u0938\u092c\u0938\u0947 \u0905\u0927\u093f\u0915 \u0935\u094b\u091f", "Search by Tracking Code":"\u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0938\u0947 \u0916\u094b\u091c\u0947\u0902", "Enter your tracking code":"\u0905\u092a\u0928\u093e \u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Search":"\u0916\u094b\u091c\u0947\u0902", "Vote":"\u0935\u094b\u091f \u0926\u0947\u0902", "Voted":"\u0935\u094b\u091f \u0915\u093f\u092f\u093e",
+    "Choose File":"\u092b\u093c\u093e\u0907\u0932 \u091a\u0941\u0928\u0947\u0902", "REPORT AN ISSUE":"\u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Public Feed & Top Voted":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0936\u093f\u0915\u093e\u092f\u0924\u0947\u0902 \u0914\u0930 \u0938\u092c\u0938\u0947 \u0905\u0927\u093f\u0915 \u0935\u094b\u091f", "Search by Tracking Code":"\u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0938\u0947 \u0916\u094b\u091c\u0947\u0902", "Enter your tracking code":"\u0905\u092a\u0928\u093e \u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Search":"\u0916\u094b\u091c\u0947\u0902", "Vote":"\u0935\u094b\u091f \u0926\u0947\u0902", "Voted":"\u0935\u094b\u091f \u0915\u093f\u092f\u093e", "Timeline History":"\u0938\u092e\u092f\u0930\u0947\u0916\u093e \u0907\u0924\u093f\u0939\u093e\u0938"
+
+  },
+  mr: {
+    "Home":"\u092e\u0941\u0916\u094d\u092f\u092a\u0943\u0937\u094d\u0920", "Submit Complaint":"\u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u093e", "Track Complaint":"\u0924\u0915\u094d\u0930\u093e\u0930 \u091f\u094d\u0930\u0945\u0915 \u0915\u0930\u093e", "My Complaint":"\u092e\u093e\u091d\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940", "Scanner":"\u0905\u0928\u094d\u0928 \u0938\u094d\u0915\u0945\u0928\u0930", "Profile":"\u092a\u094d\u0930\u094b\u092b\u093e\u0907\u0932", "Login":"\u0932\u0949\u0917\u093f\u0928", "Register":"\u0928\u094b\u0902\u0926\u0923\u0940", "Logout":"\u0932\u0949\u0917\u0906\u0909\u091f",
+    "FDA SafeWatch":"FDA \u0938\u0947\u092b\u0935\u0949\u091a", "Food Safety Complaint & Action Tracking Platform - Maharashtra":"\u0905\u0928\u094d\u0928 \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u0924\u0915\u094d\u0930\u093e\u0930 \u0906\u0923\u093f \u0915\u093e\u0930\u0935\u093e\u0908 \u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u092a\u094d\u0932\u0945\u091f\u092b\u0949\u0930\u094d\u092e - \u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930", "A step towards Safe Food, Healthier Maharashtra":"\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0905\u0928\u094d\u0928, \u0928\u093f\u0930\u094b\u0917\u0940 \u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930\u093e\u0915\u0921\u0947 \u090f\u0915 \u092a\u093e\u090a\u0932",
+    "Report a New Issue":"\u0928\u0935\u0940\u0928 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u093e", "ISSUE TITLE":"\u0938\u092e\u0938\u094d\u092f\u0947\u091a\u0947 \u0936\u0940\u0930\u094d\u0937\u0915", "CATEGORY":"\u092a\u094d\u0930\u0915\u093e\u0930", "VENDOR / BUSINESS NAME":"\u0935\u093f\u0915\u094d\u0930\u0947\u0924\u093e / \u0935\u094d\u092f\u0935\u0938\u093e\u092f\u093e\u091a\u0947 \u0928\u093e\u0935", "UPLOAD MEDIA":"\u092b\u094b\u091f\u094b / \u0935\u094d\u0939\u093f\u0921\u093f\u0913 \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u093e", "DESCRIPTION":"\u0924\u092a\u0936\u0940\u0932", "ADDRESS / LOCATION":"\u092a\u0924\u094d\u0924\u093e / \u0920\u093f\u0915\u093e\u0923", "DISTRICT":"\u091c\u093f\u0932\u094d\u0939\u093e", "TALUKA":"\u0924\u093e\u0932\u0941\u0915\u093e", "MAP PINPOINT":"\u0928\u0915\u093e\u0936\u093e\u0935\u0930 \u0920\u093f\u0915\u093e\u0923 \u0928\u093f\u0935\u0921\u093e", "OR TAP MAP":"\u0915\u093f\u0902\u0935\u093e \u0928\u0915\u093e\u0936\u093e\u0935\u0930 \u091f\u0945\u092a \u0915\u0930\u093e", "My Reported Issues History":"\u092e\u093e\u091d\u094d\u092f\u093e \u0928\u094b\u0902\u0926\u0935\u0932\u0947\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u0902\u091a\u093e \u0907\u0924\u093f\u0939\u093e\u0938", "Loading your complaint history...":"\u0924\u0915\u094d\u0930\u093e\u0930\u0940\u0902\u091a\u093e \u0907\u0924\u093f\u0939\u093e\u0938 \u0932\u094b\u0921 \u0939\u094b\u0924 \u0906\u0939\u0947...", "You haven't reported any food safety issues yet.":"\u0924\u0941\u092e\u094d\u0939\u0940 \u0905\u0926\u094d\u092f\u093e\u092a \u0905\u0928\u094d\u0928\u0938\u0941\u0930\u0915\u094d\u0937\u0947\u092c\u093e\u092c\u0924 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u0932\u0947\u0932\u0940 \u0928\u093e\u0939\u0940.",
+    "Public Food Safety Tracker & Feed":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0905\u0928\u094d\u0928 \u0938\u0941\u0930\u0915\u094d\u0937\u093e \u091f\u094d\u0930\u0945\u0915\u0930 \u0906\u0923\u093f \u0924\u0915\u094d\u0930\u093e\u0930 \u092f\u093e\u0926\u0940", "Browse issues reported by citizens across districts, support reports by voting, or look up a specific tracking code.":"\u0928\u093e\u0917\u0930\u093f\u0915\u093e\u0902\u0928\u0940 \u0928\u094b\u0902\u0926\u0935\u0932\u0947\u0932\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940 \u092a\u0939\u093e, \u092e\u0924\u0926\u093e\u0928\u093e\u0928\u0947 \u0938\u092e\u0930\u094d\u0925\u0928 \u0926\u094d\u092f\u093e \u0915\u093f\u0902\u0935\u093e \u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0936\u094b\u0927\u093e.", "Timeline History":"\u0915\u093e\u0932\u0930\u0947\u0937\u0947\u091a\u093e \u0907\u0924\u093f\u0939\u093e\u0938", "Loading live public grievances...":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0924\u0915\u094d\u0930\u093e\u0930\u0940 \u0932\u094b\u0921 \u0939\u094b\u0924 \u0906\u0939\u0947\u0924...", "No public reports found yet.":"\u0905\u0926\u094d\u092f\u093e\u092a \u0915\u094b\u0923\u0924\u094d\u092f\u093e\u0939\u0940 \u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0924\u0915\u094d\u0930\u093e\u0930\u0940 \u0906\u0922\u0933\u0932\u094d\u092f\u093e \u0928\u093e\u0939\u0940\u0924.",
+    "My Profile":"\u092e\u093e\u091d\u0947 \u092a\u094d\u0930\u094b\u092b\u093e\u0907\u0932", "Manage your citizen account details.":"\u0924\u0941\u092e\u091a\u094d\u092f\u093e \u0928\u093e\u0917\u0930\u093f\u0915 \u0916\u093e\u0924\u094d\u092f\u093e\u091a\u0940 \u092e\u093e\u0939\u093f\u0924\u0940 \u0935\u094d\u092f\u0935\u0938\u094d\u0925\u093e\u092a\u093f\u0924 \u0915\u0930\u093e", "Profile photo":"\u092a\u094d\u0930\u094b\u092b\u093e\u0907\u0932 \u092b\u094b\u091f\u094b", "Full Name":"\u092a\u0942\u0930\u094d\u0923 \u0928\u093e\u0935", "Email Address":"\u0908\u092e\u0947\u0932 \u092a\u0924\u094d\u0924\u093e", "Phone Number":"\u092b\u094b\u0928 \u0928\u0902\u092c\u0930", "Preferred Language":"\u092a\u0938\u0902\u0924\u0940\u091a\u0940 \u092d\u093e\u0937\u093e", "Cancel":"\u0930\u0926\u094d\u0926 \u0915\u0930\u093e", "Edit details":"\u0924\u092a\u0936\u0940\u0932 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u093e", "Close":"\u092c\u0902\u0926 \u0915\u0930\u093e", "Save changes":"\u092c\u0926\u0932 \u091c\u0924\u0928 \u0915\u0930\u093e",
+    "Unsafe Food":"\u0905\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0905\u0928\u094d\u0928", "Should Not Be on":"\u0928\u0938\u093e\u0935\u0947", "Anyone's Plate":"\u0915\u094b\u0923\u093e\u091a\u094d\u092f\u093e\u0939\u0940 \u0924\u093e\u091f\u093e\u0924", "Report":"\u0924\u0915\u094d\u0930\u093e\u0930", "Unsafe food practices":"\u0905\u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0905\u0928\u094d\u0928 \u0935\u094d\u092f\u0935\u0939\u093e\u0930", "Track":"\u092e\u093e\u0917\u094b\u0935\u093e \u0918\u094d\u092f\u093e", "Real-time status":"\u0924\u093e\u0924\u094d\u0915\u093e\u0933 \u0938\u094d\u0925\u093f\u0924\u0940", "Ensure":"\u0938\u0941\u0928\u093f\u0936\u094d\u091a\u093f\u0924 \u0915\u0930\u093e", "Safer food for all":"\u0938\u0930\u094d\u0935\u093e\u0902\u0938\u093e\u0920\u0940 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0905\u0928\u094d\u0928", "Submit a Complaint":"\u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u093e", "Track Your Complaint":"\u0924\u0941\u092e\u091a\u094d\u092f\u093e \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u091a\u093e \u092e\u093e\u0917\u094b\u0935\u093e \u0918\u094d\u092f\u093e", "No app required. Report online or via SMS/WhatsApp.":"\u0905\u0945\u092a\u091a\u0940 \u0917\u0930\u091c \u0928\u093e\u0939\u0940. \u0911\u0928\u0932\u093e\u0907\u0928 \u0915\u093f\u0902\u0935\u093e SMS/WhatsApp \u0926\u094d\u0935\u093e\u0930\u0947 \u0924\u0915\u094d\u0930\u093e\u0930 \u0915\u0930\u093e", "Complaints Received":"\u092a\u094d\u0930\u093e\u092a\u094d\u0924 \u0924\u0915\u094d\u0930\u093e\u0930\u0940", "Resolved":"\u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u091d\u093e\u0932\u0947", "Vendors Penalized":"\u0926\u0902\u0921\u093f\u0924 \u0935\u093f\u0915\u094d\u0930\u0947\u0924\u0947", "Average Resolution Rate":"\u0938\u0930\u093e\u0938\u0930\u0940 \u0928\u093f\u0930\u093e\u0915\u0930\u0923 \u0926\u0930", "View Dashboard ?":"\u0921\u0945\u0936\u092c\u094b\u0930\u094d\u0921 \u092a\u0939\u093e ?", "Quick Links":"\u091c\u0932\u0926 \u0926\u0941\u0935\u0947", "Helpline & Info":"\u0939\u0947\u0932\u094d\u092a\u0932\u093e\u0907\u0928 \u0906\u0923\u093f \u092e\u093e\u0939\u093f\u0924\u0940",
+    "Choose File":"\u092b\u093e\u0907\u0932 \u0928\u093f\u0935\u0921\u093e", "REPORT AN ISSUE":"\u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u093e", "Public Feed & Top Voted":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0924\u0915\u094d\u0930\u093e\u0930\u0940 \u0906\u0923\u093f \u091c\u093e\u0938\u094d\u0924 \u092e\u0924\u0947", "Search by Tracking Code":"\u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u0915\u094b\u0921\u0928\u0947 \u0936\u094b\u0927\u093e", "Enter your tracking code":"\u0924\u0941\u092e\u091a\u093e \u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0928\u094b\u0902\u0926\u0935\u093e", "Search":"\u0936\u094b\u0927\u093e", "Vote":"\u092e\u0924 \u0926\u094d\u092f\u093e", "Voted":"\u092e\u0924 \u0926\u093f\u0932\u0947",
+    "Choose File":"\u092b\u093e\u0907\u0932 \u0928\u093f\u0935\u0921\u093e", "REPORT AN ISSUE":"\u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u093e", "Public Feed & Top Voted":"\u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u0924\u0915\u094d\u0930\u093e\u0930\u0940 \u0906\u0923\u093f \u091c\u093e\u0938\u094d\u0924 \u092e\u0924\u0947", "Search by Tracking Code":"\u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u0915\u094b\u0921\u0928\u0947 \u0936\u094b\u0927\u093e", "Enter your tracking code":"\u0924\u0941\u092e\u091a\u093e \u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u0915\u094b\u0921 \u0928\u094b\u0902\u0926\u0935\u093e", "Search":"\u0936\u094b\u0927\u093e", "Vote":"\u092e\u0924 \u0926\u094d\u092f\u093e", "Voted":"\u092e\u0924 \u0926\u093f\u0932\u0947", "Timeline History":"\u0915\u093e\u0932\u0930\u0947\u0937\u0947\u091a\u093e \u0907\u0924\u093f\u0939\u093e\u0938"
+
+  }
+};
+
+const originalSiteText = new WeakMap();
+
+const FOOTER_TRANSLATIONS = {
+  hi: {
+    "Maharashtra State": "\u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930 \u0930\u093e\u091c\u094d\u092f",
+    "Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.": "\u0928\u093e\u0917\u0930\u093f\u0915 \u0936\u093f\u0915\u093e\u092f\u0924 \u0926\u0930\u094d\u091c \u0915\u0930\u0928\u0947, \u0926\u094b\u0939\u0930\u0940 \u0936\u093f\u0915\u093e\u092f\u0924\u094b\u0902 \u0915\u0940 \u091c\u093e\u0901\u091a \u0914\u0930 \u0915\u093e\u0930\u094d\u0930\u0935\u093e\u0908 \u0915\u0940 \u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u091f\u094d\u0930\u0948\u0915\u093f\u0902\u0917 \u0915\u093e \u0906\u0927\u093f\u0915\u093e\u0930\u093f\u0915 \u092e\u0902\u091a\u0964",
+    "Home Desk": "\u092e\u0941\u0916\u092a\u0943\u0937\u094d\u0920", "Toll Free:": "\u091f\u094b\u0932 \u092b\u094d\u0930\u0940:", "Emergency:": "\u0906\u092a\u0924\u0915\u093e\u0932\u0940\u0928:", "Email:": "\u0908\u092e\u0947\u0932:", "All rights reserved.": "\u0938\u0930\u094d\u0935\u093e\u0927\u093f\u0915\u093e\u0930 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924\u0964", "Designed & Maintained for Public Health Transparency": "\u091c\u0928\u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u093f\u0924\u093e \u0915\u0947 \u0932\u093f\u090f \u0921\u093f\u091c\u093c\u093e\u0907\u0928 \u0914\u0930 \u0930\u0916\u0930\u0916\u093e\u0935"
+  },
+  mr: {
+    "Maharashtra State": "\u092e\u0939\u093e\u0930\u093e\u0937\u094d\u091f\u094d\u0930 \u0930\u093e\u091c\u094d\u092f",
+    "Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.": "\u0928\u093e\u0917\u0930\u093f\u0915 \u0924\u0915\u094d\u0930\u093e\u0930 \u0928\u094b\u0902\u0926\u0935\u0923\u0940, \u0926\u0941\u092a\u094d\u0932\u093f\u0915\u0947\u091f \u0924\u0915\u094d\u0930\u093e\u0930\u0940\u0902\u091a\u0940 \u0924\u092a\u093e\u0938\u0923\u0940 \u0906\u0923\u093f \u0915\u093e\u0930\u0935\u093e\u0908\u091a\u0947 \u0938\u093e\u0930\u094d\u0935\u091c\u0928\u093f\u0915 \u091f\u094d\u0930\u0945\u0915\u093f\u0902\u0917 \u0915\u0930\u0923\u093e\u0930\u0947 \u0905\u0927\u093f\u0915\u0943\u0924 \u092e\u0902\u091a.",
+    "Home Desk": "\u092e\u0941\u0916\u092a\u0943\u0937\u094d\u0920", "Toll Free:": "\u091f\u094b\u0932 \u092b\u094d\u0930\u0940:", "Emergency:": "\u0906\u092a\u0924\u094d\u0915\u093e\u0932\u0940\u0928:", "Email:": "\u0908\u092e\u0947\u0932:", "All rights reserved.": "\u0938\u0930\u094d\u0935 \u0939\u0915\u094d\u0915 \u0930\u093e\u0916\u0940\u0935.", "Designed & Maintained for Public Health Transparency": "\u0932\u094b\u0915\u093e\u0930\u094b\u0917\u094d\u092f \u092a\u093e\u0930\u0926\u0930\u094d\u0936\u0915\u0924\u0947\u0938\u093e\u0920\u0940 \u0921\u093f\u091d\u093e\u0907\u0928 \u0906\u0923\u093f \u0926\u0947\u0916\u092d\u093e\u0932"
+  }
+};
+
+const SCANNER_TRANSLATIONS = {
+  hi: {
+    "Scan Barcode": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u0947\u0902", "Photo Scan": "\u092b\u094b\u091f\u094b \u0938\u094d\u0915\u0948\u0928", "Enter Barcode No.": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0938\u0902\u0916\u094d\u092f\u093e \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Scanner mode": "\u0938\u094d\u0915\u0948\u0928\u0930 \u092e\u094b\u0921", "Point your camera at a product barcode.": "\u0915\u0948\u092e\u0930\u093e \u0909\u0924\u094d\u092a\u093e\u0926 \u0915\u0947 \u092c\u093e\u0930\u0915\u094b\u0921 \u092a\u0930 \u0930\u0916\u0947\u0902।", "Start Barcode Camera": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0915\u0948\u092e\u0930\u093e \u091a\u093e\u0932\u0942 \u0915\u0930\u0947\u0902", "Stop Camera": "\u0915\u0948\u092e\u0930\u093e \u0930\u094b\u0915\u0947\u0902", "Enter Barcode No.": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0938\u0902\u0916\u094d\u092f\u093e \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902", "Nutrition per 100 g": "100 \u0917\u094d\u0930\u093e\u092e \u092e\u0947\u0902 \u092a\u094b\u0937\u0923", "Healthier alternatives": "\u0905\u0927\u093f\u0915 \u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f\u0935\u0930\u094d\u0927\u0915 \u0935\u093f\u0915\u0932\u094d\u092a", "Reference product:": "\u0938\u0902\u0926\u0930\u094d\u092d \u0909\u0924\u094d\u092a\u093e\u0926:", "Nutrition information is not available for this item.": "\u0907\u0938 \u0909\u0924\u094d\u092a\u093e\u0926 \u0915\u0947 \u0932\u093f\u090f \u092a\u094b\u0937\u0923 \u0915\u0940 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948।",
+    "Scan Food Product": "\u0916\u093e\u0926\u094d\u092f \u0909\u0924\u094d\u092a\u093e\u0926 \u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u0947\u0902",
+    "ENTER FOOD BARCODE NUMBER": "\u0916\u093e\u0926\u094d\u092f \u092c\u093e\u0930\u0915\u094b\u0921 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902",
+    "Identify food from a photo": "\u092b\u094b\u091f\u094b \u0938\u0947 \u0916\u093e\u0926\u094d\u092f \u092a\u0926\u093e\u0930\u094d\u0925 \u092a\u0939\u091a\u093e\u0928\u0947\u0902",
+    "Choose a clear photo focused on one food item (up to 8 MB).": "\u090f\u0915 \u0916\u093e\u0926\u094d\u092f \u092a\u0926\u093e\u0930\u094d\u0925 \u092a\u0930 \u092b\u094b\u0915\u0938 \u0935\u093e\u0932\u0940 \u0938\u093e\u092b \u0924\u0938\u094d\u0935\u0940\u0930 \u091a\u0941\u0928\u0947\u0902 (8 MB \u0924\u0915)",
+    "Scanning photo...": "\u092b\u094b\u091f\u094b \u0938\u094d\u0915\u0948\u0928 \u0939\u094b \u0930\u0939\u0940 \u0939\u0948...",
+    "Identify Food": "\u0916\u093e\u0926\u094d\u092f \u092a\u0939\u091a\u093e\u0928\u0947\u0902",
+    "Invalid food image": "\u0905\u092e\u093e\u0928\u094d\u092f \u0916\u093e\u0926\u094d\u092f \u0924\u0938\u094d\u0935\u0940\u0930",
+    "Brand:": "\u092c\u094d\u0930\u093e\u0902\u0921:",
+    "Model confidence:": "\u092e\u0949\u0921\u0932 \u0935\u093f\u0936\u094d\u0935\u093e\u0938 \u0938\u094d\u0924\u0930:",
+    "Scan a barcode or upload a food photo to test the scanner.": "\u0938\u094d\u0915\u0948\u0928\u0930 \u091c\u093e\u0901\u091a\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u092c\u093e\u0930\u0915\u094b\u0921 \u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u0947\u0902 \u092f\u093e \u092b\u094b\u091f\u094b \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902"
+  },
+  mr: {
+    "Scan Barcode": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0938\u094d\u0915\u0945\u0928 \u0915\u0930\u093e", "Photo Scan": "\u092b\u094b\u091f\u094b \u0938\u094d\u0915\u0945\u0928", "Enter Barcode No.": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0915\u094d\u0930\u092e\u093e\u0902\u0915 \u0928\u094b\u0902\u0926\u0935\u093e", "Scanner mode": "\u0938\u094d\u0915\u0945\u0928\u0930 \u092e\u094b\u0921", "Point your camera at a product barcode.": "\u0915\u0945\u092e\u0947\u0930\u093e \u0909\u0924\u094d\u092a\u093e\u0926\u093e\u091a\u094d\u092f\u093e \u092c\u093e\u0930\u0915\u094b\u0921\u0935\u0930 \u0927\u0930\u093e.", "Start Barcode Camera": "\u092c\u093e\u0930\u0915\u094b\u0921 \u0915\u0945\u092e\u0947\u0930\u093e \u0938\u0941\u0930\u0942 \u0915\u0930\u093e", "Stop Camera": "\u0915\u0945\u092e\u0947\u0930\u093e \u0925\u093e\u0902\u092c\u0935\u093e", "Nutrition per 100 g": "100 \u0917\u094d\u0930\u0945\u092e\u092e\u0927\u094d\u092f\u0947 \u092a\u094b\u0937\u0923", "Healthier alternatives": "\u0905\u0927\u093f\u0915 \u0906\u0930\u094b\u0917\u094d\u092f\u0926\u093e\u092f\u0940 \u092a\u0930\u094d\u092f\u093e\u092f", "Reference product:": "\u0938\u0902\u0926\u0930\u094d\u092d \u0909\u0924\u094d\u092a\u093e\u0926:", "Nutrition information is not available for this item.": "\u092f\u093e \u0909\u0924\u094d\u092a\u093e\u0926\u093e\u0938\u093e\u0920\u0940 \u092a\u094b\u0937\u0923\u092e\u093e\u0939\u093f\u0924\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940.",
+    "Scan Food Product": "\u0905\u0928\u094d\u0928 \u0909\u0924\u094d\u092a\u093e\u0926 \u0924\u092a\u093e\u0938\u093e",
+    "ENTER FOOD BARCODE NUMBER": "\u0905\u0928\u094d\u0928 \u092c\u093e\u0930\u0915\u094b\u0921 \u0915\u094d\u0930\u092e\u093e\u0902\u0915 \u0928\u094b\u0902\u0926\u0935\u093e",
+    "Identify food from a photo": "\u092b\u094b\u091f\u094b\u0924\u0942\u0928 \u0905\u0928\u094d\u0928 \u0913\u0933\u0916\u093e",
+    "Choose a clear photo focused on one food item (up to 8 MB).": "\u090f\u0915\u093e \u0905\u0928\u094d\u0928\u092a\u0926\u093e\u0930\u094d\u0925\u093e\u0935\u0930 \u0932\u0915\u094d\u0937 \u0915\u0947\u0902\u0926\u094d\u0930\u093f\u0924 \u0915\u0947\u0932\u0947\u0932\u093e \u0938\u094d\u092a\u0937\u094d\u091f \u092b\u094b\u091f\u094b \u0928\u093f\u0935\u0921\u093e (8 MB \u092a\u0930\u094d\u092f\u0902\u0924)",
+    "Scanning photo...": "\u092b\u094b\u091f\u094b \u0924\u092a\u093e\u0938\u0924 \u0906\u0939\u0947...",
+    "Identify Food": "\u0905\u0928\u094d\u0928 \u0913\u0933\u0916\u093e",
+    "Invalid food image": "\u0905\u092e\u093e\u0928\u094d\u092f \u0905\u0928\u094d\u0928 \u092b\u094b\u091f\u094b",
+    "Brand:": "\u092c\u094d\u0930\u0901\u0921:",
+    "Model confidence:": "\u092e\u0949\u0921\u0947\u0932\u0935\u0930\u0940\u0932 \u0935\u093f\u0936\u094d\u0935\u093e\u0938:",
+    "Scan a barcode or upload a food photo to test the scanner.": "\u0938\u094d\u0915\u0948\u0928\u0930 \u0924\u092a\u093e\u0938\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u092c\u093e\u0930\u0915\u094b\u0921 \u0938\u094d\u0915\u0948\u0928 \u0915\u0930\u093e \u0915\u093f\u0902\u0935\u093e \u092b\u094b\u091f\u094b \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u093e"
+  }
+};
+
+const CAMERA_TRANSLATIONS = {
+  hi: {
+    "Open Camera": "\u0915\u0948\u092e\u0930\u093e \u0916\u094b\u0932\u0947\u0902", "Capture Photo": "\u092b\u094b\u091f\u094b \u0932\u0947\u0902", "Close Camera": "\u0915\u0948\u092e\u0930\u093e \u092c\u0902\u0926 \u0915\u0930\u0947\u0902", "Scanner server unavailable": "\u0938\u094d\u0915\u0948\u0928\u0930 \u0938\u0930\u094d\u0935\u0930 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902", "Camera unavailable": "\u0915\u0948\u092e\u0930\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902", "Scanner error": "\u0938\u094d\u0915\u0948\u0928\u0930 \u0924\u094d\u0930\u0941\u091f\u093f", "Could not reach the scanner server. Check that the backend is running and its API URL is correct.": "\u0938\u094d\u0915\u0948\u0928\u0930 \u0938\u0930\u094d\u0935\u0930 \u0938\u0947 \u091c\u0941\u0921\u093c\u093e\u0935 \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u093e\u0964 \u092c\u0948\u0915\u090f\u0902\u0921 \u091a\u093e\u0932\u0942 \u0939\u0948 \u0914\u0930 API URL \u0938\u0939\u0940 \u0939\u0948, \u092f\u0939 \u091c\u093e\u0901\u091a\u0947\u0902\u0964", "Camera access is unavailable. Use HTTPS or choose a photo file instead.": "\u0915\u0948\u092e\u0930\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902\u0964 HTTPS \u092a\u0930 \u0916\u094b\u0932\u0947\u0902 \u092f\u093e \u092b\u094b\u091f\u094b \u092b\u093c\u093e\u0907\u0932 \u091a\u0941\u0928\u0947\u0902\u0964", "Allow camera access in your browser settings, or choose a photo file instead.": "\u092c\u094d\u0930\u093e\u0909\u091c\u093c\u0930 \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938 \u092e\u0947\u0902 \u0915\u0948\u092e\u0930\u093e \u0905\u0928\u0941\u092e\u0924\u093f \u0926\u0947\u0902 \u092f\u093e \u092b\u094b\u091f\u094b \u092b\u093c\u093e\u0907\u0932 \u091a\u0941\u0928\u0947\u0902\u0964", "Could not open the camera. Check that it is connected and not being used by another app.": "\u0915\u0948\u092e\u0930\u093e \u0928\u0939\u0940\u0902 \u0916\u0941\u0932\u093e\u0964 \u091c\u093e\u0901\u091a\u0947\u0902 \u0915\u093f \u0935\u0939 \u091c\u0941\u0921\u093c\u093e \u0939\u0948 \u0914\u0930 \u0915\u093f\u0938\u0940 \u0905\u0928\u094d\u092f \u090f\u092a \u0926\u094d\u0935\u093e\u0930\u093e \u0909\u092a\u092f\u094b\u0917 \u092e\u0947\u0902 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964", "Camera is starting. Please wait a moment and try again.": "\u0915\u0948\u092e\u0930\u093e \u091a\u093e\u0932\u0942 \u0939\u094b \u0930\u0939\u093e \u0939\u0948\u0964 \u0915\u0943\u092a\u092f\u093e \u0930\u0941\u0915\u0947\u0902 \u0914\u0930 \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964"
+  },
+  mr: {
+    "Open Camera": "\u0915\u0945\u092e\u0947\u0930\u093e \u0909\u0918\u0921\u093e", "Capture Photo": "\u092b\u094b\u091f\u094b \u0915\u093e\u0922\u093e", "Close Camera": "\u0915\u0945\u092e\u0947\u0930\u093e \u092c\u0902\u0926 \u0915\u0930\u093e", "Scanner server unavailable": "\u0938\u094d\u0915\u0945\u0928\u0930 \u0938\u0930\u094d\u0935\u0930 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940", "Camera unavailable": "\u0915\u0945\u092e\u0947\u0930\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940", "Scanner error": "\u0938\u094d\u0915\u0945\u0928\u0930 \u0924\u094d\u0930\u0941\u091f\u0940", "Could not reach the scanner server. Check that the backend is running and its API URL is correct.": "\u0938\u094d\u0915\u0945\u0928\u0930 \u0938\u0930\u094d\u0935\u0930\u0936\u0940 \u0938\u0902\u092a\u0930\u094d\u0915 \u0939\u094b\u090a \u0936\u0915\u0932\u093e \u0928\u093e\u0939\u0940. \u092c\u0945\u0915\u090f\u0902\u0921 \u091a\u093e\u0932\u0942 \u0906\u0939\u0947 \u0906\u0923\u093f API URL \u092c\u0930\u094b\u092c\u0930 \u0906\u0939\u0947 \u0915\u093e \u0924\u092a\u093e\u0938\u093e.", "Camera access is unavailable. Use HTTPS or choose a photo file instead.": "\u0915\u0945\u092e\u0947\u0930\u093e \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u093e\u0939\u0940. HTTPS \u0935\u0930 \u0909\u0918\u0921\u093e \u0915\u093f\u0902\u0935\u093e \u092b\u094b\u091f\u094b \u092b\u093e\u0907\u0932 \u0928\u093f\u0935\u0921\u093e.", "Allow camera access in your browser settings, or choose a photo file instead.": "\u092c\u094d\u0930\u093e\u0909\u091d\u0930 \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u091c\u092e\u0927\u094d\u092f\u0947 \u0915\u0945\u092e\u0947\u0930\u093e \u092a\u0930\u0935\u093e\u0928\u0917\u0940 \u0926\u094d\u092f\u093e \u0915\u093f\u0902\u0935\u093e \u092b\u094b\u091f\u094b \u092b\u093e\u0907\u0932 \u0928\u093f\u0935\u0921\u093e.", "Could not open the camera. Check that it is connected and not being used by another app.": "\u0915\u0945\u092e\u0947\u0930\u093e \u0909\u0918\u0921\u0924\u093e \u0906\u0932\u093e \u0928\u093e\u0939\u0940. \u0924\u094b \u091c\u094b\u0921\u0932\u093e \u0906\u0939\u0947 \u0906\u0923\u093f \u0905\u0928\u094d\u092f \u090f\u092a \u0935\u093e\u092a\u0930\u0924 \u0928\u093e\u0939\u0940 \u092f\u093e\u091a\u0940 \u0924\u092a\u093e\u0938\u0923\u0940 \u0915\u0930\u093e.", "Camera is starting. Please wait a moment and try again.": "\u0915\u0945\u092e\u0947\u0930\u093e \u0938\u0941\u0930\u0942 \u0939\u094b\u0924 \u0906\u0939\u0947. \u0915\u0943\u092a\u092f\u093e \u0925\u094b\u0921\u0947 \u0925\u093e\u0902\u092c\u093e \u0906\u0923\u093f \u092a\u0941\u0928\u094d\u0939\u093e \u092a\u094d\u0930\u092f\u0924\u094d\u0928 \u0915\u0930\u093e."
+  }
+};
+
+function localizeVisibleText(root, language) {
+  const dictionary = { ...SITE_TRANSLATIONS[language], ...FOOTER_TRANSLATIONS[language], ...SCANNER_TRANSLATIONS[language], ...CAMERA_TRANSLATIONS[language] };
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    if (!originalSiteText.has(node)) originalSiteText.set(node, node.nodeValue);
+    const original = originalSiteText.get(node);
+    const clean = original.trim();
+    if (!clean || node.parentElement?.closest("script,style,textarea,input,select,option,[data-no-translate],.complaint-user-content")) continue;
+    const translated = dictionary[clean];
+    node.nodeValue = translated ? original.replace(clean, translated) : original;
+  }
+}
+
+function translateSiteText(value, language) {
+  return SITE_TRANSLATIONS[language]?.[value] || FOOTER_TRANSLATIONS[language]?.[value] || SCANNER_TRANSLATIONS[language]?.[value] || CAMERA_TRANSLATIONS[language]?.[value] || value;
+}
+
 // Change this value in public/config.js after deploying the API.  It must not
 // end with a slash (for example: https://api.example.com).
 const API_BASE = (window.SAFEWATCH_API_BASE_URL || "https://fda-safewatch.onrender.com").replace(/\/$/, "");
@@ -205,7 +301,7 @@ async function api(path, options = {}) {
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.message || "Request failed");
+  if (!response.ok) throw new Error(data.error || data.message || "Request failed");
   return data;
 }
 
@@ -221,9 +317,48 @@ function App() {
   const [page, setPage] = useState(readPageFromHash);
   const [officer, setOfficer] = useState(() => JSON.parse(localStorage.getItem("safewatch_officer") || "null"));
   const [citizen, setCitizen] = useState(() => JSON.parse(localStorage.getItem("safewatch_user") || "null"));
+  const [siteLanguage, setSiteLanguage] = useState(() => {
+    const saved = localStorage.getItem("safewatch_language");
+    if (saved === "hi" || saved === "mr" || saved === "en") return saved;
+    const accountLanguage = JSON.parse(localStorage.getItem("safewatch_user") || "null")?.preferredLanguage;
+    return ["hi", "mr"].includes(accountLanguage) ? accountLanguage : "en";
+  });
   const [loginRedirect, setLoginRedirect] = useState("home");
   const [navOpen, setNavOpen] = useState(false);
   const [activeVendorQuery, setActiveVendorQuery] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profilePosition, setProfilePosition] = useState(null);
+
+  const t = (text) => translateSiteText(text, siteLanguage);
+  useEffect(() => {
+    localStorage.setItem("safewatch_language", siteLanguage);
+    document.documentElement.lang = siteLanguage;
+  }, [siteLanguage]);
+  useEffect(() => {
+    const root = document.querySelector(".site-language-shell");
+    if (!root) return undefined;
+    const apply = () => localizeVisibleText(root, siteLanguage);
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [siteLanguage, page, citizen]);
+
+  useEffect(() => {
+    if (!profileOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setProfileOpen(false);
+    };
+    const onPointerDown = (event) => {
+      if (!event.target.closest?.(".profile-button-anchor")) setProfileOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [profileOpen]);
 
   function openVendorProfile(query) {
     if (query) setActiveVendorQuery(query);
@@ -367,13 +502,24 @@ function App() {
                 onError={(e) => { e.target.onerror = null; e.target.src = "/emblem.png"; }}
               />
               <div className="brand-titles" onClick={() => navigate("home")} style={{ cursor: "pointer" }}>
-                <div className="brand-main-title">FDA SafeWatch</div>
-                <p className="brand-sub-title">Food Safety Complaint & Action Tracking Platform - Maharashtra</p>
-                <p className="brand-tagline">A step towards Safe Food, Healthier Maharashtra</p>
+                <div className="brand-main-title">{t("FDA SafeWatch")}</div>
+                <p className="brand-sub-title">{t("Food Safety Complaint & Action Tracking Platform - Maharashtra")}</p>
+                <p className="brand-tagline">{t("A step towards Safe Food, Healthier Maharashtra")}</p>
               </div>
             </div>
 
             <div className="brand-header-right">
+              <select
+                id="site-language-select"
+                className="header-language-select"
+                aria-label="Website language"
+                value={siteLanguage}
+                onChange={(event) => setSiteLanguage(event.target.value)}
+              >
+                <option value="en">English</option>
+                <option value="hi">{"\u0939\u093f\u0928\u094d\u0926\u0940"}</option>
+                <option value="mr">{"\u092e\u0930\u093e\u0920\u0940"}</option>
+              </select>
               <img
                 src={FDA_LOGO_IMG}
                 alt="FDA Maharashtra Logo"
@@ -388,7 +534,7 @@ function App() {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
-                Admin Login
+                {siteLanguage === "hi" ? "प्रशासन लॉगिन" : siteLanguage === "mr" ? "प्रशासन लॉगिन" : "Admin Login"}
               </button>
             </div>
           </div>
@@ -409,41 +555,69 @@ function App() {
             <nav id="primary-nav" className={navOpen ? "open" : ""} aria-label="Primary navigation">
               <button className={`nav-link-item ${page === "home" ? "active" : ""}`} onClick={() => navigate("home")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-                Home
+                {t("Home")}
               </button>
               <button className={`nav-link-item ${page === "submit" ? "active" : ""}`} onClick={() => navigate("submit")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                Submit Complaint
+                {t("Submit Complaint")}
               </button>
               <button className={`nav-link-item ${page === "track" ? "active" : ""}`} onClick={() => navigate("track")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-                Track Complaint
+                {t("Track Complaint")}
               </button>
               <button className={`nav-link-item ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
-                Transparency Register
+                {t("My Complaint")}
               </button>
-
+              <button className={`nav-link-item ${page === "scanner" ? "active" : ""}`} onClick={() => navigate("scanner")}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3"/></svg>
+                {t("Scanner")}
+              </button>
 
               {!citizen ? (
                 <div className="nav-auth-buttons">
-                  <button className="btn-portal-login" onClick={() => navigate("login")}>Login</button>
-                  <button className="btn-portal-register" onClick={() => navigate("register")}>Register</button>
+                  <button className="btn-portal-login" onClick={() => navigate("login")}>{t("Login")}</button>
+                  <button className="btn-portal-register" onClick={() => navigate("register")}>{t("Register")}</button>
                 </div>
               ) : (
                 <div className="user-menu" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <button className="btn-portal-login" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => navigate("profile")}>
-                    <IconUser /> Profile
-                  </button>
-                  <button className="btn-logout" onClick={logout}>Logout</button>
+                  <div className="profile-button-anchor">
+                    <button className="btn-portal-login" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(event) => {
+                      if (!profileOpen) {
+                        const bounds = event.currentTarget.getBoundingClientRect();
+                        const width = Math.min(420, window.innerWidth - 24);
+                        setProfilePosition({ top: bounds.bottom + 10, left: window.innerWidth - width - 12, width });
+                      }
+                      setProfileOpen((open) => !open);
+                    }} aria-expanded={profileOpen} aria-haspopup="dialog">
+                      <IconUser /> {t("Profile")}
+                    </button>
+                    {profileOpen && citizen && <div className="profile-popover-anchor" style={profilePosition ? { position: "fixed", top: profilePosition.top, left: profilePosition.left, width: profilePosition.width } : undefined}>
+                      <div className="profile-modal-card" role="dialog" aria-labelledby="profile-dialog-title">
+                        <button type="button" className="profile-modal-close" aria-label="Close profile" onClick={() => setProfileOpen(false)}>{"\u00d7"}</button>
+                        <UserProfile
+                          citizen={citizen}
+                          logout={logout}
+                          onClose={() => setProfileOpen(false)}
+                          onSave={(updated) => {
+                            setCitizen((current) => ({ ...current, ...updated }));
+                            localStorage.setItem("safewatch_user", JSON.stringify({ ...citizen, ...updated }));
+                          }}
+                        />
+                      </div>
+                    </div>}
+                  </div>
+                  <button className="btn-logout" onClick={logout}>{t("Logout")}</button>
                 </div>
               )}
             </nav>
           </div>
         </div>
       </header>
-      <main className="main-content-area">
-        {page === "home" && <Home navigate={navigate} citizen={citizen} />}
+      <div className={`site-language-shell lang-${siteLanguage}`}>
+      <main className="main-content-area" data-site-language={siteLanguage}>
+        {page === "home" && <Home navigate={navigate} citizen={citizen} t={t} />}
+        {page === "scanner" && <FoodScannerView navigate={navigate} t={t} />}
         {page === "admin" && !officer && <AdminLogin setOfficer={setOfficer} setPage={navigate} />}
         {page === "submit" && (
           citizen ? (
@@ -475,20 +649,6 @@ function App() {
             />
           )
         )}
-        {page === "profile" && (
-          citizen ? (
-            <UserProfile citizen={citizen} logout={logout} />
-          ) : (
-            <Login
-              mode="login"
-              loginRedirect="profile"
-              setCitizen={setCitizen}
-              setOfficer={setOfficer}
-              navigate={navigate}
-              forceNavigate={forceNavigate}
-            />
-          )
-        )}
         {(page === "login" || page === "register") && (
           <Login
             mode={page === "register" ? "register" : "login"}
@@ -500,36 +660,34 @@ function App() {
           />
         )}
       </main>
+      </div>
 
       {page !== "login" && page !== "register" && page !== "admin" && (
         <footer className="site-portal-footer">
           <div className="footer-container">
             <div className="footer-col">
-              <h3>FDA SafeWatch - Maharashtra State</h3>
-              <p>
-                Food and Drug Administration, Maharashtra State (अन्न व औषध प्रशासन, महाराष्ट्र राज्य).
-                Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.
-              </p>
+              <h3>{t("FDA SafeWatch")} - {t("Maharashtra State")}</h3>
+              <p>{t("Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.")}</p>
             </div>
             <div className="footer-col">
-              <h3>Quick Links</h3>
+              <h3>{t("Quick Links")}</h3>
               <ul>
-                <li><a href="#home" onClick={() => navigate("home")}>Home Desk</a></li>
-                <li><a href="#submit" onClick={() => navigate("submit")}>Submit Complaint</a></li>
-                <li><a href="#track" onClick={() => navigate("track")}>Track Complaint</a></li>
-                <li><a href="#history" onClick={() => navigate("history")}>Transparency Register</a></li>
+                <li><a href="#home" onClick={() => navigate("home")}>{t("Home Desk")}</a></li>
+                <li><a href="#submit" onClick={() => navigate("submit")}>{t("Submit Complaint")}</a></li>
+                <li><a href="#track" onClick={() => navigate("track")}>{t("Track Complaint")}</a></li>
+                <li><a href="#history" onClick={() => navigate("history")}>{t("My Complaint")}</a></li>
               </ul>
             </div>
             <div className="footer-col">
-              <h3>Helpline & Info</h3>
-              <p><strong>Toll Free:</strong> 1800-222-365</p>
-              <p><strong>Emergency:</strong> 112</p>
-              <p><strong>Email:</strong> support.fda@maharashtra.gov.in</p>
+              <h3>{t("Helpline & Info")}</h3>
+              <p><strong>{t("Toll Free:")}</strong> 1800-222-365</p>
+              <p><strong>{t("Emergency:")}</strong> 112</p>
+              <p><strong>{t("Email:")}</strong> support.fda@maharashtra.gov.in</p>
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© 2026 Food and Drug Administration, Government of Maharashtra. All rights reserved.</span>
-            <span>Designed & Maintained for Public Health Transparency</span>
+            <span>© 2026 Food and Drug Administration, Government of Maharashtra. {t("All rights reserved.")}</span>
+            <span>{t("Designed & Maintained for Public Health Transparency")}</span>
           </div>
         </footer>
       )}
@@ -539,7 +697,7 @@ function App() {
   );
 }
 
-function Home({ navigate, citizen }) {
+function Home({ navigate, citizen, t = (value) => value }) {
   return (
     <div className="home-portal-wrap">
       {/* Hero Section */}
@@ -548,13 +706,13 @@ function Home({ navigate, citizen }) {
         <div className="hero-content-container">
           <div className="hero-left-box">
             <h1 className="hero-headline">
-              Unsafe Food<br />
-              Should Not Be on<br />
-              Anyone's Plate
+              {t("Unsafe Food")}<br />
+              {t("Should Not Be on")}<br />
+              {t("Anyone's Plate")}
             </h1>
             <p className="hero-subheadline">
-              Report food safety <span className="highlight-text">issues</span>. Track the action.<br />
-              Help build a healthier Maharashtra.
+              {t("Report food safety ")}<span className="highlight-text">{t("issues")}</span>. {t("Track the action.")}<br />
+              {t("Help build a healthier Maharashtra.")}
             </p>
             <div className="accent-bar-trio">
               <span className="bar orange"></span>
@@ -567,8 +725,8 @@ function Home({ navigate, citizen }) {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
                 </div>
                 <div>
-                  <strong>Report</strong>
-                  <span>Unsafe food practices</span>
+                  <strong>{t("Report")}</strong>
+                  <span>{t("Unsafe food practices")}</span>
                 </div>
               </div>
 
@@ -577,8 +735,8 @@ function Home({ navigate, citizen }) {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 </div>
                 <div>
-                  <strong>Track</strong>
-                  <span>Real-time status</span>
+                  <strong>{t("Track")}</strong>
+                  <span>{t("Real-time status")}</span>
                 </div>
               </div>
 
@@ -587,8 +745,8 @@ function Home({ navigate, citizen }) {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 </div>
                 <div>
-                  <strong>Ensure</strong>
-                  <span>Safer food for all</span>
+                  <strong>{t("Ensure")}</strong>
+                  <span>{t("Safer food for all")}</span>
                 </div>
               </div>
             </div>
@@ -609,7 +767,7 @@ function Home({ navigate, citizen }) {
             </div>
 
             <p className="hero-subtext-note">
-              <span className="lock-icon">🔒</span> No app required. Report online or via SMS/WhatsApp.
+              <span className="lock-icon">🔒</span> {t("No app required. Report online or via SMS/WhatsApp.")}
             </p>
           </div>
 
@@ -640,28 +798,28 @@ function Home({ navigate, citizen }) {
             <span className="metric-icon">📊</span>
             <div className="metric-data">
               <span className="metric-num">12,845</span>
-              <span className="metric-label">Complaints Received</span>
+              <span className="metric-label">{t("Complaints Received")}</span>
             </div>
           </div>
           <div className="metric-box">
             <span className="metric-icon">🛡️</span>
             <div className="metric-data">
               <span className="metric-num">10,932</span>
-              <span className="metric-label">Resolved</span>
+              <span className="metric-label">{t("Resolved")}</span>
             </div>
           </div>
           <div className="metric-box">
             <span className="metric-icon">🏛️</span>
             <div className="metric-data">
               <span className="metric-num">1,240</span>
-              <span className="metric-label">Vendors Penalized</span>
+              <span className="metric-label">{t("Vendors Penalized")}</span>
             </div>
           </div>
           <div className="metric-box">
             <span className="metric-icon">🎯</span>
             <div className="metric-data">
               <span className="metric-num">98%</span>
-              <span className="metric-label">Average Resolution Rate</span>
+              <span className="metric-label">{t("Average Resolution Rate")}</span>
             </div>
           </div>
           <div className="metric-right-meta">
@@ -1150,18 +1308,10 @@ function MyHistory({ citizen, navigate }) {
 
   return (
     <section className="page history-page">
-      <div className="portal-page-header">
-        <div>
-          <h1>Transparency Register & History</h1>
-          <p>View all complaints logged under your profile and monitor official resolution stages.</p>
-        </div>
-        <span className="portal-page-badge">Registered Citizen Records</span>
-      </div>
-
       <div className="report-container" style={{ maxWidth: "900px" }}>
         <div className="report-header" style={{ marginBottom: "24px" }}>
           <span className="icon">📚</span>
-          <h2>My Reported Issues History</h2>
+          <h2>{translateSiteText("My Reported Issues History", document.documentElement.lang)}</h2>
         </div>
 
         {loading ? (
@@ -1266,8 +1416,8 @@ function TrackComplaint({ citizen, navigate }) {
 
       <div className="report-container" style={{ maxWidth: "950px" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <h2 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>Public Food Safety Tracker & Feed</h2>
-          <p style={{ color: "#64748b", margin: 0 }}>Browse issues reported by citizens across districts, support reports by voting, or look up a specific tracking code.</p>
+          <h2 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>{translateSiteText("Public Food Safety Tracker & Feed", document.documentElement.lang)}</h2>
+          <p style={{ color: "#64748b", margin: 0 }}>{translateSiteText("Browse issues reported by citizens across districts, support reports by voting, or look up a specific tracking code.", document.documentElement.lang)}</p>
         </div>
 
         {/* Navigation Tabs */}
@@ -1347,10 +1497,11 @@ function TrackComplaint({ citizen, navigate }) {
               <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                 {publicFeed.map((item) => {
                   const hasVoted = citizen && item.voters && item.voters.includes(citizen.id || citizen._id);
+                  const isOwner = citizen && item.userId && String(item.userId) === String(citizen.id || citizen._id);
                   return (
                     <div key={item._id || item.trackingCode} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", display: "flex", gap: "20px", alignItems: "flex-start", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
                       {/* Voting Column */}
-                      <button
+                      {!isOwner && <button
                         type="button"
                         onClick={() => handleVote(item._id)}
                         style={{
@@ -1373,7 +1524,7 @@ function TrackComplaint({ citizen, navigate }) {
                         <span style={{ fontSize: "0.65rem", textTransform: "uppercase", fontWeight: 700, marginTop: "2px" }}>
                           {hasVoted ? "Voted" : "Vote"}
                         </span>
-                      </button>
+                      </button>}
 
                       {/* Content Column */}
                       <div style={{ flex: 1 }}>
@@ -1442,45 +1593,95 @@ function IconUser() {
   );
 }
 
-function UserProfile({ citizen, logout }) {
+function UserProfile({ citizen, logout, onClose, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(citizen.name || "");
+  const [phone, setPhone] = useState(citizen.phone || "");
+  const [preferredLanguage, setPreferredLanguage] = useState(citizen.preferredLanguage || "en");
+  const [avatar, setAvatar] = useState(citizen.avatar || "");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  function handleAvatarChange(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setMessage("Choose a JPG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setMessage("Profile photos must be 3 MB or smaller.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setAvatar(reader.result);
+        setMessage("");
+      }
+    };
+    reader.onerror = () => setMessage("Could not read that image. Choose another photo.");
+    reader.readAsDataURL(file);
+  }
+
+  async function saveProfile(event) {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+    try {
+      const updated = await api("/api/users/me", {
+        method: "PATCH",
+        body: JSON.stringify({ name, phone, preferredLanguage, avatar })
+      });
+      onSave(updated);
+      setEditing(false);
+      setMessage("Profile details saved.");
+    } catch (error) {
+      setMessage(error.message || "Could not save profile details.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <section className="page profile-page">
-      <div className="report-container" style={{ maxWidth: "600px", marginTop: "40px" }}>
+    <section className="page profile-page profile-dialog-content">
+      <div className="report-container" style={{ maxWidth: "600px" }}>
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "#e2e8f0", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", margin: "0 auto 16px auto" }}>
-            👤
+          <div style={{ width: "80px", height: "80px", borderRadius: "50%", overflow: "hidden", background: "#e2e8f0", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", margin: "0 auto 16px auto" }}>
+            {avatar ? <img src={avatar} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{citizen.name?.trim()?.[0]?.toUpperCase() || "?"}</span>}
           </div>
-          <h2 style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>My Profile</h2>
+          <h2 id="profile-dialog-title" style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>My Profile</h2>
           <p style={{ color: "#64748b", margin: 0 }}>Manage your citizen account details.</p>
         </div>
 
-        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
+        <form onSubmit={saveProfile} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "24px", marginBottom: "18px" }}>
+          {editing && <div style={{ marginBottom: "16px" }}>
+            <label htmlFor="profile-photo" style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "6px" }}>Profile photo</label>
+            <input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} className="profile-edit-input" />
+            <small style={{ display: "block", color: "#64748b", marginTop: "5px" }}>JPG, PNG, or WebP - up to 3 MB</small>
+          </div>}
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "4px" }}>Full Name</label>
-            <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #cbd5e1" }}>{citizen.name}</div>
+            {editing ? <input required value={name} onChange={(event) => setName(event.target.value)} className="profile-edit-input" /> : <div className="profile-field-value">{citizen.name}</div>}
           </div>
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "4px" }}>Email Address</label>
-            <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #cbd5e1" }}>{citizen.email}</div>
+            <div className="profile-field-value">{citizen.email}</div>
           </div>
           <div style={{ marginBottom: "16px" }}>
             <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "4px" }}>Phone Number</label>
-            <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #cbd5e1" }}>{citizen.phone || "Not provided"}</div>
+            {editing ? <input type="tel" inputMode="numeric" maxLength={10} value={phone} onChange={(event) => setPhone(event.target.value.replace(/\D/g, ""))} className="profile-edit-input" placeholder="10-digit mobile number" /> : <div className="profile-field-value">{citizen.phone || "Not provided"}</div>}
           </div>
-          {citizen.preferredLanguage && (
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "4px" }}>Preferred Language</label>
-              <div style={{ padding: "12px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #cbd5e1", textTransform: "uppercase" }}>{citizen.preferredLanguage}</div>
-            </div>
-          )}
-        </div>
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#475569", marginBottom: "4px" }}>Preferred Language</label>
+          <option value="mr">{"\u092e\u0930\u093e\u0920\u0940"}</option>
+          </div>
+          {message && <p className="profile-edit-message" role="status">{message}</p>}
+          {editing && <div className="profile-edit-actions"><button type="button" className="profile-secondary-button" onClick={() => { setEditing(false); setName(citizen.name || ""); setPhone(citizen.phone || ""); setPreferredLanguage(citizen.preferredLanguage || "en"); setAvatar(citizen.avatar || ""); setMessage(""); }}>Cancel</button><button type="submit" className="profile-primary-button" disabled={saving}>{saving ? "Saving…" : "Save changes"}</button></div>}
+        </form>
 
-        <button 
-          onClick={logout} 
-          style={{ width: "100%", padding: "14px", background: "#ef4444", color: "#ffffff", border: "none", borderRadius: "8px", fontSize: "1.1rem", fontWeight: 700, cursor: "pointer" }}
-        >
-          Logout
-        </button>
+        {!editing && <div className="profile-dialog-actions"><button type="button" className="profile-primary-button" onClick={() => { setMessage(""); setEditing(true); }}>Edit details</button><button type="button" className="profile-secondary-button" onClick={onClose}>Close</button><button type="button" className="profile-logout-button" onClick={logout}>Logout</button></div>}
       </div>
     </section>
   );
@@ -4206,7 +4407,7 @@ async function apiCall(path, options = {}) {
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.message || "Request failed");
+  if (!response.ok) throw new Error(data.error || data.message || "Request failed");
   return data;
 }
 
@@ -4639,20 +4840,77 @@ function IngredientAnalyzerView() {
 }
 
 // 4. FOOD ITEM BARCODE & IMAGE SCANNER APP
-function FoodScannerView({ navigate }) {
+function FoodScannerView({ navigate, t = (value) => value }) {
+  const [scannerMode, setScannerMode] = useState("barcode");
   const [barcodeInput, setBarcodeInput] = useState("");
+  const [barcodeScanning, setBarcodeScanning] = useState(false);
+  const barcodeScannerRef = useRef(null);
+  const [photoData, setPhotoData] = useState("");
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [cameraStream, setCameraStream] = useState(null);
+  const [errorKind, setErrorKind] = useState("scanner");
+  const cameraVideoRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [reportTab, setReportTab] = useState("overview");
+  const [saveMessage, setSaveMessage] = useState("");
 
-  const popularBarcodes = [
-    { label: "Parle-G Glucose Biscuits", code: "8901058852378" },
-    { label: "Amul Pasteurised Butter", code: "8901058852385" },
-    { label: "Maggi 2-Min Masala Noodles", code: "8901058852392" },
-    { label: "Lay's Classic Potato Chips", code: "8901058852415" },
-    { label: "Tata Iodized Salt", code: "8901058852422" },
-    { label: "Tropicana 100% Orange Juice", code: "8901058852446" }
-  ];
+  useEffect(() => {
+    if (!cameraStream || !cameraVideoRef.current) return undefined;
+    const video = cameraVideoRef.current;
+    video.srcObject = cameraStream;
+    video.play().catch(() => {});
+    return () => {
+      video.pause();
+      video.srcObject = null;
+      cameraStream.getTracks().forEach((track) => track.stop());
+    };
+  }, [cameraStream]);
+
+  useEffect(() => () => {
+    const scanner = barcodeScannerRef.current;
+    barcodeScannerRef.current = null;
+    if (scanner) scanner.stop().catch(() => {});
+  }, []);
+
+  const openCamera = async () => {
+    setErrorMessage("");
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErrorKind("camera");
+      setErrorMessage(t("Camera access is unavailable. Use HTTPS or choose a photo file instead."));
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      setCameraStream(stream);
+    } catch (error) {
+      setErrorKind("camera");
+      setErrorMessage(error.name === "NotAllowedError"
+        ? t("Allow camera access in your browser settings, or choose a photo file instead.")
+        : t("Could not open the camera. Check that it is connected and not being used by another app."));
+    }
+  };
+
+  const captureCameraPhoto = () => {
+    const video = cameraVideoRef.current;
+    if (!video?.videoWidth || !video?.videoHeight) {
+      setErrorKind("camera");
+      setErrorMessage(t("Camera is starting. Please wait a moment and try again."));
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.86);
+    setPhotoData(dataUrl);
+    setPhotoPreview(dataUrl);
+    setResult(null);
+    setErrorMessage("");
+    setCameraStream(null);
+  };
+
 
   const handleScan = async (codeToUse) => {
     const code = codeToUse || barcodeInput;
@@ -4661,6 +4919,8 @@ function FoodScannerView({ navigate }) {
     setLoading(true);
     setErrorMessage("");
     setResult(null);
+    setReportTab("overview");
+    setSaveMessage("");
 
     try {
       const data = await apiCall("/api/products/scan", {
@@ -4669,127 +4929,297 @@ function FoodScannerView({ navigate }) {
       });
 
       if (data.isFoodItem === false) {
+        setErrorKind("invalid");
         setErrorMessage(data.error);
       } else {
+        setErrorKind("scanner");
         setResult(data.product);
       }
     } catch (err) {
+      setErrorKind("scanner");
       setErrorMessage(err.message || "Failed to scan product.");
     } finally {
       setLoading(false);
     }
   };
 
-  const simulateNonFoodScan = () => {
-    handleScan("1234567890");
+  const stopBarcodeScanner = () => {
+    const scanner = barcodeScannerRef.current;
+    barcodeScannerRef.current = null;
+    setBarcodeScanning(false);
+    if (scanner) scanner.stop().catch(() => {});
+  };
+
+  const startBarcodeScanner = () => {
+    setErrorMessage("");
+    if (typeof Html5Qrcode === "undefined") {
+      setErrorKind("camera");
+      setErrorMessage(t("Barcode camera scanning is unavailable in this browser."));
+      return;
+    }
+    setBarcodeScanning(true);
+    window.setTimeout(() => {
+      if (!document.getElementById("food-barcode-reader")) return;
+      const scanner = new Html5Qrcode("food-barcode-reader");
+      barcodeScannerRef.current = scanner;
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 280, height: 120 } },
+        (decodedText) => {
+          barcodeScannerRef.current = null;
+          scanner.stop().catch(() => {});
+          setBarcodeScanning(false);
+          setBarcodeInput(decodedText);
+          handleScan(decodedText);
+        },
+        () => {}
+      ).catch((error) => {
+        barcodeScannerRef.current = null;
+        setBarcodeScanning(false);
+        setErrorKind("camera");
+        setErrorMessage(error?.message || t("Could not open the barcode camera."));
+      });
+    }, 100);
+  };
+
+  const handlePhotoSelect = (event) => {
+    const file = event.target.files?.[0];
+    setCameraStream(null);
+    setResult(null);
+    setErrorMessage("");
+    setErrorKind("scanner");
+    if (!file) {
+      setPhotoData("");
+      setPhotoPreview("");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setPhotoData("");
+      setPhotoPreview("");
+      setErrorKind("scanner");
+      setErrorMessage(t("Choose an image file to scan."));
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setPhotoData("");
+      setPhotoPreview("");
+      setErrorKind("scanner");
+      setErrorMessage(t("Image must be smaller than 8 MB."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+      setPhotoData(dataUrl);
+      setPhotoPreview(dataUrl);
+    };
+    reader.onerror = () => {
+      setErrorKind("scanner");
+      setErrorMessage(t("Could not read this image. Please choose another photo."));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoScan = async () => {
+    if (!photoData) {
+      setErrorKind("scanner");
+      setErrorMessage(t("Choose a food photo first."));
+      return;
+    }
+    setLoading(true);
+    setErrorMessage("");
+    setResult(null);
+    setReportTab("overview");
+    setSaveMessage("");
+    try {
+      const data = await apiCall("/api/products/scan", {
+        method: "POST",
+        body: JSON.stringify({ isImageUpload: true, imageBase64: photoData })
+      });
+      if (data.isFoodItem === false) {
+        setErrorKind("invalid");
+        setErrorMessage(data.error || t("This does not look like a food item."));
+      } else {
+        setErrorKind("scanner");
+        setResult({ ...data.product, imageUrl: photoPreview, recognition: data.recognition });
+      }
+    } catch (err) {
+      if (err instanceof TypeError || err.message === "Failed to fetch") {
+        setErrorKind("connection");
+        setErrorMessage(t("Could not reach the scanner server. Check that the backend is running and its API URL is correct."));
+      } else {
+        setErrorKind("scanner");
+        setErrorMessage(err.message || t("Food photo scan failed. Please try again."));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changeScannerMode = (mode) => {
+    stopBarcodeScanner();
+    setCameraStream(null);
+    setErrorMessage("");
+    setResult(null);
+    setScannerMode(mode);
+  };
+
+  const nutritionRows = result?.nutrition
+    ? Object.entries(result.nutrition).filter(([, value]) => value != null && value !== "")
+    : [];
+  const showAlternatives = Boolean(result?.healthierAlternatives?.length)
+    && (result?.healthRisk?.level === "high" || result?.healthRisk?.level === "moderate" || result?.safetyAlerts?.length > 0);
+
+  const saveScannedProduct = async () => {
+    if (!localStorage.getItem("safewatch_user_token")) {
+      setSaveMessage(t("Sign in as a citizen to save this product to My Products."));
+      return;
+    }
+    if (!result?.barcode) {
+      setSaveMessage(t("Saving is available for products with a verified barcode."));
+      return;
+    }
+    try {
+      await apiCall("/api/users/me/saved-products", { method: "POST", body: JSON.stringify({ barcode: result.barcode, name: result.name, brand: result.brand, imageUrl: result.imageUrl, nutriscoreGrade: result.nutriscoreGrade }) });
+      setSaveMessage(t("Product saved to My Products."));
+    } catch (error) {
+      setSaveMessage(error.message || t("Could not save this product."));
+    }
   };
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "1.5rem" }}>
-      <div style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", color: "white", padding: "2rem", borderRadius: "16px", marginBottom: "2rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-          <span style={{ fontSize: "2rem" }}>📷</span>
-          <h1 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 800 }}>FDA Food Scanner & Barcode Verifier</h1>
-        </div>
-        <p style={{ margin: 0, color: "#a7f3d0", fontSize: "0.95rem" }}>
-          Strictly limited to food products. Verify FSSAI registration, Nutri-Score, ingredients, and allergen safety.
-        </p>
+    <div className="food-scanner-page" style={{ maxWidth: "1000px", margin: "0 auto", padding: "1.5rem" }}>
+      <div className="scanner-mode-nav" role="tablist" aria-label={t("Scanner mode")}>
+        {[["barcode", "Scan Barcode"], ["photo", "Photo Scan"], ["manual", "Enter Barcode No."]].map(([mode, label]) => (
+          <button key={mode} type="button" role="tab" aria-selected={scannerMode === mode} className={scannerMode === mode ? "active" : ""} onClick={() => changeScannerMode(mode)}>{t(label)}</button>
+        ))}
       </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+      <div className="food-scanner-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
         <div className="analyzer-box">
-          <h3 style={{ margin: "0 0 1rem 0", color: "#0f172a" }}>Scan Food Product</h3>
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }}>
-              ENTER FOOD BARCODE NUMBER
+          {scannerMode === "barcode" && (
+            <div>
+              <h3 style={{ margin: "0 0 0.5rem", color: "#0f172a" }}>{t("Scan Barcode")}</h3>
+              <p>{t("Point your camera at a product barcode.")}</p>
+              {!barcodeScanning ? <button type="button" onClick={startBarcodeScanner} className="scanner-primary-button">{t("Start Barcode Camera")}</button> : <button type="button" onClick={stopBarcodeScanner} className="scanner-secondary-button">{t("Stop Camera")}</button>}
+              {barcodeScanning && <div id="food-barcode-reader" className="food-barcode-reader" />}
+            </div>
+          )}
+
+          {scannerMode === "manual" && (
+            <div style={{ marginBottom: "1rem" }}>
+              <h3 style={{ margin: "0 0 1rem", color: "#0f172a" }}>{t("Enter Barcode No.")}</h3>
+              <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#475569", display: "block", marginBottom: "4px" }} htmlFor="food-barcode-input">{t("ENTER FOOD BARCODE NUMBER")}</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input id="food-barcode-input" type="text" inputMode="numeric" placeholder="e.g. 8901058852378" value={barcodeInput} onChange={(event) => setBarcodeInput(event.target.value)} style={{ flex: 1, minWidth: 0, padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.9rem" }} />
+                <button type="button" onClick={() => handleScan()} disabled={loading} className="scanner-primary-button">{loading ? t("Checking...") : t("Scan")}</button>
+              </div>
+            </div>
+          )}
+
+          {scannerMode === "photo" && <div>
+            <h3 style={{ margin: "0 0 0.75rem", color: "#0f172a" }}>{t("Identify food from a photo")}</h3>
+            <p style={{ margin: "0 0 0.65rem", color: "#047857", fontSize: "0.84rem", fontWeight: 600 }}>{t("Scan fresh or unpackaged food without a barcode.")}</p>
+            <label style={{ display: "block", marginBottom: "0.5rem", color: "#475569", fontSize: "0.88rem" }} htmlFor="food-photo-input">
+              {t("Choose a clear photo focused on one food item (up to 8 MB).")}
             </label>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <input
-                type="text"
-                placeholder="e.g. 8901058852378"
-                value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
-                style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.9rem" }}
-              />
-              <button
-                onClick={() => handleScan()}
-                style={{ background: "#059669", color: "white", border: "none", padding: "0 18px", borderRadius: "6px", fontWeight: 800, cursor: "pointer" }}
-              >
-                Scan
-              </button>
-            </div>
-          </div>
-
-          <div style={{ margin: "1.5rem 0", textAlign: "center" }}>
-            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", marginBottom: "8px" }}>Select Verified Food Item:</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-              {popularBarcodes.map((item) => (
-                <button
-                  key={item.code}
-                  onClick={() => { setBarcodeInput(item.code); handleScan(item.code); }}
-                  style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px", borderRadius: "6px", fontSize: "0.78rem", cursor: "pointer", fontWeight: 700, color: "#334155" }}
-                >
-                  🍪 {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ paddingTop: "1rem", borderTop: "1px solid #e2e8f0" }}>
-            <button
-              onClick={simulateNonFoodScan}
-              style={{ width: "100%", background: "#fef2f2", color: "#dc2626", border: "1px dashed #fca5a5", padding: "10px", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer" }}
-            >
-              🚫 Test Non-Food Item Protection (E.g. Electronics / Apparel)
+            <input id="food-photo-input" type="file" accept="image/*" capture="environment" onChange={handlePhotoSelect} />
+            <button type="button" onClick={openCamera} style={{ minHeight: "40px", marginTop: "0.6rem", padding: "0.5rem 0.9rem", border: "1px solid #047857", borderRadius: "6px", background: "#fff", color: "#047857", fontWeight: 700, cursor: "pointer" }}>
+              {t("Open Camera")}
             </button>
-          </div>
+            {cameraStream && (
+              <div style={{ marginTop: "0.75rem" }}>
+                <video ref={cameraVideoRef} autoPlay playsInline muted style={{ display: "block", width: "100%", maxHeight: "280px", borderRadius: "8px", background: "#0f172a", objectFit: "cover" }} />
+                <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                  <button type="button" onClick={captureCameraPhoto} style={{ flex: 1, minHeight: "40px", border: 0, borderRadius: "6px", background: "#047857", color: "#fff", fontWeight: 700, cursor: "pointer" }}>{t("Capture Photo")}</button>
+                  <button type="button" onClick={() => setCameraStream(null)} style={{ minHeight: "40px", padding: "0 0.9rem", border: "1px solid #cbd5e1", borderRadius: "6px", background: "#fff", color: "#334155", fontWeight: 600, cursor: "pointer" }}>{t("Close Camera")}</button>
+                </div>
+              </div>
+            )}
+            {photoPreview && <img src={photoPreview} alt={t("Selected food photo")} style={{ display: "block", width: "100%", maxHeight: "220px", objectFit: "contain", marginTop: "0.75rem", borderRadius: "8px", background: "#f8fafc" }} />}
+            <button type="button" onClick={handlePhotoScan} disabled={loading || !photoData} style={{ width: "100%", minHeight: "42px", marginTop: "0.75rem", background: loading || !photoData ? "#94a3b8" : "#047857", color: "white", border: 0, borderRadius: "6px", fontWeight: 700, cursor: loading || !photoData ? "wait" : "pointer" }}>
+              {loading ? t("Scanning photo...") : t("Identify Food")}
+            </button>
+          </div>}
         </div>
 
         <div>
           {errorMessage && (
             <div style={{ background: "#fef2f2", border: "2px solid #ef4444", borderRadius: "14px", padding: "1.5rem", color: "#991b1b" }}>
-              <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🚫 NON-FOOD ITEM DETECTED</div>
+              <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>{errorKind === "invalid" ? t("Invalid food image") : errorKind === "connection" ? t("Scanner server unavailable") : errorKind === "camera" ? t("Camera unavailable") : t("Scanner error")}</div>
               <p style={{ margin: 0, fontWeight: 700, fontSize: "0.95rem" }}>{errorMessage}</p>
             </div>
           )}
 
           {result && (
-            <div className="analyzer-box" style={{ background: "#ffffff" }}>
+            <div className="analyzer-box food-report" style={{ background: "#ffffff" }}>
+              <div className="food-report-product">
               <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
-                <img src={result.imageUrl} alt={result.name} style={{ width: "90px", height: "90px", objectFit: "cover", borderRadius: "10px" }} />
+                {result.imageUrl && <img src={result.imageUrl} alt={result.name} style={{ width: "90px", height: "90px", objectFit: "cover", borderRadius: "10px" }} />}
                 <div>
                   <span style={{ fontSize: "0.75rem", background: "#e0f2fe", color: "#0369a1", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>{result.category}</span>
                   <h3 style={{ margin: "4px 0", fontSize: "1.15rem", color: "#0f172a", fontWeight: 800 }}>{result.name}</h3>
-                  <div style={{ fontSize: "0.82rem", color: "#475569" }}>Brand: <strong>{result.brand}</strong></div>
-                  <div style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 700 }}>FSSAI: {result.fssaiLicense} ({result.fssaiStatus})</div>
+                  <div style={{ fontSize: "0.82rem", color: "#475569" }}>{t("Brand:")} <strong>{result.brand}</strong></div>
+                  {result.recognition?.confidence != null && <div style={{ fontSize: "0.82rem", color: "#475569" }}>{t("Model confidence:")} {(result.recognition.confidence * 100).toFixed(1)}%</div>}
+                  {result.fssaiLicense && <div style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 700 }}>FSSAI: {result.fssaiLicense} ({result.fssaiStatus})</div>}
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "12px", marginBottom: "1rem" }}>
-                <div style={{ background: "#f1f5f9", padding: "8px 14px", borderRadius: "8px", fontWeight: 800 }}>
-                  Nutri-Score: <span style={{ color: "#2563eb", fontSize: "1.1rem" }}>{result.nutriscoreGrade}</span>
-                </div>
-                <div style={{ background: "#f0fdf4", padding: "8px 14px", borderRadius: "8px", fontWeight: 800, color: "#166534" }}>
-                  Health Score: {result.healthRating} / 100
-                </div>
+              <div className="food-report-badges">
+                {result.nutriscoreGrade && !["unknown", "not-applicable", "not_applicable"].includes(String(result.nutriscoreGrade).toLowerCase()) && <span>Nutri-Score {result.nutriscoreGrade.toUpperCase()}</span>}
+                {result.novaGroup && <span>NOVA {result.novaGroup}</span>}
+                {result.aiGeneratedEstimate && <span>{t("AI estimate")}</span>}
+              </div>
+              {result.healthRisk && <div className={`food-risk-banner ${result.healthRisk.level}`}><strong>{result.healthRisk.level === "high" ? "🔴" : result.healthRisk.level === "moderate" ? "🟠" : "🟢"} {result.healthRisk.headline}</strong></div>}
               </div>
 
-              <div style={{ fontSize: "0.85rem", color: "#334155", marginBottom: "1rem" }}>
-                <strong>Ingredients:</strong> {result.ingredients.join(", ")}
+              <div className="food-report-tabs" role="tablist" aria-label={t("Food report sections")}>
+                {[["overview", "Overview"], ["nutrition", "Nutrition"], ["alerts", "Alerts"], ...(showAlternatives ? [["alternatives", "Alternatives"]] : [])].map(([key, label]) => <button type="button" key={key} role="tab" aria-selected={reportTab === key} onClick={() => setReportTab(key)} className={`food-report-tab${reportTab === key ? " active" : ""}`}>{t(label)}</button>)}
               </div>
 
-              {result.allergens.length > 0 && (
-                <div style={{ marginBottom: "1rem" }}>
-                  <strong style={{ fontSize: "0.82rem", color: "#9a3412" }}>Allergens:</strong>
-                  <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
-                    {result.allergens.map((all, i) => (
-                      <span key={i} style={{ background: "#ffedd5", color: "#9a3412", padding: "2px 8px", borderRadius: "4px", fontSize: "0.78rem", fontWeight: 700 }}>
-                        {all}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {reportTab === "overview" && <section className="food-report-section" role="tabpanel">
+                {result.aiFoodOverview && <><h3>{t("Food details")}</h3><p>{result.aiFoodOverview}</p></>}
+                <h3>{t("Key Nutrition Highlights (per 100 g)")}</h3>
+                {nutritionRows.length ? <div className="food-highlight-grid">{nutritionRows.filter(([key]) => ["calories", "protein", "sugar", "fat"].includes(key)).map(([key, value]) => <div key={key}><strong>{value}</strong><span>{t(key[0].toUpperCase() + key.slice(1))}</span></div>)}</div> : <p>{t("Nutrition information is not available for this item.")}</p>}
+                <h3>{t("Positive Nutritional Factors")}</h3>
+                {result.positiveFactors?.length ? <ul className="food-positive-list">{result.positiveFactors.map((item) => <li key={item}>✓ {item}</li>)}</ul> : <p>{t("No positive nutrition highlights could be confirmed from the available data.")}</p>}
+                <h3>{t("Ingredients, allergens and additives")}</h3>
+                <p><strong>{t("Ingredients:")}</strong> {result.ingredients?.length ? result.ingredients.join(", ") : t("Not available in the product record.")}</p>
+                <p><strong>{t("Allergens:")}</strong> {result.allergens?.length ? result.allergens.join(", ") : t("No allergen data listed; check the package label.")}</p>
+                <p><strong>{t("Additives:")}</strong> {result.additives?.length ? result.additives.map((item) => `${item.name} (${item.risk})`).join(", ") : t("No additives listed in the available record.")}</p>
+                <p className="food-report-caveat"><strong>{t("Adulteration assessment:")}</strong> {result.adulterationAssessment || t("Not assessed. A barcode or photo cannot confirm adulteration; laboratory testing is required.")}</p>
+              </section>}
+
+              {reportTab === "nutrition" && <section className="food-report-section" role="tabpanel">
+                <h3>{t("Detailed Nutritional Profile (per 100 g)")}</h3>
+                {nutritionRows.length ? <div className="food-nutrition-table">{nutritionRows.map(([key, value]) => <div key={key}><span>{t(({ calories: "Energy", protein: "Proteins", carbs: "Carbohydrates", sugar: "Sugars", fat: "Total Fats", saturatedFat: "Saturated Fat", fiber: "Dietary Fiber", sodium: "Sodium / Salt", salt: "Salt" })[key] || key)}</span><strong>{value}</strong></div>)}</div> : <p>{t("Nutrition information is not available for this item.")}</p>}
+                {result.detailedNutrients?.length > 0 && <>
+                  <h3>{t("Additional IFCT 2017 nutrients")}</h3>
+                  <div className="food-nutrition-table">{result.detailedNutrients.map((nutrient) => <div key={nutrient.code}><span>{nutrient.name}</span><strong>{nutrient.value}{nutrient.uncertainty ? ` ± ${nutrient.uncertainty}` : ""}</strong></div>)}</div>
+                  {result.foodCompositionCode && <p className="food-report-caveat">IFCT food code: {result.foodCompositionCode}. Values show the reported mean and, where available, standard deviation per 100 g.</p>}
+                </>}
+                {result.nutritionReferenceName && <p className="food-report-caveat">{t("Reference product:")} {result.nutritionReferenceName}. {result.nutritionSource}</p>}
+                {result.aiGeneratedEstimate && <p className="food-report-caveat">{result.nutritionSource}</p>}
+              </section>}
+
+              {reportTab === "alerts" && <section className="food-report-section" role="tabpanel">
+                <h3>{t("Health Flags & Food Safety Alerts")}</h3>
+                {result.safetyAlerts?.length ? <div className="food-alert-list">{result.safetyAlerts.map((alert, index) => <div key={`${alert.title}-${index}`}><span>⚠️</span><div><strong>{alert.title}</strong><p>{alert.detail}</p></div></div>)}</div> : <p>{t("No configured sugar, sodium, or saturated-fat alerts were triggered by the available nutrition data. This is not a product safety or adulteration check.")}</p>}
+                {(result.warnings || []).map((warning, index) => <p className="food-report-caveat" key={index}>{warning}</p>)}
+                <p className="food-report-caveat"><strong>{t("Adulteration is not tested by this scan.")}</strong> {result.adulterationAssessment}</p>
+              </section>}
+
+              {reportTab === "alternatives" && showAlternatives && <section className="food-report-section" role="tabpanel">
+                <h3>🥗 {t("Recommended Healthier Food Substitutes")}</h3>
+                <p>{t("Choose less processed options with lower salt, added sugar and saturated fat where possible.")}</p>
+                {result.healthierAlternatives?.length ? <div className="food-alternative-list">{result.healthierAlternatives.map((alternative, index) => <div key={index}><span>{["🥣", "🍲", "🌾"][index % 3]}</span><strong>{alternative}</strong></div>)}</div> : <p>{t("No specific substitute is available from this scan. Compare similar products by their nutrition labels.")}</p>}
+              </section>}
+
+              {result.nutritionSource && reportTab === "overview" && <p className="food-report-source">{result.nutritionSource}</p>}
+              <div className="food-report-actions">
+                <button type="button" onClick={saveScannedProduct} className="food-save-button">📦 {t("Save to My Products")}</button>
+                <button type="button" onClick={() => { setResult(null); setReportTab("overview"); setPhotoData(""); setPhotoPreview(""); setErrorMessage(""); }} className="food-scan-again-button">📷 {t("Scan Another Food Item")}</button>
+                {saveMessage && <p role="status">{saveMessage}</p>}
+              </div>
 
               <button
                 onClick={() => navigate("submit")}
@@ -4803,7 +5233,7 @@ function FoodScannerView({ navigate }) {
           {!result && !errorMessage && (
             <div className="analyzer-box" style={{ textAlign: "center", padding: "3rem", color: "#94a3b8" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>🔍</div>
-              Enter or select a food item barcode to view official FDA parameters.
+              {t("Scan a barcode or upload a food photo to test the scanner.")}
             </div>
           )}
         </div>
@@ -4815,70 +5245,116 @@ function FoodScannerView({ navigate }) {
 // 5. FLOATING HELP CHATBOT FOR NEW USERS
 function HelpChatbot({ navigate, openVendorProfile }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      sender: "bot",
-      text: "👋 Welcome to FDA SafeWatch! I am your AI Assistant. How can I assist you today?"
-    }
-  ]);
-
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [voiceLanguage, setVoiceLanguage] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+  const recognitionRef = useRef(null);
+  const [messages, setMessages] = useState([{ sender: "bot", text: "Hi! I'm Aaharmitra, your food safety friend. Ask me about complaints, tracking, food scans, alerts, your profile, or vendors." }]);
   const quickQuestions = [
-    { title: "🚨 How to file a complaint?", answer: "Click 'Submit Complaint' in the menu. Fill in vendor details, attach evidence photos, and receive your tracking code." },
-    { title: "🔍 How to track status?", answer: "Enter your 10-character tracking code in 'Track Complaint' to view officer inspection notes in real time." },
-    { title: "📷 How to scan barcodes?", answer: "Go to 'Food Scanner' tab to verify FSSAI license numbers and ingredients of packaged food items." },
-    { title: "⚠️ Check Safety Alerts", answer: "Click 'Safety Alerts' tab on the home screen to view urgent food recalls and adulteration advisories." },
-    { title: "🏪 Vendor Risk Profiles", answer: "Click any vendor name across complaints to open their full historical safety profile and compliance score." }
+    { title: "Report a food issue", question: "How do I report a food safety issue?", icon: "📝", keywords: ["complaint", "report", "submit", "food safety"] },
+    { title: "Track a complaint", question: "How can I find my complaint status?", icon: "🔎", keywords: ["track", "status", "tracking code", "resolution"] },
+    { title: "Voting rules", question: "Can I vote on my own complaint?", icon: "🗳️", keywords: ["vote", "voting", "upvote"] },
+    { title: "Identify food from a photo", question: "Can I identify food using a photo?", icon: "📷", keywords: ["photo", "picture", "image", "identify food"] },
+    { title: "Barcode not found?", question: "What if my product barcode is not listed?", icon: "🏷️", keywords: ["barcode", "product scan", "barcode not", "not listed"] },
+    { title: "Edit my profile", question: "How do I edit my profile details?", icon: "👤", keywords: ["profile", "edit details", "phone number", "account details"] },
   ];
+  const typedTopicSuggestions = question.trim()
+    ? quickQuestions.filter((item) => item.keywords.some((keyword) => question.toLowerCase().includes(keyword)))
+    : [];
 
-  const handleAsk = (q) => {
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", text: q.title },
-      { sender: "bot", text: q.answer }
-    ]);
+  useEffect(() => () => recognitionRef.current?.stop(), []);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    if (!voiceLanguage) {
+      setVoiceError("Choose a voice language in the chat above first.");
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceError("Voice input is not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    setVoiceError("");
+    const recognition = new SpeechRecognition();
+    recognition.lang = voiceLanguage;
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (transcript) setQuestion(transcript);
+    };
+    recognition.onerror = () => setVoiceError("Couldn't recognize speech. Check microphone access and try again.");
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+      setVoiceError("Couldn't start voice input. Try again.");
+    }
+  };
+
+  const handleAsk = async (prompt = question) => {
+    const value = prompt.trim();
+    if (!value || asking) return;
+    setQuestion("");
+    setMessages((prev) => [...prev, { sender: "user", text: value }]);
+    setAsking(true);
+    try {
+      const data = await api("/api/assistant/ask", { method: "POST", body: JSON.stringify({ question: value, language: voiceLanguage || "en-IN" }) });
+      setMessages((prev) => [...prev, { sender: "bot", text: data.answer }]);
+    } catch (_error) {
+      setMessages((prev) => [...prev, { sender: "bot", text: "I couldn't reach the SafeWatch help service. Please try again." }]);
+    } finally {
+      setAsking(false);
+    }
   };
 
   return (
     <>
-      <button className="chatbot-fab" onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? "✕" : "💬"}
-      </button>
-
-      {isOpen && (
-        <div className="chatbot-window">
+      <div className={`aaharmitra-launcher${isOpen ? " is-open" : ""}`}>
+        {!isOpen && <button className="aaharmitra-greeting" onClick={() => setIsOpen(true)}>Hi, I'm Aaharmitra <span aria-hidden="true">👋</span></button>}
+        <button className="chatbot-fab aaharmitra-fab" onClick={() => setIsOpen(!isOpen)} aria-label={isOpen ? "Close Aaharmitra" : "Chat with Aaharmitra"} title="Chat with Aaharmitra">
+          {isOpen ? <span className="aaharmitra-close" aria-hidden="true">×</span> : <><span className="aaharmitra-avatar" aria-hidden="true">👩🏽‍🍳</span><span className="aaharmitra-name">Aaharmitra</span></>}
+        </button>
+      </div>      {isOpen && (
+        <div className="chatbot-window" role="dialog" aria-label="Aaharmitra food safety assistant">
           <div style={{ background: "linear-gradient(135deg, #10b981 0%, #047857 100%)", color: "white", padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontWeight: 800, fontSize: "0.95rem" }}>🤖 SafeWatch Guide Assistant</div>
-            <button onClick={() => setIsOpen(false)} style={{ background: "none", border: "none", color: "white", fontSize: "1.1rem", cursor: "pointer" }}>✕</button>
+            <div style={{ fontWeight: 800, fontSize: "0.95rem" }}>Aaharmitra · Food Safety Assistant</div>
+            <button onClick={() => setIsOpen(false)} aria-label="Close" style={{ background: "none", border: "none", color: "white", fontSize: "1.1rem", cursor: "pointer" }}>×</button>
           </div>
-
-          <div style={{ flex: 1, padding: "12px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-            {messages.map((m, i) => (
-              <div key={i} className={m.sender === "bot" ? "chat-msg-bot" : "chat-msg-user"}>
-                {m.text}
-              </div>
-            ))}
+          <div style={{ flex: 1, padding: "12px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px" }}>
+            {messages.map((message, index) => <React.Fragment key={index}><div className={message.sender === "bot" ? "chat-msg-bot" : "chat-msg-user"}>{message.text}</div>{index === 0 && <div style={{ alignSelf: "flex-start", maxWidth: "100%", padding: "10px 12px", borderRadius: "12px", background: "#f1f5f9", color: "#334155" }}><div style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "8px" }}>Choose a voice language</div><div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>{[{ value: "en-IN", label: "English" }, { value: "hi-IN", label: "\u0939\u093f\u0928\u094d\u0926\u0940" }, { value: "mr-IN", label: "\u092e\u0930\u093e\u0920\u0940" }].map((language) => { const selected = voiceLanguage === language.value; return <button key={language.value} type="button" onClick={() => { setVoiceLanguage(language.value); setVoiceError(""); }} aria-pressed={selected} disabled={isListening} style={{ display: "inline-flex", alignItems: "center", gap: "5px", border: selected ? "2px solid #047857" : "1px solid #cbd5e1", borderRadius: "7px", padding: "6px 10px", background: selected ? "#dcfce7" : "#fff", color: "#164e3b", cursor: isListening ? "not-allowed" : "pointer", fontSize: "0.78rem", fontWeight: selected ? 750 : 600, opacity: isListening ? 0.7 : 1 }}>{language.label}{selected && <span aria-label="selected">{"\u2713"}</span>}</button>; })}</div>{voiceLanguage && <div style={{ fontSize: "0.7rem", color: "#047857", marginTop: "6px" }}>Selected: {voiceLanguage === "en-IN" ? "English" : voiceLanguage === "hi-IN" ? "\u0939\u093f\u0928\u094d\u0926\u0940" : "\u092e\u0930\u093e\u0920\u0940"}</div>}</div>}</React.Fragment>)}
+            {asking && <div className="chat-msg-bot" role="status">Looking that up?</div>}
           </div>
-
-          <div style={{ padding: "10px", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-            <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginBottom: "6px" }}>QUICK ASSISTANCE TOPICS:</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {quickQuestions.map((q, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleAsk(q)}
-                  style={{ textAlign: "left", background: "#ffffff", border: "1px solid #cbd5e1", padding: "6px 10px", borderRadius: "6px", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600, color: "#334155" }}
-                >
-                  {q.title}
-                </button>
-              ))}
+          <form onSubmit={(event) => { event.preventDefault(); handleAsk(); }} style={{ display: "flex", gap: "6px", padding: "10px", background: "#fff", borderTop: "1px solid #e2e8f0" }}>
+            <div style={{ minWidth: 0, flex: 1, display: "flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "7px", paddingRight: "5px", background: "#fff" }}>
+              <input aria-label="Ask SafeWatch" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Type or speak your question?" style={{ minWidth: 0, flex: 1, padding: "9px 10px", border: 0, outline: "none", background: "transparent" }} />
+              <button type="button" onClick={toggleVoiceInput} aria-label={isListening ? "Stop voice input" : "Speak your question"} aria-pressed={isListening} title={isListening ? "Listening - click to stop" : "Speak your question"} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "34px", height: "34px", flexShrink: 0, border: 0, borderRadius: "6px", background: isListening ? "#fee2e2" : "transparent", color: isListening ? "#b91c1c" : "#164e3b", padding: "5px", cursor: "pointer" }}>{isListening ? <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg> : <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3" stroke="currentColor" strokeWidth="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>}</button>
+            </div>
+            <button type="submit" disabled={asking || !question.trim()} style={{ border: 0, borderRadius: "7px", background: "#047857", color: "white", padding: "8px 12px", fontWeight: 700 }}>{asking ? "?" : "Ask"}</button>
+          </form>
+          {(isListening || voiceError) && <div style={{ padding: "0 10px 7px", background: "#fff", color: voiceError ? "#b91c1c" : "#047857", fontSize: "0.72rem" }} role={voiceError ? "alert" : "status"}>{voiceError || "Listening?"}</div>}
+          {typedTopicSuggestions.length > 0 && <div style={{ padding: "10px", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
+            <div style={{ fontSize: "0.72rem", color: "#64748b", fontWeight: 700, marginBottom: "7px" }}>RELATED HELP</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "6px" }}>
+              {typedTopicSuggestions.map((item) => <button key={item.title} onClick={() => handleAsk(item.question)} style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, textAlign: "left", background: "#fff", border: "1px solid #dbe5e1", padding: "8px", borderRadius: "9px", fontSize: "0.75rem", lineHeight: 1.25, cursor: "pointer", fontWeight: 650, color: "#164e3b" }}><span aria-hidden="true">{item.icon}</span><span>{item.title}</span></button>)}
             </div>
           </div>
+          }
         </div>
       )}
     </>
   );
 }
-
 // 6. COMPLAINT SATISFACTION RATING WIDGET
 function ComplaintRatingWidget({ complaintId, existingRating, onRated }) {
   const [stars, setStars] = useState(existingRating?.stars || 5);

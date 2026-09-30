@@ -9,32 +9,21 @@ import {
   Alert,
   Image,
   TextInput,
+  Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors, FontSizes, Radius, Spacing } from '../constants/colors';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import { foodFactsAPI, userAPI } from '../services/api';
+import { foodFactsAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import {
-  validateIsFoodProduct,
-  analyzeProductHealth,
-  analyzeFoodPhoto,
   HealthAssessment,
   PhotoFoodResult,
 } from '../services/foodAnalysis';
 
 type ScanMode = 'barcode' | 'photo' | 'manual' | 'result' | 'photoResult' | 'notFood';
-
-const COMMON_DISH_SUGGESTIONS = [
-  { label: 'Samosa / Fried Snack', icon: '🥟', query: 'samosa' },
-  { label: 'Fresh Milk', icon: '🥛', query: 'milk' },
-  { label: 'Fresh Paneer', icon: '🧀', query: 'paneer' },
-  { label: 'Mithai / Sweets', icon: '🍬', query: 'sweet' },
-  { label: 'Fresh Fruits / Veggies', icon: '🍎', query: 'fruit' },
-  { label: 'Cooked Thali / Meal', icon: '🍛', query: 'meal' },
-];
 
 export default function ScanProductScreen({ navigation }: { navigation?: any } = {}) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -48,14 +37,16 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
   
   // Photo scanning state
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [photoDishName, setPhotoDishName] = useState<string>('');
   const [photoResult, setPhotoResult] = useState<PhotoFoodResult | null>(null);
 
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'nutrition' | 'warnings' | 'alternatives'>('overview');
   const user = useAuthStore((s) => s.user);
+
+  const parseNutritionValue = (value: any): number | null => {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
 
   // 1. Fetch & Validate Barcode Product from OpenFoodFacts
   const fetchProduct = async (barcode: string) => {
@@ -73,25 +64,28 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
       if (data && data.isFoodItem && data.product) {
         const p = data.product;
         // Adapt backend format to UI expected format
-        const fakeProduct = {
+        const productView = {
           product_name: p.name,
           brands: p.brand,
           image_front_url: p.imageUrl,
           ingredients_text: p.ingredients.join(', ')
         };
         
-        const fakeAnalysis = {
-          nutriscoreGrade: p.nutriscoreGrade?.toLowerCase() || 'c',
-          novaGroup: 3,
-          healthLevel: p.healthRating > 80 ? 'healthy' : (p.healthRating < 50 ? 'unhealthy' : 'moderate'),
-          healthScoreText: `${p.healthRating} / 100 Health Rating`,
+        const analysis: HealthAssessment = {
+          nutriscoreGrade: p.nutriscoreGrade?.toLowerCase() || '',
+          novaGroup: Number(p.novaGroup) || 0,
+          healthLevel: 'unknown',
+          healthScoreText: 'Product details from Open Food Facts. Check the package label; this is not an FDA safety rating.',
           nutritionSummary: {
-             energyKcal: p.nutrition?.calories?.replace(' kcal','') || '-',
-             proteinG: p.nutrition?.protein?.replace(' g','') || '-',
-             carbsG: p.nutrition?.carbs?.replace(' g','') || '-',
-             fatG: p.nutrition?.fat?.replace(' g','') || '-',
-             sugarG: p.nutrition?.sugar?.replace(' g','') || '-',
-             sodiumMg: p.nutrition?.sodium?.replace(' mg','') || '-'
+             energyKcal: parseNutritionValue(p.nutrition?.calories),
+             proteinG: parseNutritionValue(p.nutrition?.protein),
+             carbsG: parseNutritionValue(p.nutrition?.carbs),
+             fatG: parseNutritionValue(p.nutrition?.fat),
+             sugarG: parseNutritionValue(p.nutrition?.sugar),
+             satFatG: parseNutritionValue(p.nutrition?.saturatedFat),
+             saltG: p.nutrition?.sodium != null ? Number(p.nutrition.sodium) / 1000 : null,
+             fiberG: null,
+             sodiumMg: parseNutritionValue(p.nutrition?.sodium)
           },
           additives: (p.additives || []).map((a:any) => ({
              code: a.code,
@@ -100,25 +94,21 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
              dangerMsg: a.risk
           })),
           allergens: p.allergens || [],
-          flags: (p.warnings || []).map((w:any) => ({
-             title: w, type: 'warning'
-          })),
-          fssaiCompliance: {
-             hasFssaiLicense: !!p.fssaiLicense,
-             licenseNumber: p.fssaiLicense,
-             status: p.fssaiStatus
-          }
+          isHealthy: false,
+          warnings: p.warnings || [],
+          positives: [],
+          healthierAlternatives: []
         };
 
-        setProduct(fakeProduct);
-        setHealthAnalysis(fakeAnalysis);
+        setProduct(productView);
+        setHealthAnalysis(analysis);
         setMode('result');
       } else {
-        setNonFoodMessage(data?.error || 'Item is not an edible food product under FSSAI jurisdiction.');
+        setNonFoodMessage(data?.error || 'This barcode is not in the product dataset, so its food status and details could not be verified.');
         setMode('notFood');
       }
     } catch (err) {
-      setNonFoodMessage('Unable to verify barcode. Please check connection.');
+      setNonFoodMessage('Unable to verify this barcode right now. Please check your connection and try again.');
       setMode('notFood');
     } finally {
       setLoading(false);
@@ -133,32 +123,80 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
   };
 
   // 2. Photo-based Food Scan for Items Without Barcode
-  const fetchPhotoData = async (query: string, imgUri?: string) => {
+  const fetchPhotoData = async (imgUri: string) => {
     setLoading(true);
     try {
-      const { data } = await foodFactsAPI.scanImage(query);
+      const imageBase64 = await new Promise<string>(async (resolve, reject) => {
+        if (Platform.OS !== 'web') {
+          try {
+            const FileSystem = await import('expo-file-system/legacy');
+            const base64 = await FileSystem.readAsStringAsync(imgUri, { encoding: 'base64' });
+            resolve(base64);
+          } catch (error) { reject(error); }
+          return;
+        }
+        try {
+          const response = await fetch(imgUri);
+          const blob = await response.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const encoded = String(reader.result || '').split(',')[1];
+            encoded ? resolve(encoded) : reject(new Error('Could not read image'));
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        } catch (error) { reject(error); }
+      });
+      const { data } = await foodFactsAPI.scanImage(imageBase64);
       if (data && data.isFoodItem && data.product) {
         const p = data.product;
-        const fakePhotoResult = {
-          dishName: p.name,
-          category: p.category,
-          healthLevel: p.healthRating > 80 ? 'healthy' : (p.healthRating < 50 ? 'unhealthy' : 'moderate'),
-          estimatedCalories: p.nutrition?.calories || 'N/A kcal',
-          protein: p.nutrition?.protein || 'N/A g',
-          carbs: p.nutrition?.carbs || 'N/A g',
-          fat: p.nutrition?.fat || 'N/A g',
-          fssaiSafetyTips: p.warnings || [],
-          adulterationTest: p.additives?.length ? p.additives.map((a:any) => `${a.name} (${a.risk})`).join(', ') : 'No adulterants detected.',
-          healthierAlternatives: ['Freshly cooked alternatives recommended']
+        const nutrition = p.nutrition || {};
+        const analysis: HealthAssessment = {
+          nutriscoreGrade: p.nutriscoreGrade?.toLowerCase() || '',
+          novaGroup: Number(p.novaGroup) || 0,
+          healthLevel: p.healthRisk?.level === 'high' ? 'unhealthy' : p.healthRisk?.level === 'low' ? 'healthy' : 'unknown',
+          healthScoreText: p.healthRisk?.headline || p.nutritionSource || 'AI nutrition estimate; check food labels for exact values.',
+          nutritionSummary: {
+            energyKcal: parseNutritionValue(nutrition.calories),
+            proteinG: parseNutritionValue(nutrition.protein),
+            carbsG: parseNutritionValue(nutrition.carbs),
+            sugarG: parseNutritionValue(nutrition.sugar),
+            fatG: parseNutritionValue(nutrition.fat),
+            satFatG: parseNutritionValue(nutrition.saturatedFat),
+            saltG: parseNutritionValue(nutrition.salt),
+            fiberG: parseNutritionValue(nutrition.fiber),
+            sodiumMg: parseNutritionValue(nutrition.sodium)
+          },
+          additives: (p.additives || []).map((item: any) => typeof item === 'string' ? item : item.name || item.code),
+          allergens: p.allergens || [],
+          isHealthy: p.healthRisk?.level === 'low',
+          warnings: [
+            ...(p.safetyAlerts || []).map((alert: any) => alert.detail || alert.title || String(alert)),
+            ...(p.warnings || [])
+          ],
+          positives: p.positiveFactors || [],
+          healthierAlternatives: (p.healthierAlternatives || []).map((name: string) => ({ name, icon: '🥗', category: 'Alternative', benefit: '' }))
         };
         if (imgUri) setPhotoUri(imgUri);
-        setPhotoResult(fakePhotoResult);
-        setMode('photoResult');
+        setProduct({
+          product_name: p.name,
+          brands: p.brand || 'Identified from photo',
+          image_front_url: imgUri,
+          ingredients_text: (p.ingredients || []).join(', '),
+          nutritionSource: p.nutritionSource,
+          aiFoodOverview: p.aiFoodOverview,
+          adulterationAssessment: p.adulterationAssessment
+        });
+        setHealthAnalysis(analysis);
+        setActiveTab('overview');
+        setMode('result');
       } else {
-         Alert.alert('Error', data?.error || 'Could not verify food item.');
+        setNonFoodMessage(data?.error || 'Invalid food image. Try a clear photo focused on the food.');
+        setMode('notFood');
       }
-    } catch (e) {
-      Alert.alert('Analysis Failed', 'Could not process food image/query.');
+    } catch (e: any) {
+      setNonFoodMessage(e?.response?.data?.error || e?.response?.data?.message || 'Food image recognition is unavailable. Please try again later.');
+      setMode('notFood');
     } finally {
       setLoading(false);
     }
@@ -179,53 +217,11 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
 
       if (!result.canceled && result.assets?.[0]) {
         const uri = result.assets[0].uri;
-        fetchPhotoData(photoDishName || 'general food', uri);
+        setPhotoUri(uri);
+        fetchPhotoData(uri);
       }
     } catch (e) {
       Alert.alert('Camera Error', 'Could not open camera or gallery. Please check permissions.');
-    }
-  };
-
-  const handleAnalyzeCustomDish = (dishText: string) => {
-    setPhotoDishName(dishText);
-    fetchPhotoData(dishText, photoUri || undefined);
-  };
-
-  // 3. Save Product Handler
-  const handleSaveProduct = async () => {
-    if (!user) {
-      Alert.alert('Login Required', 'Please log in to save items to your health dashboard.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Login', onPress: () => navigation?.navigate('Login') },
-      ]);
-      return;
-    }
-    setSaving(true);
-    try {
-      const name = mode === 'result' ? (product?.product_name || 'Food Product') : (photoResult?.dishName || 'Scanned Food');
-      const brand = mode === 'result' ? (product?.brands || 'Packaged Food') : (photoResult?.category || 'Unpackaged Food');
-      const barcodeVal = mode === 'result' ? (lastBarcode || 'barcode-item') : 'photo-scan';
-      const grade = mode === 'result' ? (healthAnalysis?.nutriscoreGrade || 'c') : (photoResult?.healthLevel === 'healthy' ? 'a' : 'd');
-      const img = mode === 'result' ? (product?.image_front_url || product?.image_url || '') : (photoUri || '');
-
-      await userAPI.saveProduct({
-        barcode: barcodeVal,
-        name,
-        brand,
-        imageUrl: img,
-        nutriscoreGrade: grade,
-      });
-      setSaved(true);
-      Alert.alert('Saved!', `"${name}" added to your Saved Products.`);
-    } catch (err: any) {
-      if (err?.response?.status === 409) {
-        Alert.alert('Already Saved', 'This item is already in your saved list.');
-        setSaved(true);
-      } else {
-        Alert.alert('Error', 'Could not save item. Try again.');
-      }
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -310,29 +306,6 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
               </Text>
             </View>
 
-            <View style={styles.sampleBox}>
-              <Text style={styles.sampleHeader}>Quick Test Food Samples:</Text>
-              <View style={styles.sampleGrid}>
-                <TouchableOpacity
-                  style={styles.sampleChip}
-                  onPress={() => fetchProduct('8901058851008')}
-                >
-                  <Text style={styles.sampleChipText}>🥛 Amul Toned Milk</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.sampleChip}
-                  onPress={() => fetchProduct('8901030018153')}
-                >
-                  <Text style={styles.sampleChipText}>🍫 Dark Chocolate</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.sampleChip}
-                  onPress={() => fetchProduct('8901725181222')}
-                >
-                  <Text style={styles.sampleChipText}>🍿 Roasted Makhana</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
           </View>
         </ScrollView>
       )}
@@ -343,7 +316,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           <View style={styles.photoHeaderCard}>
             <Text style={styles.photoCardTitle}>Scan Food Item (No Barcode)</Text>
             <Text style={styles.photoCardSub}>
-              Take a photo of street food, fresh produce, cooked meals, bakery sweets, or loose dairy to assess hygiene, safety risks, and healthy alternatives.
+              Take a photo of food to identify its likely name. The scan does not assess hygiene or safety.
             </Text>
           </View>
 
@@ -361,25 +334,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             </TouchableOpacity>
           </View>
 
-          {/* Quick Select Common Dish */}
-          <Text style={styles.sectionHeader}>Or Select Food Type to Analyze:</Text>
-          <View style={styles.commonGrid}>
-            {COMMON_DISH_SUGGESTIONS.map((item) => (
-              <TouchableOpacity
-                key={item.query}
-                style={styles.commonCard}
-                onPress={() => {
-                  setPhotoDishName(item.label);
-                  const res = analyzeFoodPhoto(item.query);
-                  setPhotoResult(res);
-                  setMode('photoResult');
-                }}
-              >
-                <Text style={styles.commonIcon}>{item.icon}</Text>
-                <Text style={styles.commonLabel}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.photoCardSub}>Use a clear, close-up photo. Food recognition reports what the image model identifies; it does not estimate nutrition or verify food safety.</Text>
         </ScrollView>
       )}
 
@@ -417,7 +372,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           <View style={styles.notFoodIconCircle}>
             <Text style={{ fontSize: 48 }}>🚫</Text>
           </View>
-          <Text style={styles.notFoodTitle}>Non-Food or Unrecognized Item</Text>
+          <Text style={styles.notFoodTitle}>{nonFoodMessage.toLowerCase().includes('invalid food image') ? 'Invalid Food Image' : nonFoodMessage.toLowerCase().includes('recognition') ? 'Food Recognition Unavailable' : 'Non-Food or Unrecognized Item'}</Text>
           <Text style={styles.notFoodDesc}>{nonFoodMessage}</Text>
 
           <View style={styles.notFoodAdviceBox}>
@@ -560,7 +515,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
                 </View>
                 <View style={styles.macroBox}>
                   <Text style={styles.macroVal}>
-                    {healthAnalysis.nutritionSummary.proteinG !== undefined ? `${healthAnalysis.nutritionSummary.proteinG}g` : '—'}
+                    {healthAnalysis.nutritionSummary.proteinG != null ? `${healthAnalysis.nutritionSummary.proteinG}g` : '—'}
                   </Text>
                   <Text style={styles.macroLbl}>Protein</Text>
                 </View>
@@ -571,13 +526,13 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
                       (healthAnalysis.nutritionSummary.sugarG || 0) > 15 && { color: Colors.danger },
                     ]}
                   >
-                    {healthAnalysis.nutritionSummary.sugarG !== undefined ? `${healthAnalysis.nutritionSummary.sugarG}g` : '—'}
+                    {healthAnalysis.nutritionSummary.sugarG != null ? `${healthAnalysis.nutritionSummary.sugarG}g` : '—'}
                   </Text>
                   <Text style={styles.macroLbl}>Sugar</Text>
                 </View>
                 <View style={styles.macroBox}>
                   <Text style={styles.macroVal}>
-                    {healthAnalysis.nutritionSummary.fatG !== undefined ? `${healthAnalysis.nutritionSummary.fatG}g` : '—'}
+                    {healthAnalysis.nutritionSummary.fatG != null ? `${healthAnalysis.nutritionSummary.fatG}g` : '—'}
                   </Text>
                   <Text style={styles.macroLbl}>Fat</Text>
                 </View>
@@ -613,7 +568,9 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
                   { label: 'Total Fats', val: `${healthAnalysis.nutritionSummary.fatG ?? '—'} g` },
                   { label: 'Saturated Fat', val: `${healthAnalysis.nutritionSummary.satFatG ?? '—'} g` },
                   { label: 'Dietary Fiber', val: `${healthAnalysis.nutritionSummary.fiberG ?? '—'} g` },
-                  { label: 'Sodium / Salt', val: `${healthAnalysis.nutritionSummary.saltG ?? '—'} g` },
+                  healthAnalysis.nutritionSummary.sodiumMg != null
+                    ? { label: 'Sodium', val: `${healthAnalysis.nutritionSummary.sodiumMg} mg` }
+                    : { label: 'Sodium / Salt', val: `${healthAnalysis.nutritionSummary.saltG ?? '—'} g` },
                 ].map((row, idx) => (
                   <View key={row.label} style={[styles.tableRow, idx % 2 === 0 && styles.tableRowEven]}>
                     <Text style={styles.tableLabel}>{row.label}</Text>
@@ -624,117 +581,39 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             </View>
           )}
 
-          {/* TAB 3: HEALTH ALERTS & WARNINGS */}
           {activeTab === 'warnings' && (
             <View style={styles.sectionBody}>
               <Text style={styles.subHeading}>Health Flags & Food Safety Alerts</Text>
-              {healthAnalysis.warnings.map((warn, idx) => (
-                <View key={idx} style={styles.warningItem}>
-                  <Text style={styles.warnIcon}>⚠️</Text>
-                  <Text style={styles.warnText}>{warn}</Text>
+              {healthAnalysis.warnings.length ? healthAnalysis.warnings.map((warning, idx) => (
+                <View key={idx} style={styles.bulletRow}>
+                  <Text style={styles.greenCheck}>•</Text>
+                  <Text style={styles.bulletText}>{warning}</Text>
                 </View>
-              ))}
-
-              {healthAnalysis.additives.length > 0 && (
-                <View style={{ marginTop: 16 }}>
-                  <Text style={styles.subHeading}>Detected Additives ({healthAnalysis.additives.length})</Text>
-                  <View style={styles.tagWrap}>
-                    {healthAnalysis.additives.map((add, idx) => (
-                      <View key={idx} style={styles.additiveChip}>
-                        <Text style={styles.additiveText}>{add}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {healthAnalysis.allergens.length > 0 && (
-                <View style={{ marginTop: 16 }}>
-                  <Text style={styles.subHeading}>Allergen Information</Text>
-                  <View style={styles.tagWrap}>
-                    {healthAnalysis.allergens.map((alg, idx) => (
-                      <View key={idx} style={styles.allergenChip}>
-                        <Text style={styles.allergenText}>🚨 {alg}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
+              )) : <Text style={styles.bulletText}>No nutrient alerts were identified from the available nutrition information.</Text>}
+              {product.nutritionSource && <Text style={[styles.bulletText, { marginTop: 14 }]}>{product.nutritionSource}</Text>}
+              {product.adulterationAssessment && <Text style={[styles.bulletText, { marginTop: 10 }]}>{product.adulterationAssessment}</Text>}
             </View>
           )}
 
-          {/* TAB 4: HEALTHIER ALTERNATIVES */}
           {activeTab === 'alternatives' && (
             <View style={styles.sectionBody}>
-              {healthAnalysis.isHealthy ? (
-                <View style={styles.healthyCelebrationCard}>
-                  <Text style={{ fontSize: 40, marginBottom: 8 }}>🎉</Text>
-                  <Text style={styles.healthyCelebrationTitle}>
-                    This Product is Already a Healthy Choice!
-                  </Text>
-                  <Text style={styles.healthyCelebrationSub}>
-                    {product.product_name || 'This food item'} has an excellent nutritional quality rating (Nutri-Score {healthAnalysis.nutriscoreGrade.toUpperCase()}, NOVA {healthAnalysis.novaGroup}) with natural wholesome ingredients. No alternative food replacement is required!
-                  </Text>
-
-                  <View style={styles.healthyHighlightsBox}>
-                    <Text style={styles.healthyHighlightsTitle}>🌟 Key Nutritional Benefits:</Text>
-                    {healthAnalysis.positives.map((pos, idx) => (
-                      <View key={idx} style={styles.bulletRow}>
-                        <Text style={styles.greenCheck}>✓</Text>
-                        <Text style={styles.bulletText}>{pos}</Text>
-                      </View>
-                    ))}
-                  </View>
+              <Text style={styles.subHeading}>Recommended Alternatives</Text>
+              {healthAnalysis.healthierAlternatives.length ? healthAnalysis.healthierAlternatives.map((alternative, idx) => (
+                <View key={idx} style={styles.bulletRow}>
+                  <Text style={styles.greenCheck}>{alternative.icon}</Text>
+                  <Text style={styles.bulletText}>{alternative.name}</Text>
                 </View>
-              ) : (
-                <View>
-                  <View style={styles.altHeaderCard}>
-                    <Text style={styles.altMainTitle}>
-                      🥗 Recommended Healthier Food Substitutes
-                    </Text>
-                    <Text style={styles.altMainSub}>
-                      Because this product contains high sugar, saturated fats or industrial processing, FSSAI SafeWatch recommends these clean nutritional alternatives:
-                    </Text>
-                  </View>
-
-                  <View style={styles.altList}>
-                    {healthAnalysis.healthierAlternatives.map((alt, idx) => (
-                      <View key={idx} style={styles.altCardFull}>
-                        <Text style={styles.altEmoji}>{alt.icon}</Text>
-                        <View style={{ flex: 1 }}>
-                          <View style={styles.altTitleRow}>
-                            <Text style={styles.altNameText}>{alt.name}</Text>
-                            <View style={styles.altCategoryBadge}>
-                              <Text style={styles.altCategoryText}>{alt.category}</Text>
-                            </View>
-                          </View>
-                          <Text style={styles.altBenefitText}>✓ {alt.benefit}</Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
+              )) : <Text style={styles.bulletText}>No specific alternative was recommended from the available nutrition information.</Text>}
             </View>
           )}
-
           {/* Action Bar */}
           <View style={{ gap: 12, marginTop: 24 }}>
-            <Button
-              title={saved ? '✅ Saved in My Products' : saving ? 'Saving…' : '📦 Save to My Products'}
-              onPress={handleSaveProduct}
-              loading={saving}
-              disabled={saved || saving}
-              fullWidth
-              size="lg"
-            />
             <Button
               title="📷 Scan Another Food Item"
               variant="outline"
               onPress={() => {
                 setMode('barcode');
                 setScanned(false);
-                setSaved(false);
                 setProduct(null);
                 setHealthAnalysis(null);
               }}
@@ -748,114 +627,18 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
       {mode === 'photoResult' && photoResult && (
         <ScrollView style={styles.flex} contentContainerStyle={{ padding: 20, paddingBottom: 50 }}>
           <View style={styles.resCard}>
-            {photoUri && (
-              <Image source={{ uri: photoUri }} style={styles.photoPreviewImg} resizeMode="cover" />
-            )}
+            {photoUri && <Image source={{ uri: photoUri }} style={styles.photoPreviewImg} resizeMode="cover" />}
             <Text style={styles.photoDishTitle}>{photoResult.dishName}</Text>
             <Text style={styles.photoCategoryBadge}>{photoResult.category}</Text>
-
-            {/* Health status */}
-            <View
-              style={[
-                styles.healthBanner,
-                photoResult.healthLevel === 'healthy'
-                  ? styles.healthBannerGreen
-                  : photoResult.healthLevel === 'unhealthy'
-                  ? styles.healthBannerRed
-                  : styles.healthBannerAmber,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.healthBannerText,
-                  photoResult.healthLevel === 'healthy'
-                    ? styles.healthTextGreen
-                    : photoResult.healthLevel === 'unhealthy'
-                    ? styles.healthTextRed
-                    : styles.healthTextAmber,
-                ]}
-              >
-                {photoResult.healthLevel === 'healthy'
-                  ? '🟢 Natural / Nutrient-Rich Whole Food'
-                  : photoResult.healthLevel === 'unhealthy'
-                  ? '🔴 High Calorie / Saturated Fat Risk'
-                  : '🟡 Moderate Caloric Intake'}
-              </Text>
-            </View>
           </View>
-
-          {/* Nutrition Estimate */}
           <View style={styles.sectionBody}>
-            <Text style={styles.subHeading}>Estimated Nutritional Breakdown</Text>
-            <View style={styles.macroGrid}>
-              <View style={styles.macroBox}>
-                <Text style={styles.macroVal}>{photoResult.estimatedCalories}</Text>
-                <Text style={styles.macroLbl}>Calories (kcal)</Text>
-              </View>
-              <View style={styles.macroBox}>
-                <Text style={styles.macroVal}>{photoResult.protein}</Text>
-                <Text style={styles.macroLbl}>Protein</Text>
-              </View>
-              <View style={styles.macroBox}>
-                <Text style={styles.macroVal}>{photoResult.carbs}</Text>
-                <Text style={styles.macroLbl}>Carbs</Text>
-              </View>
-              <View style={styles.macroBox}>
-                <Text style={styles.macroVal}>{photoResult.fat}</Text>
-                <Text style={styles.macroLbl}>Fats</Text>
-              </View>
-            </View>
+            <Text style={styles.subHeading}>Image recognition result</Text>
+            <Text style={styles.bulletText}>
+              This model prediction identifies a likely food label. A photo cannot verify nutrition, ingredients, allergens, freshness, adulteration, or whether food is safe to eat.
+            </Text>
           </View>
-
-          {/* FSSAI Safety & Hygiene Guidance */}
-          <View style={styles.sectionBody}>
-            <Text style={styles.subHeading}>🛡️ FSSAI Food Safety & Hygiene Advisory</Text>
-            {photoResult.fssaiSafetyTips.map((tip, idx) => (
-              <View key={idx} style={styles.bulletRow}>
-                <Text style={styles.blueCheck}>•</Text>
-                <Text style={styles.bulletText}>{tip}</Text>
-              </View>
-            ))}
-
-            {photoResult.adulterationTest && (
-              <View style={styles.adulterationBox}>
-                <Text style={styles.adulterationTitle}>🔬 Home Adulteration Detection Test:</Text>
-                <Text style={styles.adulterationDesc}>{photoResult.adulterationTest}</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Healthier Alternatives */}
-          <View style={styles.sectionBody}>
-            <Text style={styles.subHeading}>🥗 Healthier Alternative Recommendations</Text>
-            <View style={styles.altList}>
-              {photoResult.healthierAlternatives.map((alt, idx) => (
-                <View key={idx} style={styles.altCardFull}>
-                  <Text style={styles.altEmoji}>{alt.icon}</Text>
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.altTitleRow}>
-                      <Text style={styles.altNameText}>{alt.name}</Text>
-                      <View style={styles.altCategoryBadge}>
-                        <Text style={styles.altCategoryText}>{alt.category}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.altBenefitText}>✓ {alt.benefit}</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-
           {/* Action Bar */}
           <View style={{ gap: 12, marginTop: 24 }}>
-            <Button
-              title={saved ? '✅ Saved in My Products' : saving ? 'Saving…' : '📦 Save to My Products'}
-              onPress={handleSaveProduct}
-              loading={saving}
-              disabled={saved || saving}
-              fullWidth
-              size="lg"
-            />
             <Button
               title="📝 Report Food Safety / Hygiene Issue"
               variant="outline"
@@ -869,7 +652,6 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
                 setMode('photo');
                 setPhotoUri(null);
                 setPhotoResult(null);
-                setSaved(false);
               }}
               fullWidth
             />
@@ -977,18 +759,6 @@ const styles = StyleSheet.create({
   },
   foodOnlyIcon: { fontSize: 24 },
   foodOnlyText: { flex: 1, fontSize: 12, color: '#1E40AF', lineHeight: 17 },
-  sampleBox: { width: '100%', marginTop: 20 },
-  sampleHeader: { fontSize: 13, fontWeight: '700', color: '#475569', marginBottom: 8 },
-  sampleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  sampleChip: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  sampleChipText: { fontSize: 12, fontWeight: '600', color: '#334155' },
   photoHeaderCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,

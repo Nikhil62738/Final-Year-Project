@@ -349,6 +349,9 @@ export async function voteComplaint(req, res) {
     }
 
     const userIdStr = req.user._id.toString();
+    if (complaint.userId && complaint.userId.toString() === userIdStr) {
+      return res.status(403).json({ message: "You cannot vote on your own complaint" });
+    }
     const existingIndex = complaint.voters.findIndex((v) => v.toString() === userIdStr);
 
     if (existingIndex > -1) {

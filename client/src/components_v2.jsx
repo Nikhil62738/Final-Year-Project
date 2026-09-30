@@ -470,14 +470,6 @@ export function FoodScannerView({ navigate }) {
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const popularBarcodes = [
-    { label: "Parle-G Glucose Biscuits", code: "8901058852378" },
-    { label: "Amul Pasteurised Butter", code: "8901058852385" },
-    { label: "Maggi 2-Min Masala Noodles", code: "8901058852392" },
-    { label: "Lay's Classic Potato Chips", code: "8901058852415" },
-    { label: "Tata Iodized Salt", code: "8901058852422" },
-    { label: "Tropicana 100% Orange Juice", code: "8901058852446" }
-  ];
 
   const handleScan = async (codeToUse) => {
     const code = codeToUse || barcodeInput;
@@ -505,11 +497,7 @@ export function FoodScannerView({ navigate }) {
     }
   };
 
-  const simulateNonFoodScan = () => {
-    handleScan("1234567890");
-  };
-
-  return (
+return (
     <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "1.5rem" }}>
       <div style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", color: "white", padding: "2rem", borderRadius: "16px", marginBottom: "2rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
@@ -517,7 +505,7 @@ export function FoodScannerView({ navigate }) {
           <h1 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 800 }}>FDA Food Scanner & Barcode Verifier</h1>
         </div>
         <p style={{ margin: 0, color: "#a7f3d0", fontSize: "0.95rem" }}>
-          Strictly limited to food products. Verify FSSAI registration, Nutri-Score, ingredients, and allergen safety.
+          Look up available package and nutrition data by barcode, or use the app to identify likely food from a photo.
         </p>
       </div>
 
@@ -546,30 +534,8 @@ export function FoodScannerView({ navigate }) {
             </div>
           </div>
 
-          <div style={{ margin: "1.5rem 0", textAlign: "center" }}>
-            <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", marginBottom: "8px" }}>Select Verified Food Item:</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-              {popularBarcodes.map((item) => (
-                <button
-                  key={item.code}
-                  onClick={() => { setBarcodeInput(item.code); handleScan(item.code); }}
-                  style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px", borderRadius: "6px", fontSize: "0.78rem", cursor: "pointer", fontWeight: 700, color: "#334155" }}
-                >
-                  🍪 {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          <div style={{ paddingTop: "1rem", borderTop: "1px solid #e2e8f0" }}>
-            <button
-              onClick={simulateNonFoodScan}
-              style={{ width: "100%", background: "#fef2f2", color: "#dc2626", border: "1px dashed #fca5a5", padding: "10px", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer" }}
-            >
-              🚫 Test Non-Food Item Protection (E.g. Electronics / Apparel)
-            </button>
-          </div>
-        </div>
+</div>
 
         {/* Scanner Results Display */}
         <div>

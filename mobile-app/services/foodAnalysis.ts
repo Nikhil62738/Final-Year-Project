@@ -1,7 +1,7 @@
 // Food verification, health assessment, benchmark nutrition, dynamic alternative generation, and photo food recognition
 
 export interface HealthAssessment {
-  healthLevel: 'healthy' | 'moderate' | 'unhealthy';
+  healthLevel: 'healthy' | 'moderate' | 'unhealthy' | 'unknown';
   healthScoreText: string;
   nutriscoreGrade: string;
   novaGroup: number;
@@ -11,14 +11,15 @@ export interface HealthAssessment {
   allergens: string[];
   additives: string[];
   nutritionSummary: {
-    energyKcal: number;
-    proteinG: number;
-    carbsG: number;
-    sugarG: number;
-    fatG: number;
-    satFatG: number;
-    saltG: number;
-    fiberG: number;
+    energyKcal: number | null;
+    proteinG: number | null;
+    carbsG: number | null;
+    sugarG: number | null;
+    fatG: number | null;
+    satFatG: number | null;
+    saltG: number | null;
+    fiberG: number | null;
+    sodiumMg?: number | null;
   };
   healthierAlternatives: AlternativeFood[];
 }
@@ -550,178 +551,21 @@ export function generateHealthierAlternatives(
   ];
 }
 
-// 4. Photo Recognition & Food Analysis for Unbranded / No-Barcode items
-export function analyzeFoodPhoto(dishQuery: string): PhotoFoodResult {
-  const q = dishQuery.toLowerCase().trim();
-
-  if (q.includes('badam') || q.includes('almond') || q.includes('nut') || q.includes('dry fruit')) {
-    return {
-      dishName: 'Raw / Dried Almonds (Badam)',
-      category: 'Dry Fruits & Nuts',
-      isFood: true,
-      healthLevel: 'healthy',
-      estimatedCalories: 579,
-      protein: '21.2g',
-      carbs: '21.6g',
-      fat: '49.9g',
-      fssaiSafetyTips: [
-        'Store in a cool, airtight container to prevent lipid oxidation and mold formation.',
-        'Check for natural sweet aroma; discard if almonds smell rancid or bitter.',
-      ],
-      adulterationTest: 'Inspect for artificial dye polishing or sulphur fumigation; pure badam has uniform natural matte skin.',
-      warnings: ['Consume in balanced portion (20-30g daily) due to high nutrient & energy density.'],
-      positives: [
-        'Rich in Vitamin E and magnesium',
-        'High natural plant protein and dietary fiber',
-        'Heart-healthy monounsaturated fats',
-      ],
-      healthierAlternatives: [],
-    };
-  }
-
-  if (q.includes('samosa') || q.includes('kachori') || q.includes('pakora') || q.includes('bhajiya') || q.includes('vada pav')) {
-    return {
-      dishName: 'Deep-Fried Street Snack (e.g. Samosa / Pakora)',
-      category: 'Street Food / Fried Snack',
-      isFood: true,
-      healthLevel: 'unhealthy',
-      estimatedCalories: 280,
-      protein: '4.5g',
-      carbs: '32.0g',
-      fat: '16.5g',
-      fssaiSafetyTips: [
-        'Check if the cooking oil is repeatedly heated or dark black in color (Total Polar Compounds > 25% is unsafe under FSSAI regulations).',
-        'Ensure street vendors store snacks in covered glass cases to prevent dust and fly contamination.',
-        'Avoid snacks served on printed newspaper as ink contains toxic heavy metals and carcinogenic solvents.',
-      ],
-      adulterationTest: 'Avoid consuming if oil smells rancid or has an acrid burning aftertaste.',
-      warnings: [
-        'High Trans Fats & Saturated Fats from deep frying',
-        'Refined Maida flour base causes rapid blood glucose spike',
-        'Risk of re-used burnt cooking oil',
-      ],
-      positives: ['Freshly cooked hot food reduces live microbial bacterial load.'],
-      healthierAlternatives: [
-        { name: 'Baked Whole Wheat Vegetable Samosa', icon: '🥟', category: 'Baked', benefit: '70% less oil absorption with high vegetable fiber' },
-        { name: 'Air-Fried Sweet Potato / Chana Tikki', icon: '🍠', category: 'Air Fried', benefit: 'Complex carbohydrates with zero repeated oil exposure' },
-        { name: 'Steamed Moong Dal Dhokla', icon: '🥮', category: 'Steamed', benefit: 'Fermented easy-to-digest low fat protein' },
-      ],
-    };
-  }
-
-  if (q.includes('milk') || q.includes('dairy') || q.includes('doodh')) {
-    return {
-      dishName: 'Unpackaged / Fresh Milk',
-      category: 'Fresh Dairy',
-      isFood: true,
-      healthLevel: 'healthy',
-      estimatedCalories: 62,
-      protein: '3.2g',
-      carbs: '4.7g',
-      fat: '3.5g',
-      fssaiSafetyTips: [
-        'Always boil raw unpasteurized milk to at least 72°C for 15 seconds to destroy Salmonella and E. coli pathogens.',
-        'Store below 4°C in a clean sterilized container.',
-      ],
-      adulterationTest: 'Put a drop of milk on a slanted polished surface. Pure milk leaves a white trail behind. Adulterated milk with water flows immediately without leaving a mark.',
-      warnings: ['Raw unboiled loose milk carries risk of bacterial zoonotic contamination.'],
-      positives: ['Natural calcium, phosphorus and bioavailable whey & casein protein.'],
-      healthierAlternatives: [],
-    };
-  }
-
-  if (q.includes('paneer') || q.includes('cottage cheese') || q.includes('cheese')) {
-    return {
-      dishName: 'Fresh Cottage Cheese (Paneer)',
-      category: 'Fresh Dairy',
-      isFood: true,
-      healthLevel: 'healthy',
-      estimatedCalories: 265,
-      protein: '18.3g',
-      carbs: '1.2g',
-      fat: '20.8g',
-      fssaiSafetyTips: [
-        'Ensure paneer is stored submerged in cold clean potable water or refrigerated below 5°C.',
-        'Watch out for synthetic analogue paneer made from palm oil and starch.',
-      ],
-      adulterationTest: 'Boil a small piece in water, cool and add 2-3 drops of Iodine solution. If it turns blue, it contains adulterated starch/flour.',
-      warnings: ['Analogue paneer may substitute milk fat with industrial palm oil.'],
-      positives: ['Excellent vegetarian source of complete protein and calcium.'],
-      healthierAlternatives: [],
-    };
-  }
-
-  if (q.includes('sweet') || q.includes('mithai') || q.includes('gulab jamun') || q.includes('jalebi') || q.includes('ladoo') || q.includes('barfi')) {
-    return {
-      dishName: 'Traditional Indian Mithai / Sweet',
-      category: 'Traditional Sweets / Dessert',
-      isFood: true,
-      healthLevel: 'unhealthy',
-      estimatedCalories: 380,
-      protein: '4.0g',
-      carbs: '56.0g',
-      fat: '16.0g',
-      fssaiSafetyTips: [
-        'Check for FSSAI "Best Before Date" display on sweet trays at the confectionery shop.',
-        'Beware of bright non-permitted chemical colorants (e.g. Metanil Yellow, Rhodamine B).',
-        'Verify that Silver Foil (Vark) is FSSAI food-grade (pure silver) and not adulterated with toxic aluminium.',
-      ],
-      adulterationTest: 'Rub silver foil on hands; pure silver crumbles into fine powder, whereas aluminium turns into gray greasy residue.',
-      warnings: [
-        'Very high simple sugars & saturated fat (causes immediate insulin surge)',
-        'Mawa/Khoya used in off-season sweets often has starch or detergent adulteration',
-      ],
-      positives: ['Traditional festive treat — best enjoyed on special occasions in moderation.'],
-      healthierAlternatives: [
-        { name: 'Fresh Anjeer & Dates Dry Fruit Burfi', icon: '🌰', category: 'No Added Sugar', benefit: 'Sweetened only with whole dates and figs' },
-        { name: 'Roasted Sesame (Til) & Jaggery Laddoo', icon: '🍯', category: 'Traditional', benefit: 'Rich in organic iron, zinc and healthy sesame lignans' },
-        { name: 'Fresh Fruit Custard with Chia Seeds', icon: '🍓', category: 'Fruit Dessert', benefit: 'High dietary fiber and vitamins with 60% fewer calories' },
-      ],
-    };
-  }
-
-  if (q.includes('apple') || q.includes('banana') || q.includes('fruit') || q.includes('mango') || q.includes('orange') || q.includes('salad') || q.includes('vegetable')) {
-    return {
-      dishName: 'Fresh Whole Fruit / Vegetable Produce',
-      category: 'Fresh Produce',
-      isFood: true,
-      healthLevel: 'healthy',
-      estimatedCalories: 75,
-      protein: '1.0g',
-      carbs: '18.0g',
-      fat: '0.3g',
-      fssaiSafetyTips: [
-        'Wash thoroughly under running potable water for at least 30 seconds to remove surface pesticide residues and wax.',
-        'Avoid fruits artificially ripened with hazardous Calcium Carbide gas (banned under FSSAI Act).',
-      ],
-      adulterationTest: 'Artificially ripened fruits with carbide usually have uniform bright yellow skin but sour, tasteless pale pulp inside.',
-      warnings: ['Always peel or wash thoroughly to eliminate surface agrochemical residues.'],
-      positives: [
-        'Packed with natural antioxidants, flavonoids, and Vitamin C',
-        'Soluble dietary fiber promotes gut health and steady energy release',
-      ],
-      healthierAlternatives: [],
-    };
-  }
-
-  // Generic food photo fallback
+// Photo recognition is performed by the server image model. Never infer an
+// identity or nutritional profile from text entered by the user alone.
+export function analyzeFoodPhoto(_dishQuery: string): PhotoFoodResult {
   return {
-    dishName: dishQuery ? `Scanned Food Item: ${dishQuery}` : 'Fresh / Prepared Food Item',
-    category: 'General Food Item',
-    isFood: true,
-    healthLevel: 'healthy',
-    estimatedCalories: 210,
-    protein: '6.0g',
-    carbs: '28.0g',
-    fat: '7.5g',
-    fssaiSafetyTips: [
-      'Check for freshness, natural aroma, and absence of mold or off-odor.',
-      'Ensure proper food grade packaging and storage below room temperature.',
-      'Always verify that unbranded food stalls display their 14-digit FSSAI Registration number.',
-    ],
-    adulterationTest: 'Inspect for artificial synthetic gloss, unnatural chemical smells, or dye bleed in water.',
-    warnings: ['Ensure adequate hygiene standards during storage and preparation.'],
-    positives: ['Whole food source without industrial high-fructose corn syrup.'],
+    dishName: 'Photo recognition required',
+    category: 'No image analyzed',
+    isFood: false,
+    healthLevel: 'moderate',
+    estimatedCalories: 0,
+    protein: 'Unavailable',
+    carbs: 'Unavailable',
+    fat: 'Unavailable',
+    fssaiSafetyTips: ['Upload a photo to identify a likely food label.'],
+    warnings: [],
+    positives: [],
     healthierAlternatives: [],
   };
 }

@@ -2688,12 +2688,18 @@ function Dashboard({ officer, setPage, onLogout }) {
     setSelected(await api(`/api/complaints/${id}`));
   }
 
-  async function submitUpdate(event, proofFiles = []) {
+  async function submitUpdate(event, proofFiles = [], inspectionLocation = null, workflowActionOverride = "") {
     event.preventDefault();
     try {
       const formData = new FormData();
       Object.entries(update).forEach(([key, val]) => formData.append(key, val));
       proofFiles.forEach((file) => formData.append("proofMedia", file));
+      if (workflowActionOverride) formData.set("workflowAction", workflowActionOverride);
+      if (inspectionLocation) {
+        formData.append("inspectionLat", String(inspectionLocation.latitude));
+        formData.append("inspectionLng", String(inspectionLocation.longitude));
+        formData.append("inspectionAccuracyMeters", String(inspectionLocation.accuracyMeters));
+      }
 
       const data = await api(`/api/complaints/${selected._id}/status`, {
         method: "PATCH",
@@ -4243,6 +4249,43 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
 
   const isReadOnly = isFinalized || isSuperAdminAwaitingDistrict || (isDistrictAdmin && isDistrictAdminActionSubmitted);
 
+  function submitCaseUpdate(event, selectedFiles = []) {
+    event.preventDefault();
+    if (!isDistrictAdmin) return submitUpdate(event, selectedFiles);
+
+    if (!Number.isFinite(Number(selected.lat)) || !Number.isFinite(Number(selected.lng))) {
+      alert("This complaint has no saved location coordinates, so its 10 m inspection radius cannot be verified.");
+      return;
+    }
+    if (!selectedFiles.some((file) => file.type?.startsWith("image/"))) {
+      alert("Add at least one inspection photo before submitting this complaint for review.");
+      return;
+    }
+    if (!navigator.geolocation) {
+      alert("Location access is unavailable in this browser. Enable GPS/location services and try again.");
+      return;
+    }
+
+    event.persist?.();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (position.coords.accuracy > 10) {
+          alert(`Current GPS accuracy is ${Math.round(position.coords.accuracy)} m. Move to an open area and retry; accuracy must be 10 m or better.`);
+          return;
+        }
+        submitUpdate(event, selectedFiles, {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracyMeters: position.coords.accuracy
+        }, "submit_to_super_admin");
+      },
+      (error) => alert(error.code === 1
+        ? "Allow location access to verify that you are within 10 m of the complaint site."
+        : "Could not get your current location. Move to the complaint site and try again."),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
+    );
+  }
+
   return (
     <article className="case-detail">
       <div className="case-detail-head">
@@ -4349,7 +4392,7 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
             </div>
           </div>
 
-          <form onSubmit={(e) => submitUpdate(e, proofFiles)}>
+          <form onSubmit={(e) => submitCaseUpdate(e, proofFiles)}>
             <div style={{ marginBottom: "14px" }}>
               <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "#1e293b", marginBottom: "6px" }}>
                 SUPER ADMIN OFFICIAL NOTE (Required)
@@ -4439,7 +4482,7 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
         </div>
       ) : (
         /* REQUIREMENT 3: Super Admin has write access when no District Admin exists, and District Admin has write access to take action */
-        <form className="update-form" onSubmit={(e) => submitUpdate(e, proofFiles)}>
+        <form className="update-form" onSubmit={(e) => submitCaseUpdate(e, proofFiles)}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "1rem 0 0.5rem 0" }}>
             <h4 style={{ margin: 0, color: "#0f172a" }}>
               {isSuperAdminDirectAction ? "🏛️ Super Admin Direct Action (No District Admin in District)" : "👮 District Admin Action Log"}
@@ -4450,7 +4493,7 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
           </div>
 
           <div className="field-row">
-            <select value={update.status} onChange={(e) => setUpdate({ ...update, status: e.target.value })}>{statuses.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+            <select value={update.status} onChange={(e) => setUpdate({ ...update, status: e.target.value })}>{(isDistrictAdmin ? statuses.filter(([value]) => !["resolved", "closed"].includes(value)) : statuses).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
             <select value={update.actionType} onChange={(e) => setUpdate({ ...update, actionType: e.target.value })}>{actionTypes.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
           </div>
           <textarea required placeholder="Internal action note (Details of inspection, sample analysis, or penalty)" value={update.note} onChange={(e) => setUpdate({ ...update, note: e.target.value })} />
@@ -4460,10 +4503,12 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
             <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#334155", display: "block", marginBottom: "6px" }}>
               📷 UPLOAD RESOLUTION PROOF (PHOTOS / INSPECTION REPORTS)
             </label>
+            {isDistrictAdmin && <p style={{ margin: "0 0 8px", color: "#475569", fontSize: "0.8rem" }}>At least one inspection photo and current location within 10 m of the reported site are required. Allow location access when you submit.</p>}
             <input
               type="file"
               multiple
               accept="image/*,video/mp4"
+              capture={isDistrictAdmin ? "environment" : undefined}
               onChange={(e) => setProofFiles([...e.target.files].slice(0, 5))}
               style={{ fontSize: "0.85rem" }}
             />

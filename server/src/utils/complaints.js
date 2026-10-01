@@ -70,7 +70,14 @@ export function publicComplaint(complaint) {
     rating: complaint.rating?.stars ? complaint.rating : null,
     upvotes: complaint.upvotes || 0,
     voters: complaint.voters || [],
-    resolutionProof: complaint.resolutionProof || [],
+    resolutionProof: (complaint.resolutionProof || []).map((proof) => ({
+      filename: proof.filename,
+      originalName: proof.originalName,
+      mimetype: proof.mimetype,
+      size: proof.size,
+      url: proof.url,
+      uploadedAt: proof.uploadedAt
+    })),
     pendingDistrictUpdate: complaint.pendingDistrictUpdate || false,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt,

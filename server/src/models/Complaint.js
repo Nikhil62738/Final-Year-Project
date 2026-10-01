@@ -7,6 +7,13 @@ const evidenceSchema = new mongoose.Schema(
     mimetype: String,
     size: Number,
     url: String,
+    inspectionLocation: {
+      latitude: Number,
+      longitude: Number,
+      accuracyMeters: Number,
+      distanceMeters: Number,
+      verifiedAt: Date
+    },
     uploadedAt: { type: Date, default: Date.now }
   },
   { _id: false }

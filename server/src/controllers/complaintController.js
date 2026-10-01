@@ -1,6 +1,6 @@
 import Complaint from "../models/Complaint.js";
 import Officer from "../models/Officer.js";
-import { findDuplicateMatches, generateTrackingCode, mapEvidence, publicComplaint } from "../utils/complaints.js";
+import { findDuplicateMatches, generateTrackingCode, haversineMeters, mapEvidence, publicComplaint } from "../utils/complaints.js";
 import { sendEmail } from "../utils/email.js";
 import { sendSMS } from "../utils/sms.js";
 
@@ -207,7 +207,59 @@ export async function updateComplaintStatus(req, res) {
 
   let { status, actionType, note, publicNote, workflowAction } = req.body;
 
-  if (req.files && req.files.length) {
+  const isSuperAdmin = req.officer.role === "super_admin";
+  if (!isSuperAdmin) {
+    if (!complaint.assignedOfficerId || complaint.assignedOfficerId.toString() !== req.officer.id.toString()) {
+      return res.status(403).json({ message: "Only the district admin assigned to this complaint can submit its inspection." });
+    }
+    if (workflowAction !== "submit_to_super_admin") {
+      return res.status(403).json({ message: "District admins must submit inspection evidence for Super Admin review." });
+    }
+    if (["resolved", "closed"].includes(status)) {
+      return res.status(403).json({ message: "Only the Super Admin can finalize a complaint as resolved." });
+    }
+    const imageFiles = (req.files || []).filter((file) => file.mimetype?.startsWith("image/"));
+    if (!imageFiles.length) {
+      return res.status(400).json({ message: "Upload at least one inspection photo taken at the complaint location." });
+    }
+
+    const inspectionLat = Number(req.body.inspectionLat);
+    const inspectionLng = Number(req.body.inspectionLng);
+    const accuracyMeters = Number(req.body.inspectionAccuracyMeters);
+    if (!Number.isFinite(inspectionLat) || !Number.isFinite(inspectionLng) || !Number.isFinite(complaint.lat) || !Number.isFinite(complaint.lng)) {
+      return res.status(400).json({ message: "The complaint and inspection must both have GPS coordinates to verify the 10 m radius." });
+    }
+    if (!Number.isFinite(accuracyMeters) || accuracyMeters > 10) {
+      return res.status(403).json({ message: "GPS accuracy must be 10 m or better. Improve the location signal and try again." });
+    }
+    const distanceMeters = haversineMeters(complaint.lat, complaint.lng, inspectionLat, inspectionLng);
+    if (distanceMeters === null || distanceMeters > 10) {
+      return res.status(403).json({ message: `Inspection location is ${distanceMeters === null ? "unknown" : `${Math.round(distanceMeters)} m`} from the complaint. The required radius is 10 m.` });
+    }
+
+    const uploadedProof = mapEvidence(req.files, req);
+    complaint.resolutionProof.push(...uploadedProof.map((proof) => ({
+      ...proof,
+      inspectionLocation: {
+        latitude: inspectionLat,
+        longitude: inspectionLng,
+        accuracyMeters,
+        distanceMeters,
+        verifiedAt: new Date()
+      }
+    })));
+  } else if (workflowAction === "approve_resolve" && complaint.assignedOfficerId) {
+    const hasVerifiedOnSitePhoto = complaint.resolutionProof.some((proof) =>
+      proof.mimetype?.startsWith("image/") &&
+      Number.isFinite(proof.inspectionLocation?.distanceMeters) &&
+      proof.inspectionLocation.distanceMeters <= 10
+    );
+    if (!hasVerifiedOnSitePhoto) {
+      return res.status(409).json({ message: "This assigned complaint needs a district-admin inspection photo verified within 10 m before approval." });
+    }
+  }
+
+  if (isSuperAdmin && req.files && req.files.length) {
     complaint.resolutionProof.push(...mapEvidence(req.files, req));
   }
 

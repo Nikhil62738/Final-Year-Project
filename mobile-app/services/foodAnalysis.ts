@@ -29,6 +29,11 @@ export interface AlternativeFood {
   icon: string;
   category: string;
   benefit: string;
+  brand?: string;
+  imageUrl?: string;
+  productUrl?: string;
+  nutriscoreGrade?: string | null;
+  nutrition?: { sugar?: string | null; saturatedFat?: string | null; sodium?: string | null };
 }
 
 export interface PhotoFoodResult {

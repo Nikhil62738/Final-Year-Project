@@ -83,8 +83,104 @@ const CAMERA_TRANSLATIONS = {
   }
 };
 
+const FOOD_REPORT_TRANSLATIONS = {
+  hi: {
+    "Food details": "खाद्य विवरण", "Key Nutrition Highlights (per 100 g)": "मुख्य पोषण जानकारी (प्रति 100 ग्राम)",
+    "Nutrition information is not available for this item.": "इस उत्पाद के लिए पोषण जानकारी उपलब्ध नहीं है।", "Positive Nutritional Factors": "सकारात्मक पोषण तत्व",
+    "No positive nutrition highlights could be confirmed from the available data.": "उपलब्ध जानकारी से सकारात्मक पोषण तत्वों की पुष्टि नहीं हो सकी।",
+    "Ingredients, allergens and additives": "सामग्री, एलर्जी कारक और योजक", "Ingredients:": "सामग्री:", "Not available in the product record.": "उत्पाद रिकॉर्ड में उपलब्ध नहीं है।",
+    "Allergens:": "एलर्जी कारक:", "No allergen data listed; check the package label.": "एलर्जी की जानकारी उपलब्ध नहीं है; पैकेट का लेबल देखें।", "Additives:": "खाद्य योजक:", "No additives listed in the available record.": "उपलब्ध रिकॉर्ड में कोई योजक सूचीबद्ध नहीं है।",
+    "Adulteration assessment:": "मिलावट का आकलन:", "Not assessed. A barcode or photo cannot confirm adulteration; laboratory testing is required.": "आकलन नहीं किया गया। बारकोड या फोटो से मिलावट की पुष्टि नहीं हो सकती; प्रयोगशाला जांच आवश्यक है।",
+    "Overview": "अवलोकन", "Nutrition": "पोषण", "Alerts": "चेतावनी", "Alternatives": "विकल्प", "Detailed Nutritional Profile (per 100 g)": "विस्तृत पोषण विवरण (प्रति 100 ग्राम)",
+    "Additional IFCT 2017 nutrients": "IFCT 2017 के अतिरिक्त पोषक तत्व", "Health Flags & Food Safety Alerts": "स्वास्थ्य संकेत और खाद्य सुरक्षा चेतावनी",
+    "No configured sugar, sodium, or saturated-fat alerts were triggered by the available nutrition data. This is not a product safety or adulteration check.": "उपलब्ध पोषण जानकारी में चीनी, सोडियम या संतृप्त वसा की कोई निर्धारित चेतावनी नहीं मिली। यह उत्पाद सुरक्षा या मिलावट की जांच नहीं है।",
+    "Adulteration is not tested by this scan.": "इस स्कैन में मिलावट की जांच नहीं होती।", "Recommended Healthier Food Substitutes": "बेहतर स्वास्थ्यकर उत्पाद विकल्प",
+    "Compare these listed products with the scanned product label. Product data may be incomplete or outdated.": "इन सूचीबद्ध उत्पादों की तुलना स्कैन किए गए उत्पाद के लेबल से करें। उत्पाद जानकारी अधूरी या पुरानी हो सकती है।",
+    "No comparable product with a label image and better available nutrition data was found.": "लेबल की तस्वीर और बेहतर उपलब्ध पोषण जानकारी वाला कोई मिलता-जुलता उत्पाद नहीं मिला।",
+    "Brand:": "ब्रांड:", "Nutri-Score": "न्यूट्री-स्कोर", "High health concern": "स्वास्थ्य संबंधी अधिक चिंता — नियमित सेवन सीमित करें",
+    "Review the nutrition alerts below": "नीचे दी गई पोषण चेतावनियां देखें", "No configured nutrition alerts": "उपलब्ध जानकारी में निर्धारित पोषण चेतावनी नहीं मिली",
+    "High sodium / salt": "अधिक सोडियम / नमक", "High saturated fat": "अधिक संतृप्त वसा", "High sugars": "अधिक शर्करा",
+    "High salt may affect blood pressure and kidney health.": "अधिक नमक रक्तचाप और किडनी के स्वास्थ्य को प्रभावित कर सकता है।", "High saturated fat may raise LDL cholesterol.": "अधिक संतृप्त वसा LDL कोलेस्ट्रॉल बढ़ा सकती है।", "Check the label for added sugars.": "अतिरिक्त शर्करा के लिए लेबल देखें।",
+    "Energy": "ऊर्जा", "Proteins": "प्रोटीन", "Carbohydrates": "कार्बोहाइड्रेट", "Sugars": "शर्करा", "Total Fats": "कुल वसा", "Saturated Fat": "संतृप्त वसा", "Dietary Fiber": "आहारीय फाइबर", "Sodium / Salt": "सोडियम / नमक", "Salt": "नमक", "Calories": "कैलोरी", "Protein": "प्रोटीन", "Sugar": "शर्करा", "Fat": "वसा",
+    "Barcode record has no nutrition values. Showing a generic raw-food reference from the IFCT 2017 database.": "बारकोड रिकॉर्ड में पोषण मान नहीं हैं। IFCT 2017 डेटाबेस का सामान्य कच्चे खाद्य पदार्थ का संदर्भ दिखाया गया है।",
+    "Open Food Facts product data; values are per 100 g when available.": "Open Food Facts उत्पाद जानकारी; उपलब्ध मान प्रति 100 ग्राम हैं।",
+    "Product details come from the community-maintained Open Food Facts database and may be incomplete or outdated. Check the package label.": "उत्पाद की जानकारी Open Food Facts समुदाय डेटाबेस से है और अधूरी या पुरानी हो सकती है। पैकेट का लेबल देखें।",
+    "Photo recognition identifies the food only; it cannot verify ingredients, allergens, nutrition, freshness, or safety.": "फोटो पहचान केवल खाद्य पदार्थ बताती है; सामग्री, एलर्जी, पोषण, ताजगी या सुरक्षा की पुष्टि नहीं करती।",
+    "Save to My Products": "मेरे उत्पादों में सहेजें", "Scan Another Food Item": "दूसरा खाद्य पदार्थ स्कैन करें", "Food report sections": "खाद्य रिपोर्ट अनुभाग", "IFCT food code:": "IFCT खाद्य कोड:", "Values are per 100 g.": "मान प्रति 100 ग्राम हैं।", "No nutrition values were found.": "पोषण मान नहीं मिले।",
+    "Nutrition values are AI estimates and may differ from the label.": "\u092a\u094b\u0937\u0923 \u092e\u093e\u0928 AI \u0915\u0947 \u0905\u0928\u0941\u092e\u093e\u0928 \u0939\u0948\u0902 \u0914\u0930 \u0932\u0947\u092c\u0932 \u0938\u0947 \u0905\u0932\u0917 \u0939\u094b \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964",
+    "IFCT 2017 nutrition data per 100 g; generic raw-food reference, not packaged-product values.": "IFCT 2017 \u0915\u0940 \u092a\u094d\u0930\u0924\u093f 100 \u0917\u094d\u0930\u093e\u092e \u092a\u094b\u0937\u0923 \u091c\u093e\u0928\u0915\u093e\u0930\u0940; \u092f\u0939 \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u091a\u094d\u091a\u0947 \u0916\u093e\u0926\u094d\u092f \u092a\u0926\u093e\u0930\u094d\u0925 \u0915\u093e \u0938\u0902\u0926\u0930\u094d\u092d \u0939\u0948, \u092a\u0948\u0915\u0947\u091c\u094d\u0921 \u0909\u0924\u094d\u092a\u093e\u0926 \u0915\u093e \u092e\u093e\u0928 \u0928\u0939\u0940\u0902\u0964",
+    "AI nutrition estimates; values may differ from the product label.": "AI \u092a\u094b\u0937\u0923 \u0905\u0928\u0941\u092e\u093e\u0928; \u092e\u093e\u0928 \u0909\u0924\u094d\u092a\u093e\u0926 \u0915\u0947 \u0932\u0947\u092c\u0932 \u0938\u0947 \u0905\u0932\u0917 \u0939\u094b \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964",
+    "Nutrition data may be incomplete. Check the product label.": "\u092a\u094b\u0937\u0923 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0905\u0927\u0942\u0930\u0940 \u0939\u094b \u0938\u0915\u0924\u0940 \u0939\u0948\u0964 \u0909\u0924\u094d\u092a\u093e\u0926 \u0915\u093e \u0932\u0947\u092c\u0932 \u0926\u0947\u0916\u0947\u0902\u0964",
+    "Good source of protein (at least 8 g per 100 g)": "\u092a\u094d\u0930\u094b\u091f\u0940\u0928 \u0915\u093e \u0905\u091a\u094d\u091b\u093e \u0938\u094d\u0930\u094b\u0924 (\u092a\u094d\u0930\u0924\u093f 100 \u0917\u094d\u0930\u093e\u092e \u092e\u0947\u0902 \u0915\u092e \u0938\u0947 \u0915\u092e 8 \u0917\u094d\u0930\u093e\u092e)",
+    "Good source of dietary fibre (at least 3 g per 100 g)": "\u0906\u0939\u093e\u0930\u0940\u092f \u092b\u093e\u0907\u092c\u0930 \u0915\u093e \u0905\u091a\u094d\u091b\u093e \u0938\u094d\u0930\u094b\u0924 (\u092a\u094d\u0930\u0924\u093f 100 \u0917\u094d\u0930\u093e\u092e \u092e\u0947\u0902 \u0915\u092e \u0938\u0947 \u0915\u092e 3 \u0917\u094d\u0930\u093e\u092e)",
+    "Nutrition estimates are AI-generated and may differ from the label.": "AI \u0926\u094d\u0935\u093e\u0930\u093e \u092a\u094b\u0937\u0923 \u0905\u0928\u0941\u092e\u093e\u0928 \u0926\u093f\u090f \u0917\u090f \u0939\u0948\u0902; \u092f\u0947 \u0932\u0947\u092c\u0932 \u0938\u0947 \u0905\u0932\u0917 \u0939\u094b \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964",
+    "High health concern":"\u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f \u0938\u0902\u092c\u0902\u0927\u0940 \u0905\u0927\u093f\u0915 \u091a\u093f\u0902\u0924\u093e \u2014 \u0928\u093f\u092f\u092e\u093f\u0924 \u0938\u0947\u0935\u0928 \u0938\u0940\u092e\u093f\u0924 \u0915\u0930\u0947\u0902",
+    "Review the nutrition alerts below":"\u0928\u0940\u091a\u0947 \u0926\u0940 \u0917\u0908 \u092a\u094b\u0937\u0923 \u091a\u0947\u0924\u093e\u0935\u0928\u093f\u092f\u093e\u0902 \u0926\u0947\u0916\u0947\u0902",
+    "No configured nutrition alerts":"\u0909\u092a\u0932\u092c\u094d\u0927 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u092e\u0947\u0902 \u0915\u094b\u0908 \u0928\u093f\u0930\u094d\u0927\u093e\u0930\u093f\u0924 \u092a\u094b\u0937\u0923 \u091a\u0947\u0924\u093e\u0935\u0928\u0940 \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940",
+    "High salt may affect blood pressure and kidney health.":"\u0905\u0927\u093f\u0915 \u0928\u092e\u0915 \u0930\u0915\u094d\u0924\u091a\u093e\u092a \u0914\u0930 \u0915\u093f\u0921\u0928\u0940 \u0915\u0947 \u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f \u0915\u094b \u092a\u094d\u0930\u092d\u093e\u0935\u093f\u0924 \u0915\u0930 \u0938\u0915\u0924\u093e \u0939\u0948\u0964",
+    "High saturated fat may raise LDL cholesterol.":"\u0905\u0927\u093f\u0915 \u0938\u0902\u0924\u0943\u092a\u094d\u0924 \u0935\u0938\u093e LDL \u0915\u094b\u0932\u0947\u0938\u094d\u091f\u094d\u0930\u0949\u0932 \u092c\u0922\u093c\u093e \u0938\u0915\u0924\u0940 \u0939\u0948\u0964",
+    "Check the label for added sugars.":"\u0905\u0924\u093f\u0930\u093f\u0915\u094d\u0924 \u0936\u0930\u094d\u0915\u0930\u093e \u0915\u0947 \u0932\u093f\u090f \u0932\u0947\u092c\u0932 \u0926\u0947\u0916\u0947\u0902",
+    "No comparable product with a label image and better available nutrition data was found.":"\u0932\u0947\u092c\u0932 \u0915\u0940 \u0924\u0938\u094d\u0935\u0940\u0930 \u0914\u0930 \u092c\u0947\u0939\u0924\u0930 \u0909\u092a\u0932\u092c\u094d\u0927 \u092a\u094b\u0937\u0923 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0935\u093e\u0932\u093e \u0915\u094b\u0908 \u092e\u093f\u0932\u0924\u093e-\u091c\u0941\u0932\u0924\u093e \u0909\u0924\u094d\u092a\u093e\u0926 \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u093e",
+    "Barcode record has no nutrition values. Showing a generic raw-food reference from the IFCT 2017 database.":"\u092c\u093e\u0930\u0915\u094b\u0921 \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u092e\u0947\u0902 \u092a\u094b\u0937\u0923 \u092e\u093e\u0928 \u0928\u0939\u0940\u0902 \u0939\u0948\u0902\u0964 IFCT 2017 \u0915\u093e \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u091a\u094d\u091a\u0947 \u0916\u093e\u0926\u094d\u092f \u092a\u0926\u093e\u0930\u094d\u0925 \u0915\u093e \u0938\u0902\u0926\u0930\u094d\u092d \u0926\u093f\u0916\u093e\u092f\u093e \u0917\u092f\u093e \u0939\u0948\u0964"
+  },
+  mr: {
+    "Food details": "अन्नपदार्थाची माहिती", "Key Nutrition Highlights (per 100 g)": "मुख्य पोषण माहिती (प्रति 100 ग्रॅम)",
+    "Nutrition information is not available for this item.": "या उत्पादनासाठी पोषण माहिती उपलब्ध नाही.", "Positive Nutritional Factors": "पोषणाचे सकारात्मक घटक",
+    "No positive nutrition highlights could be confirmed from the available data.": "उपलब्ध माहितीवरून पोषणाचे सकारात्मक घटक निश्चित करता आले नाहीत.",
+    "Ingredients, allergens and additives": "घटक, अॅलर्जीकारक आणि अॅडिटिव्ह्ज", "Ingredients:": "घटक:", "Not available in the product record.": "उत्पादनाच्या नोंदीत उपलब्ध नाही.",
+    "Allergens:": "अॅलर्जीकारक:", "No allergen data listed; check the package label.": "अॅलर्जीची माहिती नाही; पॅकेटवरील लेबल तपासा.", "Additives:": "अॅडिटिव्ह्ज:", "No additives listed in the available record.": "उपलब्ध नोंदीत अॅडिटिव्ह्ज दिलेले नाहीत.",
+    "Adulteration assessment:": "भेसळीचे मूल्यांकन:", "Not assessed. A barcode or photo cannot confirm adulteration; laboratory testing is required.": "मूल्यांकन केलेले नाही. बारकोड किंवा फोटोवरून भेसळ निश्चित होत नाही; प्रयोगशाळेतील चाचणी आवश्यक आहे.",
+    "Overview": "आढावा", "Nutrition": "पोषण", "Alerts": "सूचना", "Alternatives": "पर्याय", "Detailed Nutritional Profile (per 100 g)": "सविस्तर पोषण माहिती (प्रति 100 ग्रॅम)",
+    "Additional IFCT 2017 nutrients": "IFCT 2017 मधील अतिरिक्त पोषक घटक", "Health Flags & Food Safety Alerts": "आरोग्य संकेत आणि अन्न सुरक्षा सूचना",
+    "No configured sugar, sodium, or saturated-fat alerts were triggered by the available nutrition data. This is not a product safety or adulteration check.": "उपलब्ध पोषण माहितीनुसार साखर, सोडियम किंवा सॅच्युरेटेड फॅटची निर्धारित सूचना आढळली नाही. ही उत्पादन सुरक्षा किंवा भेसळ तपासणी नाही.",
+    "Adulteration is not tested by this scan.": "या स्कॅनमध्ये भेसळ तपासली जात नाही.", "Recommended Healthier Food Substitutes": "अधिक आरोग्यदायी उत्पादन पर्याय",
+    "Compare these listed products with the scanned product label. Product data may be incomplete or outdated.": "या उत्पादनांची स्कॅन केलेल्या उत्पादनाच्या लेबलशी तुलना करा. माहिती अपूर्ण किंवा जुनी असू शकते.",
+    "No comparable product with a label image and better available nutrition data was found.": "लेबलच्या फोटोसह आणि अधिक चांगली पोषण माहिती असलेले तुलनात्मक उत्पादन सापडले नाही.",
+    "Brand:": "ब्रँड:", "Nutri-Score": "न्यूट्री-स्कोअर", "High health concern": "आरोग्याची अधिक चिंता — वारंवार सेवन मर्यादित करा",
+    "Review the nutrition alerts below": "खालील पोषण सूचना तपासा", "No configured nutrition alerts": "उपलब्ध माहितीत निर्धारित पोषण सूचना नाही",
+    "High sodium / salt": "जास्त सोडियम / मीठ", "High saturated fat": "जास्त सॅच्युरेटेड फॅट", "High sugars": "जास्त साखर",
+    "High salt may affect blood pressure and kidney health.": "जास्त मीठ रक्तदाब आणि मूत्रपिंडाच्या आरोग्यावर परिणाम करू शकते.", "High saturated fat may raise LDL cholesterol.": "जास्त सॅच्युरेटेड फॅटमुळे LDL कोलेस्टेरॉल वाढू शकते.", "Check the label for added sugars.": "अतिरिक्त साखरेसाठी लेबल तपासा.",
+    "Energy": "ऊर्जा", "Proteins": "प्रथिने", "Carbohydrates": "कर्बोदके", "Sugars": "साखर", "Total Fats": "एकूण फॅट", "Saturated Fat": "सॅच्युरेटेड फॅट", "Dietary Fiber": "आहारातील फायबर", "Sodium / Salt": "सोडियम / मीठ", "Salt": "मीठ", "Calories": "कॅलरी", "Protein": "प्रथिने", "Sugar": "साखर", "Fat": "फॅट",
+    "Barcode record has no nutrition values. Showing a generic raw-food reference from the IFCT 2017 database.": "बारकोड नोंदीत पोषण मूल्ये नाहीत. IFCT 2017 डेटाबेसमधील सामान्य कच्च्या अन्नाचा संदर्भ दाखवला आहे.",
+    "Open Food Facts product data; values are per 100 g when available.": "Open Food Facts उत्पादन माहिती; उपलब्ध मूल्ये प्रति 100 ग्रॅम आहेत.",
+    "Product details come from the community-maintained Open Food Facts database and may be incomplete or outdated. Check the package label.": "उत्पादन माहिती Open Food Facts समुदाय डेटाबेसमधून आहे आणि अपूर्ण किंवा जुनी असू शकते. पॅकेटवरील लेबल तपासा.",
+    "Photo recognition identifies the food only; it cannot verify ingredients, allergens, nutrition, freshness, or safety.": "फोटोमधून फक्त अन्नपदार्थ ओळखला जातो; घटक, अॅलर्जी, पोषण, ताजेपणा किंवा सुरक्षितता निश्चित होत नाही.",
+    "Save to My Products": "माझ्या उत्पादनांमध्ये जतन करा", "Scan Another Food Item": "दुसरा खाद्यपदार्थ स्कॅन करा", "Food report sections": "अन्न अहवाल विभाग", "IFCT food code:": "IFCT अन्न कोड:", "Values are per 100 g.": "मूल्ये प्रति 100 ग्रॅम आहेत.", "No nutrition values were found.": "पोषण मूल्ये आढळली नाहीत.",
+    "Nutrition values are AI estimates and may differ from the label.": "\u092a\u094b\u0937\u0923 \u092e\u0942\u0932\u094d\u092f\u0947 AI \u091a\u0947 \u0905\u0902\u0926\u093e\u091c \u0906\u0939\u0947\u0924 \u0906\u0923\u093f \u0932\u0947\u092c\u0932\u092a\u0947\u0915\u094d\u0937\u093e \u0935\u0947\u0917\u0933\u0947 \u0905\u0938\u0942 \u0936\u0915\u0924\u093e\u0924.",
+    "IFCT 2017 nutrition data per 100 g; generic raw-food reference, not packaged-product values.": "IFCT 2017 \u092e\u0927\u0940\u0932 \u092a\u094d\u0930\u0924\u093f 100 \u0917\u094d\u0930\u0945\u092e \u092a\u094b\u0937\u0923 \u092e\u093e\u0939\u093f\u0924\u0940; \u0939\u093e \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u091a\u094d\u091a\u094d\u092f\u093e \u0905\u0928\u094d\u0928\u093e\u091a\u093e \u0938\u0902\u0926\u0930\u094d\u092d \u0906\u0939\u0947, \u092a\u0945\u0915\u0947\u091c\u094d\u0921 \u0909\u0924\u094d\u092a\u093e\u0926\u093e\u091a\u0947 \u092e\u0942\u0932\u094d\u092f \u0928\u093e\u0939\u0940.",
+    "AI nutrition estimates; values may differ from the product label.": "AI \u092a\u094b\u0937\u0923 \u0905\u0902\u0926\u093e\u091c; \u092e\u0942\u0932\u094d\u092f\u0947 \u0909\u0924\u094d\u092a\u093e\u0926\u093e\u091a\u094d\u092f\u093e \u0932\u0947\u092c\u0932\u092a\u0947\u0915\u094d\u0937\u093e \u0935\u0947\u0917\u0933\u0940 \u0905\u0938\u0942 \u0936\u0915\u0924\u093e\u0924.",
+    "Nutrition data may be incomplete. Check the product label.": "\u092a\u094b\u0937\u0923 \u092e\u093e\u0939\u093f\u0924\u0940 \u0905\u092a\u0942\u0930\u094d\u0923 \u0905\u0938\u0942 \u0936\u0915\u0924\u0947. \u0909\u0924\u094d\u092a\u093e\u0926\u093e\u091a\u0947 \u0932\u0947\u092c\u0932 \u0924\u092a\u093e\u0938\u093e.",
+    "Good source of protein (at least 8 g per 100 g)": "\u092a\u094d\u0930\u0925\u093f\u0928\u093e\u0902\u091a\u093e \u091a\u093e\u0902\u0917\u0932\u093e \u0938\u094d\u0930\u094b\u0924 (\u092a\u094d\u0930\u0924\u093f 100 \u0917\u094d\u0930\u0945\u092e \u0915\u092e\u0940\u0924 \u0915\u092e\u0940 8 \u0917\u094d\u0930\u0945\u092e)",
+    "Good source of dietary fibre (at least 3 g per 100 g)": "\u0906\u0939\u093e\u0930\u093e\u0924\u0940\u0932 \u092b\u093e\u092f\u092c\u0930\u091a\u093e \u091a\u093e\u0902\u0917\u0932\u093e \u0938\u094d\u0930\u094b\u0924 (\u092a\u094d\u0930\u0924\u093f 100 \u0917\u094d\u0930\u0945\u092e \u0915\u092e\u0940\u0924 \u0915\u092e\u0940 3 \u0917\u094d\u0930\u0945\u092e)",
+    "High health concern":"\u0906\u0930\u094b\u0917\u094d\u092f\u093e\u091a\u0940 \u0905\u0927\u093f\u0915 \u091a\u093f\u0902\u0924\u093e \u2014 \u0935\u093e\u0930\u0902\u0935\u093e\u0930 \u0938\u0947\u0935\u0928 \u092e\u0930\u094d\u092f\u093e\u0926\u093f\u0924 \u0915\u0930\u093e",
+    "Review the nutrition alerts below":"\u0916\u093e\u0932\u0940\u0932 \u092a\u094b\u0937\u0923 \u0938\u0942\u091a\u0928\u093e \u0924\u092a\u093e\u0938\u093e",
+    "No configured nutrition alerts":"\u0909\u092a\u0932\u092c\u094d\u0927 \u092e\u093e\u0939\u093f\u0924\u0940\u092e\u0927\u094d\u092f\u0947 \u0928\u093f\u0930\u094d\u0927\u093e\u0930\u093f\u0924 \u092a\u094b\u0937\u0923 \u0938\u0942\u091a\u0928\u093e \u0906\u0922\u0933\u0932\u0940 \u0928\u093e\u0939\u0940",
+    "High salt may affect blood pressure and kidney health.":"\u091c\u093e\u0938\u094d\u0924 \u092e\u0940\u0920 \u0930\u0915\u094d\u0924\u0926\u093e\u092c \u0906\u0923\u093f \u092e\u0942\u0924\u094d\u0930\u092a\u093f\u0902\u0921\u093e\u0902\u091a\u094d\u092f\u093e \u0906\u0930\u094b\u0917\u094d\u092f\u093e\u0935\u0930 \u092a\u0930\u093f\u0923\u093e\u092e \u0915\u0930\u0942 \u0936\u0915\u0924\u0947.",
+    "High saturated fat may raise LDL cholesterol.":"\u091c\u093e\u0938\u094d\u0924 \u0938\u0945\u091a\u094d\u092f\u0941\u0930\u0947\u091f\u0947\u0921 \u092b\u0945\u091f\u092e\u0941\u0933\u0947 LDL \u0915\u094b\u0932\u0947\u0938\u094d\u091f\u0947\u0930\u0949\u0932 \u0935\u093e\u0922\u0942 \u0936\u0915\u0924\u0924\u0947.",
+    "Check the label for added sugars.":"\u0905\u0924\u093f\u0930\u093f\u0915\u094d\u0924 \u0938\u093e\u0916\u0930\u0947\u0938\u093e\u0920\u0940 \u0932\u0947\u092c\u0932 \u0924\u092a\u093e\u0938\u093e.",
+    "No comparable product with a label image and better available nutrition data was found.":"\u0932\u0947\u092c\u0932\u091a\u093e \u092b\u094b\u091f\u094b \u0906\u0923\u093f \u0905\u0927\u093f\u0915 \u091a\u093e\u0902\u0917\u0932\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u092a\u094b\u0937\u0923 \u092e\u093e\u0939\u093f\u0924\u0940 \u0905\u0938\u0932\u0947\u0932\u0947 \u0924\u0941\u0932\u0928\u0947\u0938\u093e\u0920\u0940 \u0909\u0924\u094d\u092a\u093e\u0926 \u0938\u093e\u092a\u0921\u0932\u0947 \u0928\u093e\u0939\u0940",
+    "Barcode record has no nutrition values. Showing a generic raw-food reference from the IFCT 2017 database.":"\u092c\u093e\u0930\u0915\u094b\u0921 \u0928\u094b\u0902\u0926\u0940\u0924 \u092a\u094b\u0937\u0923 \u092e\u0942\u0932\u094d\u092f\u0947 \u0928\u093e\u0939\u0940\u0924. IFCT 2017 \u0921\u0947\u091f\u093e\u092c\u0947\u0938\u092e\u0927\u0940\u0932 \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u091a\u094d\u091a\u094d\u092f\u093e \u0905\u0928\u094d\u0928\u093e\u091a\u093e \u0938\u0902\u0926\u0930\u094d\u092d \u0926\u093e\u0916\u0935\u0932\u093e \u0906\u0939\u0947."
+  }
+};
+
+FOOD_REPORT_TRANSLATIONS.hi["Recommended Healthier Products"] = "\u092c\u0947\u0939\u0924\u0930 \u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f\u0915\u0930 \u0909\u0924\u094d\u092a\u093e\u0926";
+FOOD_REPORT_TRANSLATIONS.mr["Recommended Healthier Products"] = "\u0905\u0927\u093f\u0915 \u0906\u0930\u094b\u0917\u094d\u092f\u0926\u093e\u092f\u0940 \u0909\u0924\u094d\u092a\u093e\u0926\u0928\u0947";
+
+Object.assign(FOOD_REPORT_TRANSLATIONS.hi, {
+  "Water":"\u092a\u093e\u0928\u0940", "Ash":"\u0930\u093e\u0916", "Insoluble fibre":"\u0905\u0926\u094d\u0930\u093e\u0935\u094d\u092f \u092b\u093e\u0907\u092c\u0930", "Soluble fibre":"\u0926\u094d\u0930\u093e\u0935\u094d\u092f \u092b\u093e\u0907\u092c\u0930",
+  "Thiamin (B1)":"\u0925\u093e\u092f\u092e\u093f\u0928 (B1)", "Riboflavin (B2)":"\u0930\u093e\u0907\u092c\u094b\u092b\u094d\u0932\u0947\u0935\u093f\u0928 (B2)", "Niacin (B3)":"\u0928\u093e\u092f\u0938\u093f\u0928 (B3)", "Pantothenic acid (B5)":"\u092a\u0948\u0902\u091f\u094b\u0925\u0947\u0928\u093f\u0915 \u090f\u0938\u093f\u0921 (B5)",
+  "Vitamin B6":"\u0935\u093f\u091f\u093e\u092e\u093f\u0928 B6", "Folate":"\u092b\u094b\u0932\u0947\u091f", "Vitamin C":"\u0935\u093f\u091f\u093e\u092e\u093f\u0928 C", "Vitamin A":"\u0935\u093f\u091f\u093e\u092e\u093f\u0928 A", "Vitamin D":"\u0935\u093f\u091f\u093e\u092e\u093f\u0928 D", "Vitamin E":"\u0935\u093f\u091f\u093e\u092e\u093f\u0928 E", "Vitamin K1":"\u0935\u093f\u091f\u093e\u092e\u093f\u0928 K1",
+  "Calcium":"\u0915\u0948\u0932\u094d\u0936\u093f\u092f\u092e", "Iron":"\u0906\u092f\u0930\u0928", "Magnesium":"\u092e\u0948\u0917\u094d\u0928\u0940\u0936\u093f\u092f\u092e", "Phosphorus":"\u092b\u0949\u0938\u094d\u092b\u094b\u0930\u0938", "Potassium":"\u092a\u094b\u091f\u0948\u0936\u093f\u092f\u092e", "Sodium":"\u0938\u094b\u0921\u093f\u092f\u092e", "Zinc":"\u091c\u093f\u0902\u0915", "Copper":"\u0924\u093e\u0902\u092c\u093e", "Manganese":"\u092e\u0948\u0902\u0917\u0928\u0940\u091c", "Selenium":"\u0938\u0947\u0932\u0947\u0928\u093f\u092f\u092e"
+});
+Object.assign(FOOD_REPORT_TRANSLATIONS.mr, {
+  "Water":"\u092a\u093e\u0923\u0940", "Ash":"\u0930\u093e\u0916", "Insoluble fibre":"\u0905\u0935\u093f\u0926\u094d\u0930\u093e\u0935\u094d\u092f \u092b\u093e\u092f\u092c\u0930", "Soluble fibre":"\u0935\u093f\u0926\u094d\u0930\u093e\u0935\u094d\u092f \u092b\u093e\u092f\u092c\u0930",
+  "Thiamin (B1)":"\u0925\u093e\u092f\u092e\u093f\u0928 (B1)", "Riboflavin (B2)":"\u0930\u093e\u092f\u092c\u094b\u092b\u094d\u0932\u0947\u0935\u093f\u0928 (B2)", "Niacin (B3)":"\u0928\u093e\u092f\u0938\u093f\u0928 (B3)", "Pantothenic acid (B5)":"\u092a\u0945\u0928\u094d\u091f\u094b\u0925\u0947\u0928\u093f\u0915 \u0905\u0945\u0938\u093f\u0921 (B5)",
+  "Vitamin B6":"\u0935\u094d\u0939\u093f\u091f\u0945\u092e\u093f\u0928 B6", "Folate":"\u092b\u094b\u0932\u0947\u091f", "Vitamin C":"\u0935\u094d\u0939\u093f\u091f\u0945\u092e\u093f\u0928 C", "Vitamin A":"\u0935\u094d\u0939\u093f\u091f\u0945\u092e\u093f\u0928 A", "Vitamin D":"\u0935\u094d\u0939\u093f\u091f\u0945\u092e\u093f\u0928 D", "Vitamin E":"\u0935\u094d\u0939\u093f\u091f\u0945\u092e\u093f\u0928 E", "Vitamin K1":"\u0935\u094d\u0939\u093f\u091f\u0945\u092e\u093f\u0928 K1",
+  "Calcium":"\u0915\u0945\u0932\u094d\u0936\u093f\u092f\u092e", "Iron":"\u0932\u094b\u0939", "Magnesium":"\u092e\u0945\u0917\u094d\u0928\u0947\u0936\u093f\u092f\u092e", "Phosphorus":"\u092b\u0949\u0938\u094d\u092b\u0930\u0938", "Potassium":"\u092a\u094b\u091f\u0945\u0936\u093f\u092f\u092e", "Sodium":"\u0938\u094b\u0921\u093f\u092f\u092e", "Zinc":"\u091c\u093f\u0902\u0915", "Copper":"\u0924\u093e\u0902\u092c\u0947", "Manganese":"\u092e\u0945\u0917\u094d\u0928\u0940\u091c", "Selenium":"\u0938\u0947\u0932\u0947\u0928\u093f\u092f\u092e"
+});
+
 function localizeVisibleText(root, language) {
-  const dictionary = { ...SITE_TRANSLATIONS[language], ...FOOTER_TRANSLATIONS[language], ...SCANNER_TRANSLATIONS[language], ...CAMERA_TRANSLATIONS[language] };
+  const dictionary = { ...SITE_TRANSLATIONS[language], ...FOOTER_TRANSLATIONS[language], ...SCANNER_TRANSLATIONS[language], ...CAMERA_TRANSLATIONS[language], ...FOOD_REPORT_TRANSLATIONS[language] };
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let node;
   while ((node = walker.nextNode())) {
@@ -98,7 +194,7 @@ function localizeVisibleText(root, language) {
 }
 
 function translateSiteText(value, language) {
-  return SITE_TRANSLATIONS[language]?.[value] || FOOTER_TRANSLATIONS[language]?.[value] || SCANNER_TRANSLATIONS[language]?.[value] || CAMERA_TRANSLATIONS[language]?.[value] || value;
+  return SITE_TRANSLATIONS[language]?.[value] || FOOTER_TRANSLATIONS[language]?.[value] || SCANNER_TRANSLATIONS[language]?.[value] || CAMERA_TRANSLATIONS[language]?.[value] || FOOD_REPORT_TRANSLATIONS[language]?.[value] || value;
 }
 
 // Change this value in public/config.js after deploying the API.  It must not
@@ -617,7 +713,7 @@ function App() {
       <div className={`site-language-shell lang-${siteLanguage}`}>
       <main className="main-content-area" data-site-language={siteLanguage}>
         {page === "home" && <Home navigate={navigate} citizen={citizen} t={t} />}
-        {page === "scanner" && <FoodScannerView navigate={navigate} t={t} />}
+        {page === "scanner" && <FoodScannerView navigate={navigate} t={t} language={siteLanguage} />}
         {page === "admin" && !officer && <AdminLogin setOfficer={setOfficer} setPage={navigate} />}
         {page === "submit" && (
           citizen ? (
@@ -4840,7 +4936,7 @@ function IngredientAnalyzerView() {
 }
 
 // 4. FOOD ITEM BARCODE & IMAGE SCANNER APP
-function FoodScannerView({ navigate, t = (value) => value }) {
+function FoodScannerView({ navigate, t = (value) => value, language = "en" }) {
   const [scannerMode, setScannerMode] = useState("barcode");
   const [barcodeInput, setBarcodeInput] = useState("");
   const [barcodeScanning, setBarcodeScanning] = useState(false);
@@ -4851,6 +4947,8 @@ function FoodScannerView({ navigate, t = (value) => value }) {
   const [errorKind, setErrorKind] = useState("scanner");
   const cameraVideoRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [loadingKind, setLoadingKind] = useState("barcode");
+  const [loadingBarcode, setLoadingBarcode] = useState("");
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [reportTab, setReportTab] = useState("overview");
@@ -4912,10 +5010,12 @@ function FoodScannerView({ navigate, t = (value) => value }) {
   };
 
 
-  const handleScan = async (codeToUse) => {
+  const handleScan = async (codeToUse, fromCamera = false) => {
     const code = codeToUse || barcodeInput;
     if (!code.trim()) return;
 
+    setLoadingKind(fromCamera ? "live-barcode" : "barcode");
+    setLoadingBarcode(code.trim());
     setLoading(true);
     setErrorMessage("");
     setResult(null);
@@ -4925,7 +5025,7 @@ function FoodScannerView({ navigate, t = (value) => value }) {
     try {
       const data = await apiCall("/api/products/scan", {
         method: "POST",
-        body: JSON.stringify({ barcode: code })
+        body: JSON.stringify({ barcode: code, language })
       });
 
       if (data.isFoodItem === false) {
@@ -4970,7 +5070,7 @@ function FoodScannerView({ navigate, t = (value) => value }) {
           scanner.stop().catch(() => {});
           setBarcodeScanning(false);
           setBarcodeInput(decodedText);
-          handleScan(decodedText);
+          handleScan(decodedText, true);
         },
         () => {}
       ).catch((error) => {
@@ -5026,6 +5126,8 @@ function FoodScannerView({ navigate, t = (value) => value }) {
       setErrorMessage(t("Choose a food photo first."));
       return;
     }
+    setLoadingKind("photo");
+    setLoadingBarcode("");
     setLoading(true);
     setErrorMessage("");
     setResult(null);
@@ -5034,7 +5136,7 @@ function FoodScannerView({ navigate, t = (value) => value }) {
     try {
       const data = await apiCall("/api/products/scan", {
         method: "POST",
-        body: JSON.stringify({ isImageUpload: true, imageBase64: photoData })
+        body: JSON.stringify({ isImageUpload: true, imageBase64: photoData, language })
       });
       if (data.isFoodItem === false) {
         setErrorKind("invalid");
@@ -5068,7 +5170,24 @@ function FoodScannerView({ navigate, t = (value) => value }) {
     ? Object.entries(result.nutrition).filter(([, value]) => value != null && value !== "")
     : [];
   const showAlternatives = Boolean(result?.healthierAlternatives?.length)
-    && (result?.healthRisk?.level === "high" || result?.healthRisk?.level === "moderate" || result?.safetyAlerts?.length > 0);
+    && (result?.healthRisk?.level === "high" || result?.healthRisk?.level === "moderate" || result?.safetyAlerts?.length > 0 || ["d", "e"].includes(String(result?.nutriscoreGrade || "").toLowerCase()));
+  const localizedRiskHeadline = (level) => level === "high"
+    ? t("High health concern")
+    : level === "moderate" ? t("Review the nutrition alerts below") : t("No configured nutrition alerts");
+  const localizedAlertDetail = (alert) => {
+    const amount = String(alert.detail || "").match(/[\d.]+\s*(?:mg|g)/i)?.[0];
+    if (String(alert.title).toLowerCase().includes("sodium")) return `${t("High salt may affect blood pressure and kidney health.")}${amount ? ` (${amount}/100 g)` : ""}`;
+    if (String(alert.title).toLowerCase().includes("saturated")) return `${t("High saturated fat may raise LDL cholesterol.")}${amount ? ` (${amount}/100 g)` : ""}`;
+    if (String(alert.title).toLowerCase().includes("sugar")) return `${t("Check the label for added sugars.")}${amount ? ` (${amount}/100 g)` : ""}`;
+    return alert.detail;
+  };
+  const localizedNutritionSource = () => {
+    if (result?.foodCompositionCode) return t("IFCT 2017 nutrition data per 100 g; generic raw-food reference, not packaged-product values.");
+    if (result?.aiGeneratedEstimate) return t("AI nutrition estimates; values may differ from the product label.");
+    if (String(result?.nutritionSource || "").includes("Open Food Facts")) return t("Open Food Facts product data; values are per 100 g when available.");
+    if (result?.nutritionSource) return t("Nutrition data may be incomplete. Check the product label.");
+    return "";
+  };
 
   const saveScannedProduct = async () => {
     if (!localStorage.getItem("safewatch_user_token")) {
@@ -5150,6 +5269,15 @@ function FoodScannerView({ navigate, t = (value) => value }) {
             </div>
           )}
 
+          {loading && (
+            <div className="food-scan-loading" role="status" aria-live="polite">
+              <div className="food-scan-spinner" aria-hidden="true" />
+              <strong>{loadingKind === "photo" ? t("Analyzing food photo") : loadingKind === "live-barcode" ? t("Barcode scanned — checking product") : t("Checking barcode")}</strong>
+              <span>{loadingKind === "photo" ? t("Identifying the food and preparing its report. Please wait.") : t("Looking up the product and its nutrition details.")}</span>
+              {loadingKind === "barcode" && loadingBarcode && <code>{t("Code:")} {loadingBarcode}</code>}
+            </div>
+          )}
+
           {result && (
             <div className="analyzer-box food-report" style={{ background: "#ffffff" }}>
               <div className="food-report-product">
@@ -5169,7 +5297,7 @@ function FoodScannerView({ navigate, t = (value) => value }) {
                 {result.novaGroup && <span>NOVA {result.novaGroup}</span>}
                 {result.aiGeneratedEstimate && <span>{t("AI estimate")}</span>}
               </div>
-              {result.healthRisk && <div className={`food-risk-banner ${result.healthRisk.level}`}><strong>{result.healthRisk.level === "high" ? "🔴" : result.healthRisk.level === "moderate" ? "🟠" : "🟢"} {result.healthRisk.headline}</strong></div>}
+              {result.healthRisk && <div className={`food-risk-banner ${result.healthRisk.level}`}><strong>{result.healthRisk.level === "high" ? "🔴" : result.healthRisk.level === "moderate" ? "🟠" : "🟢"} {localizedRiskHeadline(result.healthRisk.level)}</strong></div>}
               </div>
 
               <div className="food-report-tabs" role="tablist" aria-label={t("Food report sections")}>
@@ -5181,12 +5309,12 @@ function FoodScannerView({ navigate, t = (value) => value }) {
                 <h3>{t("Key Nutrition Highlights (per 100 g)")}</h3>
                 {nutritionRows.length ? <div className="food-highlight-grid">{nutritionRows.filter(([key]) => ["calories", "protein", "sugar", "fat"].includes(key)).map(([key, value]) => <div key={key}><strong>{value}</strong><span>{t(key[0].toUpperCase() + key.slice(1))}</span></div>)}</div> : <p>{t("Nutrition information is not available for this item.")}</p>}
                 <h3>{t("Positive Nutritional Factors")}</h3>
-                {result.positiveFactors?.length ? <ul className="food-positive-list">{result.positiveFactors.map((item) => <li key={item}>✓ {item}</li>)}</ul> : <p>{t("No positive nutrition highlights could be confirmed from the available data.")}</p>}
+                {result.positiveFactors?.length ? <ul className="food-positive-list">{result.positiveFactors.map((item) => <li key={item}>{t(item)}</li>)}</ul> : <p>{t("No positive nutrition highlights could be confirmed from the available data.")}</p>}
                 <h3>{t("Ingredients, allergens and additives")}</h3>
                 <p><strong>{t("Ingredients:")}</strong> {result.ingredients?.length ? result.ingredients.join(", ") : t("Not available in the product record.")}</p>
                 <p><strong>{t("Allergens:")}</strong> {result.allergens?.length ? result.allergens.join(", ") : t("No allergen data listed; check the package label.")}</p>
                 <p><strong>{t("Additives:")}</strong> {result.additives?.length ? result.additives.map((item) => `${item.name} (${item.risk})`).join(", ") : t("No additives listed in the available record.")}</p>
-                <p className="food-report-caveat"><strong>{t("Adulteration assessment:")}</strong> {result.adulterationAssessment || t("Not assessed. A barcode or photo cannot confirm adulteration; laboratory testing is required.")}</p>
+                <p className="food-report-caveat"><strong>{t("Adulteration assessment:")}</strong> {t("Not assessed. A barcode or photo cannot confirm adulteration; laboratory testing is required.")}</p>
               </section>}
 
               {reportTab === "nutrition" && <section className="food-report-section" role="tabpanel">
@@ -5194,27 +5322,35 @@ function FoodScannerView({ navigate, t = (value) => value }) {
                 {nutritionRows.length ? <div className="food-nutrition-table">{nutritionRows.map(([key, value]) => <div key={key}><span>{t(({ calories: "Energy", protein: "Proteins", carbs: "Carbohydrates", sugar: "Sugars", fat: "Total Fats", saturatedFat: "Saturated Fat", fiber: "Dietary Fiber", sodium: "Sodium / Salt", salt: "Salt" })[key] || key)}</span><strong>{value}</strong></div>)}</div> : <p>{t("Nutrition information is not available for this item.")}</p>}
                 {result.detailedNutrients?.length > 0 && <>
                   <h3>{t("Additional IFCT 2017 nutrients")}</h3>
-                  <div className="food-nutrition-table">{result.detailedNutrients.map((nutrient) => <div key={nutrient.code}><span>{nutrient.name}</span><strong>{nutrient.value}{nutrient.uncertainty ? ` ± ${nutrient.uncertainty}` : ""}</strong></div>)}</div>
-                  {result.foodCompositionCode && <p className="food-report-caveat">IFCT food code: {result.foodCompositionCode}. Values show the reported mean and, where available, standard deviation per 100 g.</p>}
+                  <div className="food-nutrition-table">{result.detailedNutrients.map((nutrient) => <div key={nutrient.code}><span>{t(nutrient.name)}</span><strong>{nutrient.value}{nutrient.uncertainty ? ` ± ${nutrient.uncertainty}` : ""}</strong></div>)}</div>
+                  {result.foodCompositionCode && <p className="food-report-caveat">{t("IFCT food code:")} {result.foodCompositionCode}. {t("Values are per 100 g.")}</p>}
                 </>}
-                {result.nutritionReferenceName && <p className="food-report-caveat">{t("Reference product:")} {result.nutritionReferenceName}. {result.nutritionSource}</p>}
-                {result.aiGeneratedEstimate && <p className="food-report-caveat">{result.nutritionSource}</p>}
+                {result.nutritionReferenceName && <p className="food-report-caveat">{t("Reference product:")} {result.nutritionReferenceName}. {localizedNutritionSource()}</p>}
+                {result.aiGeneratedEstimate && <p className="food-report-caveat">{localizedNutritionSource()}</p>}
               </section>}
 
               {reportTab === "alerts" && <section className="food-report-section" role="tabpanel">
                 <h3>{t("Health Flags & Food Safety Alerts")}</h3>
-                {result.safetyAlerts?.length ? <div className="food-alert-list">{result.safetyAlerts.map((alert, index) => <div key={`${alert.title}-${index}`}><span>⚠️</span><div><strong>{alert.title}</strong><p>{alert.detail}</p></div></div>)}</div> : <p>{t("No configured sugar, sodium, or saturated-fat alerts were triggered by the available nutrition data. This is not a product safety or adulteration check.")}</p>}
-                {(result.warnings || []).map((warning, index) => <p className="food-report-caveat" key={index}>{warning}</p>)}
-                <p className="food-report-caveat"><strong>{t("Adulteration is not tested by this scan.")}</strong> {result.adulterationAssessment}</p>
+                {result.safetyAlerts?.length ? <div className="food-alert-list">{result.safetyAlerts.map((alert, index) => <div key={`${alert.title}-${index}`}><span>⚠️</span><div><strong>{t(alert.title)}</strong><p>{localizedAlertDetail(alert)}</p></div></div>)}</div> : <p>{t("No configured sugar, sodium, or saturated-fat alerts were triggered by the available nutrition data. This is not a product safety or adulteration check.")}</p>}
+                {(result.warnings || []).map((warning, index) => <p className="food-report-caveat" key={index}>{t(warning)}</p>)}
+                <p className="food-report-caveat"><strong>{t("Adulteration is not tested by this scan.")}</strong> {t("Not assessed. A barcode or photo cannot confirm adulteration; laboratory testing is required.")}</p>
               </section>}
 
               {reportTab === "alternatives" && showAlternatives && <section className="food-report-section" role="tabpanel">
-                <h3>🥗 {t("Recommended Healthier Food Substitutes")}</h3>
-                <p>{t("Choose less processed options with lower salt, added sugar and saturated fat where possible.")}</p>
-                {result.healthierAlternatives?.length ? <div className="food-alternative-list">{result.healthierAlternatives.map((alternative, index) => <div key={index}><span>{["🥣", "🍲", "🌾"][index % 3]}</span><strong>{alternative}</strong></div>)}</div> : <p>{t("No specific substitute is available from this scan. Compare similar products by their nutrition labels.")}</p>}
+                <h3>🥗 {t("Recommended Healthier Products")}</h3>
+                <p>{t("Compare these listed products with the scanned product label. Product data may be incomplete or outdated.")}</p>
+                {result.healthierAlternatives?.length ? <div className="food-alternative-list">{result.healthierAlternatives.map((alternative) => (
+                  <a key={alternative.code || alternative.name} href={alternative.productUrl || undefined} target={alternative.productUrl ? "_blank" : undefined} rel="noreferrer" className="food-alternative-product">
+                    <img src={alternative.imageUrl} alt={alternative.name} loading="lazy" />
+                    <div className="food-alternative-product-info"><strong>{alternative.name}</strong><span>{t("Brand:")} {alternative.brand}</span>
+                      {alternative.nutriscoreGrade && <span>{t("Nutri-Score")} {alternative.nutriscoreGrade.toUpperCase()}</span>}
+                      <small>{[alternative.nutrition?.sugar && `${t("Sugar")}: ${alternative.nutrition.sugar}`, alternative.nutrition?.saturatedFat && `${t("Saturated Fat")}: ${alternative.nutrition.saturatedFat}`].filter(Boolean).join(", ")}</small>
+                    </div>
+                  </a>
+                ))}</div> : <p>{t("No comparable product with a label image and better available nutrition data was found.")}</p>}
               </section>}
 
-              {result.nutritionSource && reportTab === "overview" && <p className="food-report-source">{result.nutritionSource}</p>}
+              {result.nutritionSource && reportTab === "overview" && <p className="food-report-source">{localizedNutritionSource()}</p>}
               <div className="food-report-actions">
                 <button type="button" onClick={saveScannedProduct} className="food-save-button">📦 {t("Save to My Products")}</button>
                 <button type="button" onClick={() => { setResult(null); setReportTab("overview"); setPhotoData(""); setPhotoPreview(""); setErrorMessage(""); }} className="food-scan-again-button">📷 {t("Scan Another Food Item")}</button>

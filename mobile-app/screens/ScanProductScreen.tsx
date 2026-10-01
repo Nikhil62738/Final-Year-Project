@@ -34,12 +34,15 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
   const [product, setProduct] = useState<any>(null);
   const [healthAnalysis, setHealthAnalysis] = useState<HealthAssessment | null>(null);
   const [nonFoodMessage, setNonFoodMessage] = useState<string>('');
+  const [scanErrorType, setScanErrorType] = useState<'invalid-image' | 'service'>('invalid-image');
   
   // Photo scanning state
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [photoResult, setPhotoResult] = useState<PhotoFoodResult | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [loadingKind, setLoadingKind] = useState<'barcode' | 'photo'>('barcode');
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'nutrition' | 'warnings' | 'alternatives'>('overview');
   const user = useAuthStore((s) => s.user);
 
@@ -54,9 +57,12 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
       Alert.alert('Barcode Required', 'Please enter or scan a valid barcode number.');
       return;
     }
+    setLoadingKind('barcode');
+    setLoadingMessage(`Checking barcode ${barcode.trim()}…`);
     setLoading(true);
     setProduct(null);
     setHealthAnalysis(null);
+    setActiveTab('overview');
 
     try {
       const { data } = await foodFactsAPI.getProduct(barcode.trim());
@@ -112,6 +118,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
       setMode('notFood');
     } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -124,6 +131,8 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
 
   // 2. Photo-based Food Scan for Items Without Barcode
   const fetchPhotoData = async (imgUri: string) => {
+    setLoadingKind('photo');
+    setLoadingMessage('Analyzing your food photo… This may take a few seconds.');
     setLoading(true);
     try {
       const imageBase64 = await new Promise<string>(async (resolve, reject) => {
@@ -175,7 +184,9 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             ...(p.warnings || [])
           ],
           positives: p.positiveFactors || [],
-          healthierAlternatives: (p.healthierAlternatives || []).map((name: string) => ({ name, icon: '🥗', category: 'Alternative', benefit: '' }))
+          healthierAlternatives: (p.healthierAlternatives || []).map((item: any) => typeof item === 'string'
+            ? ({ name: item, icon: '🥗', category: 'Alternative', benefit: '' })
+            : ({ name: item.name, icon: '🥗', category: 'Alternative', benefit: '', brand: item.brand, imageUrl: item.imageUrl, productUrl: item.productUrl, nutriscoreGrade: item.nutriscoreGrade, nutrition: item.nutrition }))
         };
         if (imgUri) setPhotoUri(imgUri);
         setProduct({
@@ -192,13 +203,16 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
         setMode('result');
       } else {
         setNonFoodMessage(data?.error || 'Invalid food image. Try a clear photo focused on the food.');
+        setScanErrorType('invalid-image');
         setMode('notFood');
       }
     } catch (e: any) {
       setNonFoodMessage(e?.response?.data?.error || e?.response?.data?.message || 'Food image recognition is unavailable. Please try again later.');
+      setScanErrorType('service');
       setMode('notFood');
     } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -281,7 +295,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
               <View style={styles.cameraBox}>
                 <CameraView
                   style={StyleSheet.absoluteFill}
-                  onBarcodeScanned={handleBarcodeScan}
+                  onBarcodeScanned={loading ? undefined : handleBarcodeScan}
                   barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'qr'] }}
                 />
                 <View style={styles.viewFinder}>
@@ -372,7 +386,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           <View style={styles.notFoodIconCircle}>
             <Text style={{ fontSize: 48 }}>🚫</Text>
           </View>
-          <Text style={styles.notFoodTitle}>{nonFoodMessage.toLowerCase().includes('invalid food image') ? 'Invalid Food Image' : nonFoodMessage.toLowerCase().includes('recognition') ? 'Food Recognition Unavailable' : 'Non-Food or Unrecognized Item'}</Text>
+          <Text style={styles.notFoodTitle}>{scanErrorType === 'service' ? 'Scanner Unavailable' : nonFoodMessage.toLowerCase().includes('invalid food image') ? 'Invalid Food Image' : 'Non-Food or Unrecognized Item'}</Text>
           <Text style={styles.notFoodDesc}>{nonFoodMessage}</Text>
 
           <View style={styles.notFoodAdviceBox}>
@@ -483,7 +497,9 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
 
           {/* Result Tabs */}
           <View style={styles.tabNav}>
-            {(['overview', 'nutrition', 'warnings', 'alternatives'] as const).map((t) => (
+            {(['overview', 'nutrition', 'warnings', 'alternatives'] as const)
+              .filter((tab) => tab !== 'alternatives' || healthAnalysis.healthierAlternatives.length > 0)
+              .map((t) => (
               <TouchableOpacity
                 key={t}
                 style={[styles.tabNavItem, activeTab === t && styles.tabNavItemActive]}
@@ -599,9 +615,14 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             <View style={styles.sectionBody}>
               <Text style={styles.subHeading}>Recommended Alternatives</Text>
               {healthAnalysis.healthierAlternatives.length ? healthAnalysis.healthierAlternatives.map((alternative, idx) => (
-                <View key={idx} style={styles.bulletRow}>
-                  <Text style={styles.greenCheck}>{alternative.icon}</Text>
-                  <Text style={styles.bulletText}>{alternative.name}</Text>
+                <View key={idx} style={styles.alternativeProductRow}>
+                  {alternative.imageUrl ? <Image source={{ uri: alternative.imageUrl }} style={styles.alternativeProductImage} resizeMode="contain" /> : <Text style={styles.greenCheck}>{alternative.icon}</Text>}
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={styles.bulletText}>{alternative.name}</Text>
+                    {alternative.brand ? <Text style={styles.alternativeProductMeta}>{alternative.brand}</Text> : null}
+                    {alternative.nutriscoreGrade ? <Text style={styles.alternativeProductMeta}>Nutri-Score {alternative.nutriscoreGrade.toUpperCase()}</Text> : null}
+                    {(alternative.nutrition?.sugar || alternative.nutrition?.saturatedFat) ? <Text style={styles.alternativeProductMeta}>{[alternative.nutrition.sugar && `Sugar: ${alternative.nutrition.sugar}`, alternative.nutrition.saturatedFat && `Saturated fat: ${alternative.nutrition.saturatedFat}`].filter(Boolean).join(' · ')}</Text> : null}
+                  </View>
                 </View>
               )) : <Text style={styles.bulletText}>No specific alternative was recommended from the available nutrition information.</Text>}
             </View>
@@ -658,12 +679,53 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           </View>
         </ScrollView>
       )}
+
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#0F4C3A" />
+            <Text style={styles.loadingTitle}>
+              {loadingKind === 'barcode' ? (mode === 'barcode' ? 'Barcode detected' : 'Checking barcode') : 'Photo scan in progress'}
+            </Text>
+            <Text style={styles.loadingText}>{loadingMessage}</Text>
+            {loadingKind === 'barcode' && lastBarcode ? (
+              <Text style={styles.loadingCode}>Code: {lastBarcode}</Text>
+            ) : null}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: '#F8FAFC' },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 20,
+    elevation: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.38)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  loadingCard: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DCE7E2',
+  },
+  loadingTitle: { fontSize: 17, fontWeight: '800', color: '#0F4C3A', marginTop: 16, textAlign: 'center' },
+  loadingText: { fontSize: 13, lineHeight: 19, color: '#475569', marginTop: 7, textAlign: 'center' },
+  loadingCode: { fontSize: 12, fontWeight: '700', color: '#334155', marginTop: 10 },
   topHeader: {
     paddingTop: 50,
     paddingBottom: 14,
@@ -941,6 +1003,9 @@ const styles = StyleSheet.create({
   altHeaderCard: { marginBottom: 14 },
   altMainTitle: { fontSize: 15, fontWeight: '800', color: '#1E293B', marginBottom: 4 },
   altMainSub: { fontSize: 12, color: '#64748B', lineHeight: 17 },
+  alternativeProductRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', padding: 10, marginBottom: 8 },
+  alternativeProductImage: { width: 64, height: 64, borderRadius: 8, backgroundColor: '#FFFFFF' },
+  alternativeProductMeta: { fontSize: 11, color: '#64748B' },
   altList: { gap: 10 },
   altCardFull: {
     flexDirection: 'row',

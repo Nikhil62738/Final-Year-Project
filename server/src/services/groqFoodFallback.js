@@ -35,7 +35,7 @@ function normalizeImageDataUrl(input) {
   return `data:${mime};base64,${value}`;
 }
 
-export async function estimateFoodDetailsWithGroq({ name, brand = "", category = "", ingredients = [], imageBase64 = "" }) {
+export async function estimateFoodDetailsWithGroq({ name, brand = "", category = "", ingredients = [], imageBase64 = "", language = "en" }) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     if (!imageBase64) return null;
@@ -45,6 +45,7 @@ export async function estimateFoodDetailsWithGroq({ name, brand = "", category =
   }
 
   const knownIngredients = cleanList(ingredients);
+  const responseLanguage = language === "hi" ? "Hindi" : language === "mr" ? "Marathi" : "English";
   const imageDataUrl = imageBase64 ? normalizeImageDataUrl(imageBase64) : "";
   const prompt = [
     imageBase64
@@ -52,6 +53,7 @@ export async function estimateFoodDetailsWithGroq({ name, brand = "", category =
       : "The named item is a food product. Set isFood to true and return a cautious nutrition profile.",
     `Food name or image hint: ${name || "identify from the uploaded photo"}. Brand: ${brand || "not known"}. Category: ${category || "not known"}.`,
     `Known package ingredients, if any: ${knownIngredients.length ? knownIngredients.join(", ") : "none supplied"}.`,
+    `Write foodName, category, and overview in ${responseLanguage}. Keep branded product names as printed when they are known.`,
     "For food images, estimate generic nutrition per 100 g for the identified food only; return null for values that cannot be reasonably estimated. Give energy kcal, protein g, carbohydrates g, total fat g, saturated fat g, total sugars g, dietary fibre g, sodium mg.",
     "Use null for nutrient values that cannot be reasonably estimated. Do not claim laboratory measurement, official approval, FSSAI verification, freshness, adulteration detection, or exact brand-specific label values.",
     "Only repeat ingredients supplied above. Do not infer package ingredients, additives, or allergens. Return healthier alternatives only when the food is generally high in sugar, sodium, saturated fat, or highly processed; otherwise return an empty list. Provide a short neutral food description.",

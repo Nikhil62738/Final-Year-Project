@@ -81,20 +81,95 @@ function healthReport(nutriments = {}, grade, novaGroup) {
   };
 }
 
-function healthierAlternatives(productName, grade, nutrition = {}) {
+function alternativeSearchTerms(productName) {
+  const name = String(productName || "").toLowerCase();
+  if (/biscuit|cookie|cracker|wafer|rusk/.test(name)) return ["whole wheat biscuit India", "ragi millet biscuit India"];
+  if (/noodle|instant/.test(name)) return ["whole wheat noodles India", "millet noodles India"];
+  if (/chip|crisps|namkeen|bhujia|mixture|sev|snack/.test(name)) return ["roasted chana snack India", "baked khakhra India"];
+  if (/drink|soda|cola|soft drink|sweetened juice|energy drink/.test(name)) return ["unsweetened drink India", "low sugar beverage India"];
+  if (/chocolate|candy|sweet|confection|toffee/.test(name)) return ["dark chocolate India"];
+  return [];
+}
+
+function needsHealthierAlternative(grade, nutrition = {}) {
   const lowGrade = ["d", "e"].includes(String(grade || "").toLowerCase());
   const highSugar = Number.parseFloat(nutrition.sugar) >= 15;
   const highSodium = Number.parseFloat(nutrition.sodium) >= 600;
-  if (!lowGrade && !highSugar && !highSodium) return [];
+  const highSaturatedFat = Number.parseFloat(nutrition.saturatedFat) >= 5;
+  return lowGrade || highSugar || highSodium || highSaturatedFat;
+}
 
-  const name = String(productName || "").toLowerCase();
-  if (/drink|soda|cola|soft drink|juice/.test(name) || highSugar) {
-    return ["Water or unsweetened tea", "Whole fruit instead of sweetened drinks"];
+async function lookupHealthierProducts(productName, grade, nutrition = {}) {
+  if (!needsHealthierAlternative(grade, nutrition)) return [];
+  const terms = alternativeSearchTerms(productName);
+  if (!terms.length) return [];
+  const currentSugar = Number.parseFloat(nutrition.sugar);
+  const currentSatFat = Number.parseFloat(nutrition.saturatedFat);
+  const currentSodium = Number.parseFloat(nutrition.sodium);
+  const sourceGrade = String(grade || "").toLowerCase();
+  const isBiscuit = /biscuit|cookie|cracker|wafer|rusk/.test(String(productName).toLowerCase());
+  const fields = "code,product_name,brands,image_front_url,nutriscore_grade,nutriments,categories,product_url";
+  const matches = [];
+
+  for (const term of terms) {
+    try {
+      const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
+      url.searchParams.set("search_terms", term);
+      url.searchParams.set("search_simple", "1");
+      url.searchParams.set("action", "process");
+      url.searchParams.set("json", "1");
+      url.searchParams.set("page_size", "40");
+      url.searchParams.set("cc", "in");
+      url.searchParams.set("fields", fields);
+      const response = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "FDA-SafeWatch/1.0 (support.fda@maharashtra.gov.in)" } });
+      if (!response.ok) continue;
+      const data = await response.json();
+      for (const item of Array.isArray(data.products) ? data.products : []) {
+        if (!item.product_name || !item.image_front_url || matches.some((match) => match.code === item.code)) continue;
+        const itemName = String(item.product_name).toLowerCase();
+        const category = String(item.categories || "").toLowerCase();
+        const isSameCategory = /biscuit|cookie|cracker|wafer|rusk/.test(String(productName).toLowerCase())
+          ? /biscuit|cookie|cracker|wafer/.test(`${itemName} ${category}`)
+          : /noodle|instant/.test(String(productName).toLowerCase())
+            ? /noodle|pasta/.test(`${itemName} ${category}`)
+            : /chip|crisps|namkeen|bhujia|mixture|sev|snack/.test(String(productName).toLowerCase())
+              ? /snack|chana|khakhra|cracker|chips/.test(`${itemName} ${category}`)
+              : /chocolate|candy|sweet|confection|toffee/.test(String(productName).toLowerCase())
+                ? /chocolate/.test(`${itemName} ${category}`)
+                : true;
+        if (!isSameCategory) continue;
+        const n = item.nutriments || {};
+        const candidateGrade = String(item.nutriscore_grade || "").toLowerCase();
+        const candidateSugar = Number(n.sugars_100g);
+        const candidateSatFat = Number(n["saturated-fat_100g"]);
+        const candidateSodiumMg = Number(n.sodium_100g) * 1000;
+        const lowerSugar = Number.isFinite(currentSugar) && currentSugar > 0 && Number.isFinite(candidateSugar) && candidateSugar < currentSugar * 0.9
+          && (!Number.isFinite(currentSatFat) || !Number.isFinite(candidateSatFat) || candidateSatFat <= currentSatFat);
+        const lowerSatFat = Number.isFinite(currentSatFat) && currentSatFat >= 5 && Number.isFinite(candidateSatFat) && candidateSatFat < currentSatFat * 0.9
+          && (!Number.isFinite(currentSugar) || !Number.isFinite(candidateSugar) || candidateSugar <= currentSugar);
+        const lowerSodium = Number.isFinite(currentSodium) && currentSodium >= 600 && Number.isFinite(candidateSodiumMg) && candidateSodiumMg < currentSodium * 0.9;
+        const betterGrade = candidateGrade && sourceGrade && candidateGrade < sourceGrade && (!isBiscuit || lowerSugar);
+        if (!(lowerSugar || lowerSatFat || lowerSodium || betterGrade)) continue;
+        matches.push({
+          code: item.code || item.product_name,
+          name: item.product_name,
+          brand: item.brands || "Brand not listed",
+          imageUrl: item.image_front_url,
+          productUrl: item.code ? `https://world.openfoodfacts.org/product/${item.code}` : "",
+          nutriscoreGrade: candidateGrade || null,
+          nutrition: {
+            sugar: n.sugars_100g == null ? null : `${Number(n.sugars_100g).toFixed(1)} g/100 g`,
+            saturatedFat: n["saturated-fat_100g"] == null ? null : `${Number(n["saturated-fat_100g"]).toFixed(1)} g/100 g`,
+            sodium: n.sodium_100g == null ? null : `${Number(n.sodium_100g).toFixed(0)} mg/100 g`
+          }
+        });
+      }
+    } catch (error) {
+      console.warn("Healthier product lookup failed:", error.message);
+    }
+    if (matches.length >= 3) break;
   }
-  if (/chip|crisps|snack|namkeen|noodle|instant/.test(name) || highSodium) {
-    return ["Unsalted nuts or roasted chickpeas", "Fresh fruit or plain yogurt"];
-  }
-  return ["Choose a similar product with Nutri-Score A or B", "Prefer options with less added sugar, salt, and saturated fat"];
+  return matches.slice(0, 3);
 }
 
 async function lookupNutritionReference(foodName) {
@@ -137,7 +212,7 @@ async function lookupNutritionReference(foodName) {
     ingredients: match.ingredients_text ? match.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : [],
     allergens: match.allergens_tags || [],
     additives: (match.additives_tags || []).map((code) => ({ code, name: code.replace(/^en:/, ""), risk: "Not assessed from this record" })),
-    healthierAlternatives: healthierAlternatives(foodName, grade, nutrition)
+    healthierAlternatives: []
   };
 }
 
@@ -146,7 +221,7 @@ async function lookupNutritionReference(foodName) {
 // @access  Public
 export const scanProduct = async (req, res) => {
   try {
-    const { barcode, query, isImageUpload, imageBase64 } = req.body;
+    const { barcode, query, isImageUpload, imageBase64, language = "en" } = req.body;
 
     if (imageBase64 && imageBase64.length > 12_000_000) {
       return res.status(413).json({ isFoodItem: false, error: "Image is too large. Please choose a smaller photo." });
@@ -159,7 +234,7 @@ export const scanProduct = async (req, res) => {
 
       let photoEstimate;
       try {
-        photoEstimate = await estimateFoodDetailsWithGroq({ name: "", imageBase64 });
+        photoEstimate = await estimateFoodDetailsWithGroq({ name: "", imageBase64, language });
       } catch (imageError) {
         if (imageError.status === 422) return res.status(422).json({ isFoodItem: false, error: imageError.message });
         throw imageError;
@@ -177,9 +252,7 @@ export const scanProduct = async (req, res) => {
         foodGroup: photoEstimate.category,
         nutritionSource: photoEstimate.nutritionSource,
         aiFoodOverview: photoEstimate.overview,
-        healthierAlternatives: photoEstimate.healthierAlternatives.length
-          ? photoEstimate.healthierAlternatives
-          : healthierAlternatives(photoEstimate.foodName, null, photoEstimate.nutrition),
+        healthierAlternatives: await lookupHealthierProducts(photoEstimate.foodName, null, photoEstimate.nutrition),
         aiGeneratedEstimate: true,
         ingredients: photoEstimate.ingredients,
         allergens: photoEstimate.allergens,
@@ -198,7 +271,7 @@ export const scanProduct = async (req, res) => {
             foodCompositionCode: ifctMatch.code,
             nutritionSource: ifctMatch.source,
             detailedNutrients: ifctMatch.detailedNutrients,
-            healthierAlternatives: healthierAlternatives(ifctMatch.name, null, ifctMatch.nutrition),
+            healthierAlternatives: await lookupHealthierProducts(ifctMatch.name, null, ifctMatch.nutrition),
             aiGeneratedEstimate: false,
             aiFoodOverview: photoEstimate.overview,
             ingredients: [],
@@ -292,18 +365,19 @@ export const scanProduct = async (req, res) => {
           name: record.product_name,
           brand: record.brands || "",
           category: record.categories || "",
-          ingredients: record.ingredients_text ? record.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : []
+          ingredients: record.ingredients_text ? record.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : [],
+          language
         });
       } catch (lookupError) {
         console.warn("Groq package nutrition estimate failed:", lookupError.message);
       }
     }
     const reportedNutrition = hasProductNutrition ? nutritionDetails : ifctReference?.nutrition || groqEstimate?.nutrition || nutritionDetails;
-    const alternatives = healthierAlternatives(record.product_name, record.nutriscore_grade, reportedNutrition);
+    const alternatives = await lookupHealthierProducts(record.product_name, record.nutriscore_grade, reportedNutrition);
     const reportHealth = ifctReference && !hasProductNutrition
-      ? healthReport(ifctReference.healthReportData)
+      ? healthReport(ifctReference.healthReportData, record.nutriscore_grade, record.nova_group)
       : groqEstimate && !hasProductNutrition
-        ? healthReport(groqEstimate.healthReportData)
+        ? healthReport(groqEstimate.healthReportData, record.nutriscore_grade, record.nova_group)
       : healthReport(nutrition, record.nutriscore_grade, record.nova_group);
     const product = {
       barcode: record.code || String(barcode),
@@ -326,9 +400,7 @@ export const scanProduct = async (req, res) => {
         : groqEstimate && !hasProductNutrition
           ? groqEstimate.nutritionSource
           : "Open Food Facts product data; values are per 100 g when available.",
-      healthierAlternatives: groqEstimate && !hasProductNutrition && groqEstimate.healthierAlternatives.length
-        ? groqEstimate.healthierAlternatives
-        : alternatives,
+      healthierAlternatives: alternatives,
       healthRating: null,
       imageUrl: record.image_front_url || "",
       ingredients: record.ingredients_text ? record.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : [],

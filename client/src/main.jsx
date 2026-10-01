@@ -2755,7 +2755,9 @@ function Dashboard({ officer, setPage, onLogout }) {
             <button className={`gov-tab ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>Analytics</button>
             <button className={`gov-tab ${activeTab === "heatmap" ? "active" : ""}`} onClick={() => setActiveTab("heatmap")}>Heatmap</button>
             <button className={`gov-tab ${activeTab === "managedb" ? "active" : ""}`} onClick={() => setActiveTab("managedb")}>Manage DB</button>
-            <button className={`gov-tab ${activeTab === "workload" ? "active" : ""}`} onClick={() => setActiveTab("workload")}>Officer Workload</button>
+            {officer.role === "super_admin" && (
+              <button className={`gov-tab ${activeTab === "workload" ? "active" : ""}`} onClick={() => setActiveTab("workload")}>Officer Workload</button>
+            )}
             <button className={`gov-tab ${activeTab === "announcements" ? "active" : ""}`} onClick={() => setActiveTab("announcements")}>Announcements</button>
             <button className={`gov-tab ${activeTab === "sessionlogs" ? "active" : ""}`} onClick={() => setActiveTab("sessionlogs")}>Session Logs</button>
             {officer.role === "super_admin" && (
@@ -2777,7 +2779,7 @@ function Dashboard({ officer, setPage, onLogout }) {
             <TabManageDB complaints={complaints} openComplaint={openComplaint} assignToDistrict={assignToDistrict} officer={officer} />
           )
         )}
-        {activeTab === "workload" && <OfficerWorkloadDashboard />}
+        {activeTab === "workload" && officer.role === "super_admin" && <OfficerWorkloadDashboard />}
         {activeTab === "announcements" && <SuperAdminAnnouncements officer={officer} />}
         {activeTab === "sessionlogs" && <LoginSessionLogsView />}
         {activeTab === "admins" && officer.role === "super_admin" && <TabDistrictAdmins />}

@@ -478,6 +478,9 @@ export async function resubmitComplaint(req, res) {
 
 export async function getOfficerWorkload(req, res) {
   try {
+    if (req.officer.role !== "super_admin") {
+      return res.status(403).json({ message: "Only the Super Admin can view officer workload." });
+    }
     const officers = await Officer.find({ active: true }).select("-passwordHash");
     const allComplaints = await Complaint.find();
 

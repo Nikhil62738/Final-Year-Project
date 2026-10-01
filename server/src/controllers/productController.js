@@ -35,6 +35,18 @@ const ALLERGEN_KEYWORDS = {
   "sulfite": "Sulfites"
 };
 
+const BISCUIT_ALTERNATIVE_FALLBACKS = [
+  {
+    code: "8901063142114",
+    name: "NutriChoice Oats Biscuits",
+    brand: "Britannia",
+    imageUrl: "https://images.openfoodfacts.org/images/products/890/106/314/2114/front_en.3.400.jpg",
+    productUrl: "https://world.openfoodfacts.org/product/8901063142114",
+    nutriscoreGrade: "d",
+    nutrition: { sugar: "19.5 g/100 g", saturatedFat: "8.6 g/100 g", sodium: null }
+  }
+];
+
 function formatNutrition(nutriments = {}) {
   const kcal = nutriments["energy-kcal_100g"] ?? (nutriments.energy_100g != null ? nutriments.energy_100g / 4.184 : null);
   const format = (value, unit) => value == null || !Number.isFinite(Number(value)) ? null : `${Number(value).toFixed(1)} ${unit}`;
@@ -83,7 +95,7 @@ function healthReport(nutriments = {}, grade, novaGroup) {
 
 function alternativeSearchTerms(productName, category = "") {
   const name = `${productName || ""} ${category || ""}`.toLowerCase();
-  if (/biscuit|cookie|cracker|wafer|rusk|बिस्किट|बिस्कुट|कुकी/.test(name)) return ["whole wheat biscuit", "ragi biscuit", "oats biscuit"];
+  if (/biscuit|बिस्किट|बिस्कुट/.test(name)) return ["whole wheat biscuit", "ragi biscuit", "oats biscuit"];
   if (/noodle|instant|नूडल|नूडल्स/.test(name)) return ["whole wheat noodles", "millet noodles"];
   if (/chip|crisps|namkeen|bhujia|mixture|sev|snack|चिप्स|नमकीन|फरसाण/.test(name)) return ["roasted chana snack", "baked khakhra"];
   if (/drink|soda|cola|soft drink|sweetened juice|energy drink|पेय|शीतपेय/.test(name)) return ["unsweetened drink", "low sugar beverage"];
@@ -135,7 +147,7 @@ async function lookupHealthierProducts(productName, grade, nutrition = {}, categ
   const currentSodium = Number.parseFloat(nutrition.sodium);
   const sourceGrade = String(grade || "").toLowerCase();
   const sourceName = `${productName || ""} ${category || ""}`.toLowerCase();
-  const isBiscuit = /biscuit/.test(terms[0]) || /biscuit|cookie|cracker|wafer|rusk|बिस्किट|बिस्कुट|कुकी/.test(sourceName);
+  const isBiscuit = /biscuit/.test(terms[0]) || /biscuit|बिस्किट|बिस्कुट/.test(sourceName);
   const isNoodle = /noodle/.test(terms[0]) || /noodle|instant|नूडल/.test(sourceName);
   const isSnack = /snack/.test(terms[0]) || /chip|crisps|namkeen|bhujia|mixture|sev|snack|चिप्स|नमकीन|फरसाण/.test(sourceName);
   const isChocolate = /chocolate/.test(terms[0]) || /chocolate|candy|sweet|confection|toffee|चॉकलेट|मिठाई|गोड/.test(sourceName);
@@ -151,7 +163,6 @@ async function lookupHealthierProducts(productName, grade, nutrition = {}, categ
       url.searchParams.set("action", "process");
       url.searchParams.set("json", "1");
       url.searchParams.set("page_size", "40");
-      url.searchParams.set("cc", "in");
       url.searchParams.set("fields", fields);
       const response = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "FDA-SafeWatch/1.0 (support.fda@maharashtra.gov.in)" } });
       if (!response.ok) continue;
@@ -159,16 +170,16 @@ async function lookupHealthierProducts(productName, grade, nutrition = {}, categ
       for (const item of Array.isArray(data.products) ? data.products : []) {
         if (!item.product_name || !item.image_front_url || matches.some((match) => match.code === item.code)) continue;
         const itemName = String(item.product_name).toLowerCase();
-        const category = String(item.categories || "").toLowerCase();
+        // Search results can inherit broad or incorrect categories; require the product name itself to match.
         const isSameCategory = isBiscuit
-          ? /biscuit|cookie|cracker|wafer/.test(`${itemName} ${category}`)
+          ? /biscuit/.test(itemName)
           : isNoodle
-            ? /noodle|pasta/.test(`${itemName} ${category}`)
+            ? /noodle|pasta/.test(itemName)
             : isSnack
-              ? /snack|chana|khakhra|cracker|chips/.test(`${itemName} ${category}`)
+              ? /snack|chana|khakhra|cracker|chips|namkeen|bhujia|mixture|sev/.test(itemName)
               : isChocolate
-                ? /chocolate/.test(`${itemName} ${category}`)
-                : true;
+                ? /chocolate|candy|sweet|confection|toffee/.test(itemName)
+                : false;
         if (!isSameCategory) continue;
         const n = item.nutriments || {};
         const candidateGrade = String(item.nutriscore_grade || "").toLowerCase();
@@ -213,7 +224,14 @@ async function lookupHealthierProducts(productName, grade, nutrition = {}, categ
     }
     if (matches.length >= 3) break;
   }
-  return matches.sort((a, b) => b.healthierScore - a.healthierScore).slice(0, 3);
+  const fallbackProducts = isBiscuit
+    ? BISCUIT_ALTERNATIVE_FALLBACKS.map((item) => ({
+      ...item,
+      healthierScore: nutritionHealthScore(item.nutrition, item.nutriscoreGrade)
+    })).filter((item) => sourceScore == null || item.healthierScore >= sourceScore + 0.3)
+    : [];
+  const recommendations = [...matches, ...fallbackProducts.filter((candidate) => !matches.some((match) => match.code === candidate.code))];
+  return recommendations.sort((a, b) => b.healthierScore - a.healthierScore).slice(0, 3);
 }
 
 async function lookupNutritionReference(foodName) {

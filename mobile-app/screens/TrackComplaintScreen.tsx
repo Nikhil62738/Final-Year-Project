@@ -47,6 +47,9 @@ export default function TrackComplaintScreen({
     new Set()
   );
   const [ownershipLoaded, setOwnershipLoaded] = useState(false);
+  const [ratingStars, setRatingStars] = useState(5);
+  const [ratingFeedback, setRatingFeedback] = useState('');
+  const [savingRating, setSavingRating] = useState(false);
   const user = useAuthStore((s) => s.user);
 
   /**
@@ -339,6 +342,20 @@ export default function TrackComplaintScreen({
     }
   };
 
+  const submitResolutionRating = async () => {
+    if (!complaint?._id) return;
+    setSavingRating(true);
+    try {
+      const { data } = await complaintsAPI.rate(complaint._id, { stars: ratingStars, feedback: ratingFeedback });
+      setComplaint(data.complaint);
+      Alert.alert('Thank you', 'Your resolution rating has been saved.');
+    } catch (err: any) {
+      Alert.alert('Could not save rating', err?.response?.data?.message || 'Please try again later.');
+    } finally {
+      setSavingRating(false);
+    }
+  };
+
   return (
     <View style={styles.flex}>
 
@@ -505,6 +522,37 @@ export default function TrackComplaintScreen({
                   </Text>
                 </View>
               )}
+
+            {user && myComplaintIds.has(complaint._id) && complaint.status === 'resolved' && complaint.superAdminFinalized ? (
+              complaint.rating?.stars ? (
+                <View style={styles.ratingCard}>
+                  <Text style={styles.ratingTitle}>Your resolution rating</Text>
+                  <Text style={styles.ratingStars}>{'★'.repeat(complaint.rating.stars)}{'☆'.repeat(5 - complaint.rating.stars)}</Text>
+                  {complaint.rating.feedback ? <Text style={styles.ratingFeedback}>{complaint.rating.feedback}</Text> : null}
+                </View>
+              ) : (
+                <View style={styles.ratingCard}>
+                  <Text style={styles.ratingTitle}>Rate the approved resolution</Text>
+                  <View style={styles.ratingRow}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <TouchableOpacity key={star} onPress={() => setRatingStars(star)}>
+                        <Text style={[styles.ratingStar, star <= ratingStars && styles.ratingStarActive]}>★</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <TextInput
+                    style={styles.ratingInput}
+                    placeholder="Optional feedback"
+                    value={ratingFeedback}
+                    onChangeText={setRatingFeedback}
+                    multiline
+                  />
+                  <TouchableOpacity style={styles.ratingSubmit} onPress={submitResolutionRating} disabled={savingRating}>
+                    {savingRating ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.ratingSubmitText}>Submit rating</Text>}
+                  </TouchableOpacity>
+                </View>
+              )
+            ) : null}
 
             <Button
               title="Track Another Code"
@@ -848,4 +896,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+
+  ratingCard: { backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 12, padding: 16, marginTop: 16 },
+  ratingTitle: { color: '#92400E', fontSize: 15, fontWeight: '800', marginBottom: 8 },
+  ratingRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  ratingStar: { color: '#CBD5E1', fontSize: 30 },
+  ratingStarActive: { color: '#F59E0B' },
+  ratingInput: { minHeight: 70, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#FCD34D', borderRadius: 8, padding: 10, color: '#1E293B', textAlignVertical: 'top' },
+  ratingSubmit: { alignSelf: 'flex-start', marginTop: 10, backgroundColor: '#D97706', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
+  ratingSubmitText: { color: '#FFFFFF', fontWeight: '800' },
+  ratingFeedback: { color: '#475569', marginTop: 4 },
 });

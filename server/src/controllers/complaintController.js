@@ -376,12 +376,19 @@ export async function rateComplaint(req, res) {
     const { id } = req.params;
     const { stars, feedback } = req.body;
 
-    if (!stars || stars < 1 || stars > 5) {
+    if (!Number.isInteger(Number(stars)) || Number(stars) < 1 || Number(stars) > 5) {
       return res.status(400).json({ message: "Valid rating (1-5 stars) is required." });
     }
 
     const complaint = await Complaint.findById(id);
     if (!complaint) return res.status(404).json({ message: "Complaint not found" });
+
+    if (!complaint.userId || complaint.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Only the complaint owner can rate this resolution." });
+    }
+    if (complaint.status !== "resolved" || !complaint.superAdminFinalized) {
+      return res.status(409).json({ message: "You can rate this complaint after the Super Admin approves its resolution." });
+    }
 
     complaint.rating = {
       stars: Number(stars),
@@ -393,6 +400,27 @@ export async function rateComplaint(req, res) {
     res.json({ success: true, message: "Thank you! Rating saved.", complaint: publicComplaint(complaint) });
   } catch (err) {
     res.status(500).json({ message: "Failed to rate complaint", error: err.message });
+  }
+}
+
+export async function resubmitComplaint(req, res) {
+  try {
+    const complaint = await Complaint.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!complaint) return res.status(404).json({ message: "Complaint not found in your account." });
+    if (complaint.superAdminFinalized || complaint.status === "resolved") {
+      return res.status(409).json({ message: "A Super Admin approved resolution cannot be resubmitted." });
+    }
+    complaint.status = "submitted";
+    complaint.pendingDistrictUpdate = false;
+    complaint.statusHistory.push({
+      status: "submitted",
+      at: new Date(),
+      publicNote: "The complaint owner resubmitted this unresolved complaint for review."
+    });
+    await complaint.save();
+    return res.json({ success: true, message: "Complaint resubmitted for review.", complaint: publicComplaint(complaint) });
+  } catch (err) {
+    return res.status(500).json({ message: "Failed to resubmit complaint." });
   }
 }
 

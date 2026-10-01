@@ -10,6 +10,7 @@ import {
   updateComplaintStatus,
   voteComplaint,
   rateComplaint,
+  resubmitComplaint,
   getOfficerWorkload
 } from "../controllers/complaintController.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -22,6 +23,7 @@ router.get("/public", listPublicComplaints);
 router.get("/history", protectUser, listMyHistory);
 router.get("/workload", protect, getOfficerWorkload);
 router.post("/:id/rate", protectUser, rateComplaint);
+router.post("/:id/resubmit", protectUser, resubmitComplaint);
 router.post("/:id/vote", protectUser, voteComplaint);
 router.post("/check-duplicates", protectUser, checkDuplicates);
 router.post("/", protectUser, uploadEvidence.array("evidence", 5), createComplaint);

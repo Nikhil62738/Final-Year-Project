@@ -81,6 +81,9 @@ export const complaintsAPI = {
   },
 
   vote: (id: string) => api.post(`/api/complaints/${id}/vote`),
+  rate: (id: string, data: { stars: number; feedback?: string }) =>
+    api.post(`/api/complaints/${id}/rate`, data),
+  resubmit: (id: string) => api.post(`/api/complaints/${id}/resubmit`),
 };
 
 export const foodFactsAPI = {

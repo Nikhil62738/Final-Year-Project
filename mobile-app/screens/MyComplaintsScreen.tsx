@@ -61,6 +61,16 @@ export default function MyComplaintsScreen({ navigation }: MyComplaintsScreenPro
     fetchComplaints(true);
   }, []);
 
+  const resubmitComplaint = async (complaint: any) => {
+    try {
+      const { data } = await complaintsAPI.resubmit(complaint._id);
+      setComplaints((items) => items.map((item) => item._id === complaint._id ? data.complaint : item));
+      Alert.alert('Complaint resubmitted', 'Your unresolved complaint has been sent for review again.');
+    } catch (err: any) {
+      Alert.alert('Could not resubmit', err?.response?.data?.message || 'Please try again later.');
+    }
+  };
+
   const statusCfg = (status: string) =>
     STATUS_CONFIG[status] || { label: status, color: '#94A3B8', icon: '📋' };
 
@@ -132,6 +142,18 @@ export default function MyComplaintsScreen({ navigation }: MyComplaintsScreenPro
                   {c.vendorName ? <Text style={styles.vendor}>{c.vendorName}</Text> : null}
                   {c.district ? (
                     <Text style={styles.location}>📍 {c.taluka ? `${c.taluka}, ` : ''}{c.district}</Text>
+                  ) : null}
+
+                  {!c.superAdminFinalized && c.status !== 'resolved' ? (
+                    <TouchableOpacity
+                      style={styles.resubmitBtn}
+                      onPress={() => Alert.alert('Resubmit complaint?', 'Send this unresolved complaint for review again?', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Resubmit', onPress: () => resubmitComplaint(c) },
+                      ])}
+                    >
+                      <Text style={styles.resubmitText}>Resubmit for review</Text>
+                    </TouchableOpacity>
                   ) : null}
 
                   <View style={styles.cardFooter}>
@@ -213,4 +235,6 @@ const styles = StyleSheet.create({
   tapText: { fontSize: 11, color: '#0F4C3A', fontWeight: '600' },
   votePill: { backgroundColor: '#F0FDF4', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
   voteText: { fontSize: 11, color: '#16A34A', fontWeight: '600' },
+  resubmitBtn: { alignSelf: 'flex-start', marginTop: 10, backgroundColor: '#047857', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 8 },
+  resubmitText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
 });

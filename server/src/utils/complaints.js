@@ -66,6 +66,8 @@ export function publicComplaint(complaint) {
     district: complaint.district,
     taluka: complaint.taluka || "",
     status: complaint.status,
+    superAdminFinalized: complaint.superAdminFinalized || false,
+    rating: complaint.rating?.stars ? complaint.rating : null,
     upvotes: complaint.upvotes || 0,
     voters: complaint.voters || [],
     resolutionProof: complaint.resolutionProof || [],

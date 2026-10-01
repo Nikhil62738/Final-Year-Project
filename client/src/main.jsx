@@ -1369,6 +1369,7 @@ function MyHistory({ citizen, navigate }) {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [busyComplaintId, setBusyComplaintId] = useState("");
 
   useEffect(() => {
     async function fetchHistory() {
@@ -1384,6 +1385,19 @@ function MyHistory({ citizen, navigate }) {
     }
     fetchHistory();
   }, []);
+
+  async function resubmit(c) {
+    if (!confirm("Resubmit this unresolved complaint for review?")) return;
+    setBusyComplaintId(c._id);
+    try {
+      const result = await api(`/api/complaints/${c._id}/resubmit`, { method: "POST" });
+      setComplaints((items) => items.map((item) => item._id === c._id ? result.complaint : item));
+    } catch (err) {
+      alert(err.message || "Could not resubmit complaint");
+    } finally {
+      setBusyComplaintId("");
+    }
+  }
 
   return (
     <section className="page history-page">
@@ -1423,6 +1437,20 @@ function MyHistory({ citizen, navigate }) {
                   <span>Reported on: {new Date(c.createdAt).toLocaleDateString()}</span>
                   <span>Upvotes: ❤️ {c.upvotes || 0}</span>
                 </div>
+                {c.status === "resolved" && c.superAdminFinalized && (
+                  <div style={{ marginTop: "14px" }}>
+                    <ComplaintRatingWidget
+                      complaintId={c._id}
+                      existingRating={c.rating}
+                      onRated={(rating) => setComplaints((items) => items.map((item) => item._id === c._id ? { ...item, rating } : item))}
+                    />
+                  </div>
+                )}
+                {!c.superAdminFinalized && c.status !== "resolved" && (
+                  <button type="button" disabled={busyComplaintId === c._id} onClick={() => resubmit(c)} style={{ marginTop: "14px", padding: "9px 14px", border: "0", borderRadius: "8px", background: "#047857", color: "white", fontWeight: 700, cursor: "pointer" }}>
+                    {busyComplaintId === c._id ? "Resubmitting…" : "Resubmit for review"}
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -1554,12 +1582,12 @@ function TrackComplaint({ citizen, navigate }) {
                   </ol>
                 </div>
 
-                {searchedComplaint.status === "resolved" && (
+                {searchedComplaint.status === "resolved" && searchedComplaint.superAdminFinalized && citizen && String(searchedComplaint.userId) === String(citizen.id || citizen._id) && (
                   <div style={{ marginTop: "24px" }}>
                     <ComplaintRatingWidget 
                       complaintId={searchedComplaint._id} 
                       existingRating={searchedComplaint.rating}
-                      onRated={(updatedComplaint) => setSearchedComplaint(updatedComplaint)} 
+                      onRated={(rating) => setSearchedComplaint((current) => ({ ...current, rating }))} 
                     />
                   </div>
                 )}

@@ -4150,6 +4150,7 @@ html, body {
 .food-alternative-product-info { display: grid; gap: .3rem; min-width: 0; }
 .food-alternative-product-info strong { color: #0f172a; }
 .food-alternative-product-info span, .food-alternative-product-info small { color: #64748b; font-size: .82rem; line-height: 1.4; }
+.food-alternative-product-info .food-alternative-score { width: fit-content; padding: .2rem .55rem; border-radius: 999px; background: #dcfce7; color: #166534; font-weight: 800; }
 .food-highlight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
 .food-highlight-grid > div { display: flex; flex-direction: column; gap: .25rem; padding: .8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
 .food-highlight-grid strong { color: #0f172a; font-size: 1rem; overflow-wrap: anywhere; }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const API_BASE = (window.SAFEWATCH_API_BASE_URL || "https://fda-safewatch.onrender.com").replace(/\/$/, "");
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || window.SAFEWATCH_API_BASE_URL || "https://fda-safewatch.onrender.com").replace(/\/$/, "");
 
 // Helper API caller
 async function apiCall(path, options = {}) {

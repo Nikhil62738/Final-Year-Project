@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, Alert } from 'react-native';
+import { Text, View, Alert, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { checkForUpdate, downloadAndInstallUpdate } from './services/updateService';
 import * as Application from 'expo-application';
@@ -347,159 +347,120 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
 
-      {/* UPDATE DIALOG */}
+      {/* REMOTE UPDATE MODAL */}
       {updateInfo && !checkingUpdate && (
         <View
           style={{
             position: 'absolute',
-            left: 20,
-            right: 20,
-            top: '30%',
-            backgroundColor: '#FFFFFF',
-            borderRadius: 20,
-            padding: 24,
-            elevation: 10,
-            shadowColor: '#000',
-            shadowOpacity: 0.2,
-            shadowRadius: 10,
-            shadowOffset: {
-              width: 0,
-              height: 5,
-            },
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+            zIndex: 9999,
+            elevation: 20,
           }}
         >
-          <Text
+          <View
             style={{
-              fontSize: 22,
-              fontWeight: '700',
-              color: '#111827',
-              marginBottom: 10,
+              width: '100%',
+              maxWidth: 380,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 20,
+              padding: 24,
+              shadowColor: '#000',
+              shadowOpacity: 0.25,
+              shadowRadius: 15,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 10,
             }}
           >
-            Update Available
-          </Text>
-
-          <Text
-            style={{
-              fontSize: 15,
-              color: '#475569',
-              lineHeight: 22,
-              marginBottom: 12,
-            }}
-          >
-            A new version of FDA SafeWatch is available.
-          </Text>
-
-          <Text
-            style={{
-              fontSize: 14,
-              color: '#64748B',
-              marginBottom: 10,
-            }}
-          >
-            Current version: {Application.nativeApplicationVersion || '1.0.1'}
-          </Text>
-
-          <Text
-            style={{
-              fontSize: 14,
-              color: '#64748B',
-              marginBottom: 18,
-            }}
-          >
-            New version: {updateInfo.version}
-          </Text>
-
-          {updateInfo.releaseNotes ? (
-            <Text
-              style={{
-                fontSize: 14,
-                color: '#475569',
-                marginBottom: 20,
-              }}
-            >
-              {updateInfo.releaseNotes}
-            </Text>
-          ) : null}
-
-          {downloadingUpdate ? (
-            <View>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  marginBottom: 8,
-                }}
-              >
-                Downloading update...
-              </Text>
-
-              <View
-                style={{
-                  height: 10,
-                  backgroundColor: '#E2E8F0',
-                  borderRadius: 10,
-                  overflow: 'hidden',
-                }}
-              >
-                <View
-                  style={{
-                    height: '100%',
-                    width: `${Math.round(
-                      downloadProgress * 100
-                    )}%`,
-                    backgroundColor: Colors.primary,
-                  }}
-                />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 22 }}>🚀</Text>
               </View>
-
-              <Text
-                style={{
-                  textAlign: 'center',
-                  marginTop: 8,
-                  fontWeight: '600',
-                }}
-              >
-                {Math.round(downloadProgress * 100)}%
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A' }}>
+                  Update Available
+                </Text>
+                <Text style={{ fontSize: 13, color: '#64748B' }}>
+                  v{Application.nativeApplicationVersion || '1.0.0'} → v{updateInfo.version}
+                </Text>
+              </View>
             </View>
-          ) : (
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                gap: 10,
-              }}
-            >
-              {!updateInfo.forceUpdate && (
-                <Text
-                  onPress={() => setUpdateInfo(null)}
+
+            <Text style={{ fontSize: 14, color: '#334155', lineHeight: 21, marginBottom: 14 }}>
+              A new version of FDA SafeWatch is ready to install with latest food safety features and improvements.
+            </Text>
+
+            {updateInfo.releaseNotes ? (
+              <View style={{ backgroundColor: '#F8FAFC', borderRadius: 10, padding: 12, marginBottom: 18, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 4, textTransform: 'uppercase' }}>
+                  What's New:
+                </Text>
+                <Text style={{ fontSize: 13, color: '#334155', lineHeight: 18 }}>
+                  {updateInfo.releaseNotes}
+                </Text>
+              </View>
+            ) : null}
+
+            {downloadingUpdate ? (
+              <View style={{ marginTop: 6 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F4C3A', marginBottom: 8 }}>
+                  Downloading update APK ({Math.round(downloadProgress * 100)}%)...
+                </Text>
+                <View style={{ height: 10, backgroundColor: '#E2E8F0', borderRadius: 10, overflow: 'hidden' }}>
+                  <View
+                    style={{
+                      height: '100%',
+                      width: `${Math.max(5, Math.round(downloadProgress * 100))}%`,
+                      backgroundColor: Colors.primary,
+                      borderRadius: 10,
+                    }}
+                  />
+                </View>
+                <Text style={{ fontSize: 12, color: '#64748B', marginTop: 6, textAlign: 'center' }}>
+                  Please wait, installer will launch once download finishes.
+                </Text>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 6 }}>
+                {!updateInfo.forceUpdate && (
+                  <TouchableOpacity
+                    onPress={() => setUpdateInfo(null)}
+                    style={{
+                      paddingVertical: 12,
+                      paddingHorizontal: 16,
+                      borderRadius: 10,
+                      backgroundColor: '#F1F5F9',
+                    }}
+                  >
+                    <Text style={{ fontWeight: '700', color: '#64748B', fontSize: 14 }}>Later</Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  onPress={handleUpdate}
                   style={{
                     paddingVertical: 12,
-                    paddingHorizontal: 18,
-                    fontWeight: '600',
-                    color: '#64748B',
+                    paddingHorizontal: 22,
+                    backgroundColor: Colors.primary,
+                    borderRadius: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  Later
-                </Text>
-              )}
-
-              <Text
-                onPress={handleUpdate}
-                style={{
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  backgroundColor: Colors.primary,
-                  color: '#FFFFFF',
-                  borderRadius: 10,
-                  fontWeight: '700',
-                }}
-              >
-                Update Now
-              </Text>
-            </View>
-          )}
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                    Update Now ⚡
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
       )}
     </SafeAreaProvider>

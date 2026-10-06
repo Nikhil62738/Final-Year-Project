@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, Linking } from 'react-native';
 import * as Application from 'expo-application';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -14,41 +14,38 @@ export interface UpdateInfo {
   releaseNotes?: string;
 }
 
-function compareVersions(current: string, latest: string): number {
-  const currentParts = current.split('.').map(Number);
-  const latestParts = latest.split('.').map(Number);
-
+/**
+ * Compares two semantic version strings (e.g. "1.0.0" vs "1.0.1").
+ * Returns true if latest > current (i.e. an update is available).
+ */
+export function isUpdateAvailable(current: string, latest: string): boolean {
+  const currentParts = (current || '').split('.').map((p) => parseInt(p, 10) || 0);
+  const latestParts = (latest || '').split('.').map((p) => parseInt(p, 10) || 0);
   const length = Math.max(currentParts.length, latestParts.length);
 
   for (let i = 0; i < length; i++) {
-    const currentPart = currentParts[i] || 0;
-    const latestPart = latestParts[i] || 0;
+    const cur = currentParts[i] || 0;
+    const lat = latestParts[i] || 0;
 
-    if (latestPart > currentPart) return 1;
-    if (latestPart < currentPart) return -1;
+    if (lat > cur) return true;
+    if (lat < cur) return false;
   }
 
-  return 0;
+  return false;
 }
 
 export async function checkForUpdate(): Promise<UpdateInfo | null> {
   try {
-    if (Platform.OS !== 'android') {
-      return null;
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/app-version`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/app-version`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(`Update server returned ${response.status}`);
+      console.warn(`Update server returned status ${response.status}`);
+      return null;
     }
 
     const data: Partial<UpdateInfo> = await response.json();
@@ -62,24 +59,19 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
       return null;
     }
 
-    let apkUrl: URL;
-    try {
-      apkUrl = new URL(data.apkUrl);
-    } catch {
-      return null;
-    }
-
-    if (apkUrl.protocol !== 'https:') {
-      return null;
-    }
+    const trimmedUrl = data.apkUrl.trim();
+    const fullApkUrl =
+      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
+        ? trimmedUrl
+        : `${API_BASE_URL}${trimmedUrl.startsWith('/') ? '' : '/'}${trimmedUrl}`;
 
     const update: UpdateInfo = {
       version: data.version,
-      apkUrl: apkUrl.toString(),
+      apkUrl: fullApkUrl,
       forceUpdate: data.forceUpdate === true,
       releaseNotes:
-        typeof data.releaseNotes === 'string'
-          ? data.releaseNotes
+        typeof data.releaseNotes === 'string' && data.releaseNotes.trim()
+          ? data.releaseNotes.trim()
           : undefined,
     };
 
@@ -87,17 +79,14 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
       Application.nativeApplicationVersion || '1.0.0';
 
     console.log('Current app version:', currentVersion);
-    console.log('Latest app version:', data.version);
+    console.log('Latest remote version:', update.version);
 
-    const comparison = compareVersions(
-      currentVersion,
-      update.version
-    );
-
-    if (comparison < 0) {
+    if (isUpdateAvailable(currentVersion, update.version)) {
+      console.log('Remote update is available:', update);
       return update;
     }
 
+    console.log('App is up to date.');
     return null;
   } catch (error) {
     console.log('UPDATE CHECK ERROR:', error);
@@ -109,59 +98,55 @@ export async function downloadAndInstallUpdate(
   update: UpdateInfo,
   onProgress?: (progress: number) => void
 ): Promise<void> {
-  if (Platform.OS !== 'android') {
-    throw new Error('APK updates are supported only on Android.');
-  }
-
   if (!update.apkUrl) {
     throw new Error('APK download URL is missing.');
   }
 
-  const fileName = `fda-safewatch-${update.version}.apk`;
+  if (Platform.OS !== 'android') {
+    // Open in browser on non-Android platforms
+    await Linking.openURL(update.apkUrl);
+    return;
+  }
 
-  const fileUri =
-    `${FileSystem.cacheDirectory}${fileName}`;
+  const fileName = `fda-safewatch-v${update.version}.apk`;
+  const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
 
-  console.log('Downloading update from:', update.apkUrl);
+  console.log('Downloading remote update from:', update.apkUrl);
   console.log('Saving APK to:', fileUri);
 
-  const downloadResumable =
-    FileSystem.createDownloadResumable(
-      update.apkUrl,
-      fileUri,
-      {},
-      (downloadProgress) => {
-        if (
-          downloadProgress.totalBytesExpectedToWrite > 0
-        ) {
-          const progress =
-            downloadProgress.totalBytesWritten /
-            downloadProgress.totalBytesExpectedToWrite;
-
-          onProgress?.(progress);
-        }
+  const downloadResumable = FileSystem.createDownloadResumable(
+    update.apkUrl,
+    fileUri,
+    {},
+    (downloadProgress) => {
+      if (downloadProgress.totalBytesExpectedToWrite > 0) {
+        const progress =
+          downloadProgress.totalBytesWritten /
+          downloadProgress.totalBytesExpectedToWrite;
+        onProgress?.(progress);
       }
-    );
+    }
+  );
 
   const result = await downloadResumable.downloadAsync();
 
   if (!result?.uri) {
-    throw new Error('APK download failed.');
+    throw new Error('APK download failed. Please check your internet connection.');
   }
 
-  console.log('APK downloaded:', result.uri);
+  console.log('APK successfully downloaded:', result.uri);
 
-  const contentUri =
-    await FileSystem.getContentUriAsync(result.uri);
+  try {
+    const contentUri = await FileSystem.getContentUriAsync(result.uri);
+    console.log('Content URI ready for installation:', contentUri);
 
-  console.log('APK content URI:', contentUri);
-
-  await IntentLauncher.startActivityAsync(
-    'android.intent.action.VIEW',
-    {
+    await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
       data: contentUri,
       type: 'application/vnd.android.package-archive',
       flags: 1 | 2,
-    }
-  );
+    });
+  } catch (intentErr) {
+    console.warn('Direct package installer launch failed, opening APK in browser:', intentErr);
+    await Linking.openURL(update.apkUrl);
+  }
 }

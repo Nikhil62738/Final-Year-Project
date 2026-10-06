@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { connectDb } from "./config/db.js";
 
@@ -312,6 +313,28 @@ app.use("/api/logs", logRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/products", productRoutes);
 
+const downloadsDir = path.join(__dirname, "../public/downloads");
+if (!fs.existsSync(downloadsDir)) {
+  fs.mkdirSync(downloadsDir, { recursive: true });
+}
+app.use("/downloads", express.static(downloadsDir));
+
+// Remote App Update Version Endpoint
+app.get("/api/app-version", (req, res) => {
+  const version = process.env.APP_VERSION?.trim() || "1.0.1";
+  const defaultApkUrl = `https://github.com/Nikhil62738/Final-Year-Project/releases/download/v${version}/fda-safewatch.apk`;
+  const apkUrl = process.env.APP_APK_URL?.trim() || defaultApkUrl;
+
+  res.json({
+    version,
+    apkUrl,
+    forceUpdate: process.env.APP_FORCE_UPDATE === "true",
+    releaseNotes:
+      process.env.APP_RELEASE_NOTES?.trim() ||
+      "New release with verified Indian food scanning, Open Prices & MRP support, and UI performance enhancements."
+  });
+});
+
 // ==================================================
 // ERROR HANDLING
 // ==================================================
@@ -343,13 +366,3 @@ connectDb()
     process.exit(1);
   });
 
-app.get('/api/app-version', (req, res) => {
-  const apkUrl = process.env.APP_APK_URL?.trim() || '';
-
-  res.json({
-    version: process.env.APP_VERSION?.trim() || '1.0.0',
-    apkUrl,
-    forceUpdate: process.env.APP_FORCE_UPDATE === 'true',
-    releaseNotes: process.env.APP_RELEASE_NOTES?.trim() || ''
-  });
-});

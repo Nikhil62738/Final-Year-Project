@@ -1,10 +1,61 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import * as Application from 'expo-application';
 import { Colors, Radius } from '../constants/colors';
+import { checkForUpdate, downloadAndInstallUpdate } from '../services/updateService';
 
 interface AboutScreenProps { navigation?: any; }
 
 export default function AboutScreen({ navigation }: AboutScreenProps = {}) {
+  const [checking, setChecking] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+
+  const currentVersion = Application.nativeApplicationVersion || '1.0.0';
+
+  const handleCheckUpdate = async () => {
+    try {
+      setChecking(true);
+      const update = await checkForUpdate();
+
+      if (!update) {
+        Alert.alert(
+          'FDA SafeWatch is Up to Date',
+          `You are using the latest version (${currentVersion}). No updates are currently needed.`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      Alert.alert(
+        'New Version Available 🚀',
+        `Version ${update.version} is ready to install.\n\n${update.releaseNotes || 'Includes food safety updates and bug fixes.'}\n\nWould you like to download and install it now?`,
+        [
+          { text: 'Later', style: 'cancel' },
+          {
+            text: 'Update Now',
+            onPress: async () => {
+              try {
+                setDownloading(true);
+                await downloadAndInstallUpdate(update, (progress) => {
+                  setDownloadProgress(progress);
+                });
+              } catch (err: any) {
+                Alert.alert('Update Failed', err?.message || 'Could not download APK.');
+              } finally {
+                setDownloading(false);
+              }
+            },
+          },
+        ]
+      );
+    } catch {
+      Alert.alert('Check Failed', 'Could not connect to update server. Please check your network.');
+    } finally {
+      setChecking(false);
+    }
+  };
+
   return (
     <View style={styles.flex}>
       <View style={styles.header}>
@@ -28,8 +79,22 @@ export default function AboutScreen({ navigation }: AboutScreenProps = {}) {
           <Text style={styles.appName}>FDA SafeWatch</Text>
           <Text style={styles.tagline}>Food Safety, Healthy India</Text>
           <View style={styles.versionPill}>
-            <Text style={styles.versionText}>Version 1.0.0</Text>
+            <Text style={styles.versionText}>Version {currentVersion}</Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.updateBtn}
+            onPress={handleCheckUpdate}
+            disabled={checking || downloading}
+          >
+            {checking ? (
+              <ActivityIndicator size="small" color="#0F4C3A" />
+            ) : downloading ? (
+              <Text style={styles.updateBtnText}>Downloading {Math.round(downloadProgress * 100)}%...</Text>
+            ) : (
+              <Text style={styles.updateBtnText}>🔄 Check for Updates</Text>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Mission */}
@@ -115,6 +180,23 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 16 },
   versionPill: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 4, borderRadius: Radius.full },
   versionText: { fontSize: 12, color: '#FFFFFF', fontWeight: '700' },
+  updateBtn: {
+    marginTop: 14,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: Radius.full,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  updateBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F4C3A',
+  },
   card: {
     backgroundColor: '#FFFFFF', borderRadius: Radius.lg,
     padding: 16, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12,

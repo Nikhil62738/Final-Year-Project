@@ -1,6 +1,7 @@
 import { lookupIfctFood } from "../services/ifctFoodData.js";
 import { estimateFoodDetailsWithGroq } from "../services/groqFoodFallback.js";
 import { lookupIndianCatalogProduct } from "../data/indianFoodCatalog.js";
+import { lookupOpenPrices } from "../services/openPricesService.js";
 
 // Accurate dataset of Indian & Global Food Products
 // E-Numbers and Additives Reference Dictionary
@@ -393,6 +394,9 @@ export const scanProduct = async (req, res) => {
       return res.status(400).json({ isFoodItem: false, error: "Enter a valid 8 to 14 digit product barcode." });
     }
 
+    // Start concurrent Open Prices (OpenMRP) API lookup
+    const openPricePromise = lookupOpenPrices(cleanBarcode).catch(() => null);
+
     let record = null;
     let isCatalogFallback = false;
 
@@ -432,6 +436,9 @@ export const scanProduct = async (req, res) => {
       }
       if (!record.nutriscore_grade && indianMatch.nutriscore_grade) {
         record.nutriscore_grade = indianMatch.nutriscore_grade;
+      }
+      if (!record.mrp && indianMatch.mrp) {
+        record.mrp = indianMatch.mrp;
       }
     }
 
@@ -474,6 +481,17 @@ export const scanProduct = async (req, res) => {
       : groqEstimate && !hasProductNutrition
         ? healthReport(groqEstimate.healthReportData, record.nutriscore_grade, record.nova_group)
       : healthReport(nutrition, record.nutriscore_grade, record.nova_group);
+
+    // Resolve Open Prices (OpenMRP) or retail packaging MRP
+    const openPrice = await openPricePromise;
+    const finalPriceDetails = openPrice || (record.mrp ? {
+      price: record.mrp,
+      currency: "INR",
+      formattedPrice: `₹${record.mrp} (Standard MRP)`,
+      store: "Retail Packaging",
+      source: "Verified Indian FMCG Retail Packaging MRP"
+    } : null);
+
     const product = {
       barcode: record.code || cleanBarcode,
       name: record.product_name,
@@ -481,6 +499,8 @@ export const scanProduct = async (req, res) => {
       category: record.categories || "Food product",
       fssaiLicense: record.fssaiLicense || null,
       fssaiStatus: isCatalogFallback ? "Verified Indian FMCG Product" : "Not verified by this lookup",
+      mrp: finalPriceDetails?.formattedPrice || null,
+      priceDetails: finalPriceDetails,
       nutriscoreGrade: record.nutriscore_grade || null,
       novaGroup: record.nova_group || null,
       ...reportHealth,

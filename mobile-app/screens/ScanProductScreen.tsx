@@ -140,6 +140,8 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           adulterationAssessment: p.adulterationAssessment || '',
           barcode: cleanCode,
           nutriscoreGrade: p.nutriscoreGrade || '',
+          mrp: p.mrp || p.priceDetails?.formattedPrice || '',
+          priceDetails: p.priceDetails || null,
         };
         
         const nutrition = p.nutrition || {};
@@ -571,6 +573,11 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
                       <Text style={styles.novaText}>NOVA {healthAnalysis.novaGroup}</Text>
                     </View>
                   )}
+                  {product?.mrp ? (
+                    <View style={styles.mrpBadge}>
+                      <Text style={styles.mrpBadgeText}>🏷️ {product.mrp}</Text>
+                    </View>
+                  ) : null}
                 </View>
               </View>
             </View>
@@ -627,6 +634,24 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <View style={styles.sectionBody}>
+              {product?.mrp ? (
+                <View style={styles.priceInfoCard}>
+                  <View style={styles.priceInfoRow}>
+                    <Text style={styles.priceInfoLabel}>Retail Price / MRP</Text>
+                    <Text style={styles.priceInfoValue}>{product.mrp}</Text>
+                  </View>
+                  {product.priceDetails?.source ? (
+                    <Text style={styles.priceInfoSource}>Source: {product.priceDetails.source}</Text>
+                  ) : null}
+                  {product.priceDetails?.store ? (
+                    <Text style={styles.priceInfoMeta}>
+                      Store: {product.priceDetails.store}
+                      {product.priceDetails.city ? ` (${product.priceDetails.city})` : ''}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+
               <Text style={styles.subHeading}>Key Nutrition Highlights (per 100g/ml)</Text>
               <View style={styles.macroGrid}>
                 <View style={styles.macroBox}>
@@ -1060,6 +1085,32 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   novaText: { color: '#334155', fontSize: 10, fontWeight: '800' },
+  mrpBadge: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  mrpBadgeText: { color: '#1E40AF', fontSize: 10, fontWeight: '800' },
+  priceInfoCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 12,
+    marginBottom: 16,
+  },
+  priceInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  priceInfoLabel: { fontSize: 13, fontWeight: '700', color: '#1E293B' },
+  priceInfoValue: { fontSize: 15, fontWeight: '900', color: '#0F4C3A' },
+  priceInfoSource: { fontSize: 11, color: '#64748B', marginTop: 4 },
+  priceInfoMeta: { fontSize: 11, color: '#475569', marginTop: 2 },
   healthBanner: {
     marginTop: 14,
     paddingVertical: 10,

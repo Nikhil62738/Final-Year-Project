@@ -5361,6 +5361,7 @@ function FoodScannerView({ navigate, t = (value) => value, language = "en" }) {
               <div className="food-report-badges">
                 {result.nutriscoreGrade && !["unknown", "not-applicable", "not_applicable"].includes(String(result.nutriscoreGrade).toLowerCase()) && <span>Nutri-Score {result.nutriscoreGrade.toUpperCase()}</span>}
                 {result.novaGroup && <span>NOVA {result.novaGroup}</span>}
+                {result.mrp && <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", fontWeight: 700 }}>🏷️ {result.mrp}</span>}
                 {result.aiGeneratedEstimate && <span>{t("AI estimate")}</span>}
               </div>
               {result.healthRisk && <div className={`food-risk-banner ${result.healthRisk.level}`}><strong>{result.healthRisk.level === "high" ? "🔴" : result.healthRisk.level === "moderate" ? "🟠" : "🟢"} {localizedRiskHeadline(result.healthRisk.level)}</strong></div>}
@@ -5371,6 +5372,16 @@ function FoodScannerView({ navigate, t = (value) => value, language = "en" }) {
               </div>
 
               {reportTab === "overview" && <section className="food-report-section" role="tabpanel">
+                {result.mrp && (
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "10px 14px", marginBottom: "1rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#1e293b" }}>{t("Retail Price / MRP")}</span>
+                      <strong style={{ fontSize: "1.05rem", color: "#0f766e" }}>{result.mrp}</strong>
+                    </div>
+                    {result.priceDetails?.source && <div style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "3px" }}>{t("Source:")} {result.priceDetails.source}</div>}
+                    {result.priceDetails?.store && <div style={{ fontSize: "0.75rem", color: "#475569", marginTop: "2px" }}>{t("Store:")} {result.priceDetails.store} {result.priceDetails.city ? `(${result.priceDetails.city})` : ""}</div>}
+                  </div>
+                )}
                 {result.aiFoodOverview && <><h3>{t("Food details")}</h3><p>{result.aiFoodOverview}</p></>}
                 <h3>{t("Key Nutrition Highlights (per 100 g)")}</h3>
                 {nutritionRows.length ? <div className="food-highlight-grid">{nutritionRows.filter(([key]) => ["calories", "protein", "sugar", "fat"].includes(key)).map(([key, value]) => <div key={key}><strong>{value}</strong><span>{t(key[0].toUpperCase() + key.slice(1))}</span></div>)}</div> : <p>{t("Nutrition information is not available for this item.")}</p>}

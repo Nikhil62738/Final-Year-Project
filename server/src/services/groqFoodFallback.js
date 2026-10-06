@@ -72,13 +72,29 @@ export async function estimateFoodDetailsWithGroq({ name, brand = "", category =
       messages: [{ role: "user", content: messageContent }],
       response_format: { type: "json_object" },
       temperature: 0,
-      max_completion_tokens: 1200
+      max_completion_tokens: 500
     })
   });
 
   if (!response.ok) {
+    if (response.status === 429) {
+      const error = new Error("AI scanning service is currently busy or rate-limited. Please wait a moment and try again.");
+      error.status = 429;
+      throw error;
+    }
     const detail = await response.text().catch(() => "");
-    throw new Error(`Groq food detail request failed (${response.status})${detail ? `: ${detail.slice(0, 240)}` : ""}`);
+    let userMsg = "AI food scanning service request failed.";
+    try {
+      const parsed = JSON.parse(detail);
+      if (parsed?.error?.message) {
+        userMsg = parsed.error.message;
+      }
+    } catch (_) {
+      if (detail) userMsg = `${userMsg} ${detail.slice(0, 150)}`;
+    }
+    const error = new Error(userMsg);
+    error.status = response.status;
+    throw error;
   }
   const payload = await response.json();
   const text = payload.choices?.[0]?.message?.content;

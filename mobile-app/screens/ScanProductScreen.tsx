@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,12 @@ import {
   Platform,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useIsFocused } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors, FontSizes, Radius, Spacing } from '../constants/colors';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import { foodFactsAPI } from '../services/api';
+import { foodFactsAPI, userAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import {
   HealthAssessment,
@@ -26,9 +27,12 @@ import {
 type ScanMode = 'barcode' | 'photo' | 'manual' | 'result' | 'photoResult' | 'notFood';
 
 export default function ScanProductScreen({ navigation }: { navigation?: any } = {}) {
+  const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<ScanMode>('barcode');
   const [scanned, setScanned] = useState(false);
+  const [torch, setTorch] = useState(false);
+  const isScanningRef = useRef(false);
   const [manualBarcode, setManualBarcode] = useState('');
   const [lastBarcode, setLastBarcode] = useState('');
   const [product, setProduct] = useState<any>(null);
@@ -44,77 +48,149 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
   const [loadingKind, setLoadingKind] = useState<'barcode' | 'photo'>('barcode');
   const [loadingMessage, setLoadingMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'nutrition' | 'warnings' | 'alternatives'>('overview');
+  const [savingProduct, setSavingProduct] = useState(false);
   const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (!permission?.granted && permission?.canAskAgain) {
+      requestPermission();
+    }
+  }, [permission]);
 
   const parseNutritionValue = (value: any): number | null => {
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : null;
   };
 
+  const handleSaveProduct = async () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please log in to save this product to your profile.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log In', onPress: () => navigation?.navigate('Login') },
+      ]);
+      return;
+    }
+    if (!product?.barcode) {
+      Alert.alert('Unavailable', 'Only products with a verified barcode can be saved.');
+      return;
+    }
+    setSavingProduct(true);
+    try {
+      await userAPI.saveProduct({
+        barcode: product.barcode,
+        name: product.product_name,
+        brand: product.brands,
+        imageUrl: product.image_front_url,
+        nutriscoreGrade: healthAnalysis?.nutriscoreGrade || product.nutriscoreGrade || '',
+      });
+      Alert.alert('Product Saved', `"${product.product_name}" has been added to your Saved Products.`);
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        Alert.alert('Already Saved', 'This product is already in your Saved Products list.');
+      } else {
+        Alert.alert('Save Failed', err?.response?.data?.message || 'Could not save product.');
+      }
+    } finally {
+      setSavingProduct(false);
+    }
+  };
+
+  const resetScanner = () => {
+    isScanningRef.current = false;
+    setScanned(false);
+    setProduct(null);
+    setHealthAnalysis(null);
+    setNonFoodMessage('');
+    setMode('barcode');
+  };
+
   // 1. Fetch & Validate Barcode Product from OpenFoodFacts
   const fetchProduct = async (barcode: string) => {
-    if (!barcode.trim()) {
-      Alert.alert('Barcode Required', 'Please enter or scan a valid barcode number.');
+    const cleanCode = (barcode || '').trim().replace(/[^0-9]/g, '');
+    if (!cleanCode || !/^\d{8,14}$/.test(cleanCode)) {
+      Alert.alert('Barcode Required', 'Please enter or scan a valid 8 to 14-digit food barcode.');
+      isScanningRef.current = false;
+      setScanned(false);
       return;
     }
     setLoadingKind('barcode');
-    setLoadingMessage(`Checking barcode ${barcode.trim()}…`);
+    setLoadingMessage(`Checking barcode ${cleanCode}…`);
     setLoading(true);
     setProduct(null);
     setHealthAnalysis(null);
     setActiveTab('overview');
 
     try {
-      const { data } = await foodFactsAPI.getProduct(barcode.trim());
+      const { data } = await foodFactsAPI.getProduct(cleanCode);
       
       if (data && data.isFoodItem && data.product) {
         const p = data.product;
-        // Adapt backend format to UI expected format
+        const ingredientsText = Array.isArray(p.ingredients)
+          ? p.ingredients.join(', ')
+          : typeof p.ingredients === 'string'
+          ? p.ingredients
+          : '';
+
         const productView = {
-          product_name: p.name,
-          brands: p.brand,
-          image_front_url: p.imageUrl,
-          ingredients_text: p.ingredients.join(', ')
+          product_name: p.name || 'Food Product',
+          brands: p.brand || 'Packaged Food',
+          image_front_url: p.imageUrl || '',
+          ingredients_text: ingredientsText,
+          nutritionSource: p.nutritionSource || '',
+          adulterationAssessment: p.adulterationAssessment || '',
+          barcode: cleanCode,
+          nutriscoreGrade: p.nutriscoreGrade || '',
         };
         
+        const nutrition = p.nutrition || {};
+        const parsedSodium = parseNutritionValue(nutrition.sodium);
+        const parsedSalt = parseNutritionValue(nutrition.salt) ?? (parsedSodium != null ? parsedSodium / 1000 : null);
         const analysis: HealthAssessment = {
-          nutriscoreGrade: p.nutriscoreGrade?.toLowerCase() || '',
+          nutriscoreGrade: (p.nutriscoreGrade || '').toLowerCase(),
           novaGroup: Number(p.novaGroup) || 0,
-          healthLevel: 'unknown',
-          healthScoreText: 'Product details from Open Food Facts. Check the package label; this is not an FDA safety rating.',
+          healthLevel: p.healthRisk?.level === 'high' ? 'unhealthy' : p.healthRisk?.level === 'low' ? 'healthy' : 'unknown',
+          healthScoreText: p.healthRisk?.headline || p.nutritionSource || 'Product details from Open Food Facts. Check package label for exact values.',
           nutritionSummary: {
-             energyKcal: parseNutritionValue(p.nutrition?.calories),
-             proteinG: parseNutritionValue(p.nutrition?.protein),
-             carbsG: parseNutritionValue(p.nutrition?.carbs),
-             fatG: parseNutritionValue(p.nutrition?.fat),
-             sugarG: parseNutritionValue(p.nutrition?.sugar),
-             satFatG: parseNutritionValue(p.nutrition?.saturatedFat),
-             saltG: p.nutrition?.sodium != null ? Number(p.nutrition.sodium) / 1000 : null,
-             fiberG: null,
-             sodiumMg: parseNutritionValue(p.nutrition?.sodium)
+             energyKcal: parseNutritionValue(nutrition.calories),
+             proteinG: parseNutritionValue(nutrition.protein),
+             carbsG: parseNutritionValue(nutrition.carbs),
+             fatG: parseNutritionValue(nutrition.fat),
+             sugarG: parseNutritionValue(nutrition.sugar),
+             satFatG: parseNutritionValue(nutrition.saturatedFat),
+             saltG: parsedSalt,
+             fiberG: parseNutritionValue(nutrition.fiber),
+             sodiumMg: parsedSodium
           },
-          additives: (p.additives || []).map((a:any) => ({
-             code: a.code,
-             name: a.name,
-             risk: a.risk?.toLowerCase()?.includes('high') ? 'high' : 'low',
-             dangerMsg: a.risk
+          additives: (p.additives || []).map((a: any) => typeof a === 'string' ? { code: a, name: a, risk: 'low', dangerMsg: '' } : ({
+             code: a.code || '',
+             name: a.name || a.code || '',
+             risk: (a.risk || '').toLowerCase().includes('high') ? 'high' : 'low',
+             dangerMsg: a.risk || ''
           })),
-          allergens: p.allergens || [],
-          isHealthy: false,
-          warnings: p.warnings || [],
-          positives: [],
-          healthierAlternatives: []
+          allergens: Array.isArray(p.allergens) ? p.allergens : [],
+          isHealthy: p.healthRisk?.level === 'low',
+          warnings: Array.isArray(p.safetyAlerts) && p.safetyAlerts.length > 0
+            ? p.safetyAlerts.map((s: any) => s.detail || s.title || String(s))
+            : Array.isArray(p.warnings) ? p.warnings : [],
+          positives: Array.isArray(p.positiveFactors) ? p.positiveFactors : [],
+          healthierAlternatives: (p.healthierAlternatives || []).map((item: any) => typeof item === 'string'
+            ? ({ name: item, icon: '🥗', category: 'Alternative', benefit: '' })
+            : ({ name: item.name || '', icon: '🥗', category: 'Alternative', benefit: '', brand: item.brand, imageUrl: item.imageUrl, productUrl: item.productUrl, nutriscoreGrade: item.nutriscoreGrade, nutrition: item.nutrition }))
         };
 
         setProduct(productView);
         setHealthAnalysis(analysis);
         setMode('result');
       } else {
-        setNonFoodMessage(data?.error || 'This barcode is not in the product dataset, so its food status and details could not be verified.');
+        const errorMsg = data?.error || 'This barcode is not in the product dataset, so its food status and details could not be verified.';
+        setNonFoodMessage(errorMsg);
+        setScanErrorType('invalid-image');
         setMode('notFood');
       }
-    } catch (err) {
-      setNonFoodMessage('Unable to verify this barcode right now. Please check your connection and try again.');
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Unable to verify this barcode right now. Please check your connection and try again.';
+      setNonFoodMessage(errorMsg);
+      setScanErrorType(err?.response?.status === 429 || err?.response?.status === 503 ? 'service' : 'invalid-image');
       setMode('notFood');
     } finally {
       setLoading(false);
@@ -123,45 +199,55 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
   };
 
   const handleBarcodeScan = ({ data }: { data: string }) => {
-    if (scanned) return;
+    if (isScanningRef.current || scanned || loading) return;
+    
+    // Strict numeric check: only accept valid 8 to 14-digit retail food barcodes (EAN-8, EAN-13, UPC-A, UPC-E)
+    const cleanBarcode = (data || '').trim().replace(/[^0-9]/g, '');
+    if (!/^\d{8,14}$/.test(cleanBarcode)) {
+      // Ignore non-standard barcodes, QR codes, or random strings silently
+      return;
+    }
+
+    isScanningRef.current = true;
     setScanned(true);
-    setLastBarcode(data);
-    fetchProduct(data);
+    setLastBarcode(cleanBarcode);
+    fetchProduct(cleanBarcode);
   };
 
   // 2. Photo-based Food Scan for Items Without Barcode
-  const fetchPhotoData = async (imgUri: string) => {
+  const fetchPhotoData = async (imgUri: string, base64FromPicker?: string | null) => {
     setLoadingKind('photo');
     setLoadingMessage('Analyzing your food photo… This may take a few seconds.');
     setLoading(true);
     try {
-      const imageBase64 = await new Promise<string>(async (resolve, reject) => {
+      let imageBase64 = base64FromPicker || '';
+      if (!imageBase64) {
         if (Platform.OS !== 'web') {
           try {
-            const FileSystem = await import('expo-file-system/legacy');
-            const base64 = await FileSystem.readAsStringAsync(imgUri, { encoding: 'base64' });
-            resolve(base64);
-          } catch (error) { reject(error); }
-          return;
+            const FileSystem = await import('expo-file-system');
+            imageBase64 = await FileSystem.readAsStringAsync(imgUri, { encoding: 'base64' as any });
+          } catch (fileErr) {
+            console.warn('FileSystem read error, trying fallback:', fileErr);
+          }
         }
-        try {
-          const response = await fetch(imgUri);
-          const blob = await response.blob();
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const encoded = String(reader.result || '').split(',')[1];
-            encoded ? resolve(encoded) : reject(new Error('Could not read image'));
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        } catch (error) { reject(error); }
-      });
+      }
+
+      if (!imageBase64) {
+        throw new Error('Could not read image data. Please choose the photo again.');
+      }
+
       const { data } = await foodFactsAPI.scanImage(imageBase64);
       if (data && data.isFoodItem && data.product) {
         const p = data.product;
         const nutrition = p.nutrition || {};
+        const ingredientsText = Array.isArray(p.ingredients)
+          ? p.ingredients.join(', ')
+          : typeof p.ingredients === 'string'
+          ? p.ingredients
+          : '';
+
         const analysis: HealthAssessment = {
-          nutriscoreGrade: p.nutriscoreGrade?.toLowerCase() || '',
+          nutriscoreGrade: (p.nutriscoreGrade || '').toLowerCase(),
           novaGroup: Number(p.novaGroup) || 0,
           healthLevel: p.healthRisk?.level === 'high' ? 'unhealthy' : p.healthRisk?.level === 'low' ? 'healthy' : 'unknown',
           healthScoreText: p.healthRisk?.headline || p.nutritionSource || 'AI nutrition estimate; check food labels for exact values.',
@@ -176,24 +262,28 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             fiberG: parseNutritionValue(nutrition.fiber),
             sodiumMg: parseNutritionValue(nutrition.sodium)
           },
-          additives: (p.additives || []).map((item: any) => typeof item === 'string' ? item : item.name || item.code),
-          allergens: p.allergens || [],
+          additives: (p.additives || []).map((item: any) => typeof item === 'string' ? { code: item, name: item, risk: 'low', dangerMsg: '' } : ({
+            code: item.code || '',
+            name: item.name || item.code || '',
+            risk: (item.risk || '').toLowerCase().includes('high') ? 'high' : 'low',
+            dangerMsg: item.risk || ''
+          })),
+          allergens: Array.isArray(p.allergens) ? p.allergens : [],
           isHealthy: p.healthRisk?.level === 'low',
-          warnings: [
-            ...(p.safetyAlerts || []).map((alert: any) => alert.detail || alert.title || String(alert)),
-            ...(p.warnings || [])
-          ],
-          positives: p.positiveFactors || [],
+          warnings: Array.isArray(p.safetyAlerts) && p.safetyAlerts.length > 0
+            ? p.safetyAlerts.map((s: any) => s.detail || s.title || String(s))
+            : Array.isArray(p.warnings) ? p.warnings : [],
+          positives: Array.isArray(p.positiveFactors) ? p.positiveFactors : [],
           healthierAlternatives: (p.healthierAlternatives || []).map((item: any) => typeof item === 'string'
             ? ({ name: item, icon: '🥗', category: 'Alternative', benefit: '' })
-            : ({ name: item.name, icon: '🥗', category: 'Alternative', benefit: '', brand: item.brand, imageUrl: item.imageUrl, productUrl: item.productUrl, nutriscoreGrade: item.nutriscoreGrade, nutrition: item.nutrition }))
+            : ({ name: item.name || '', icon: '🥗', category: 'Alternative', benefit: '', brand: item.brand, imageUrl: item.imageUrl, productUrl: item.productUrl, nutriscoreGrade: item.nutriscoreGrade, nutrition: item.nutrition }))
         };
         if (imgUri) setPhotoUri(imgUri);
         setProduct({
-          product_name: p.name,
+          product_name: p.name || 'Identified Food Item',
           brands: p.brand || 'Identified from photo',
           image_front_url: imgUri,
-          ingredients_text: (p.ingredients || []).join(', '),
+          ingredients_text: ingredientsText,
           nutritionSource: p.nutritionSource,
           aiFoodOverview: p.aiFoodOverview,
           adulterationAssessment: p.adulterationAssessment
@@ -207,7 +297,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
         setMode('notFood');
       }
     } catch (e: any) {
-      setNonFoodMessage(e?.response?.data?.error || e?.response?.data?.message || 'Food image recognition is unavailable. Please try again later.');
+      setNonFoodMessage(e?.response?.data?.error || e?.response?.data?.message || e?.message || 'Food image recognition is unavailable. Please try again later.');
       setScanErrorType('service');
       setMode('notFood');
     } finally {
@@ -222,7 +312,8 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.7,
+        base64: true,
       };
 
       const result = useCamera
@@ -230,9 +321,9 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
         : await ImagePicker.launchImageLibraryAsync(options);
 
       if (!result.canceled && result.assets?.[0]) {
-        const uri = result.assets[0].uri;
-        setPhotoUri(uri);
-        fetchPhotoData(uri);
+        const asset = result.assets[0];
+        setPhotoUri(asset.uri);
+        fetchPhotoData(asset.uri, asset.base64);
       }
     } catch (e) {
       Alert.alert('Camera Error', 'Could not open camera or gallery. Please check permissions.');
@@ -293,13 +384,31 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           <View style={styles.cameraWrapper}>
             {permission?.granted ? (
               <View style={styles.cameraBox}>
-                <CameraView
-                  style={StyleSheet.absoluteFill}
-                  onBarcodeScanned={loading ? undefined : handleBarcodeScan}
-                  barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'qr'] }}
-                />
-                <View style={styles.viewFinder}>
+                {isFocused && (
+                  <CameraView
+                    style={StyleSheet.absoluteFill}
+                    facing="back"
+                    enableTorch={torch}
+                    onBarcodeScanned={loading || scanned ? undefined : handleBarcodeScan}
+                    barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e'] }}
+                  />
+                )}
+                <View style={styles.viewFinder} pointerEvents="none">
                   <View style={styles.scanLaser} />
+                </View>
+
+                {/* Flashlight toggle */}
+                <TouchableOpacity
+                  style={styles.torchBtn}
+                  onPress={() => setTorch((prev) => !prev)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.torchBtnText}>{torch ? '🔦 Light On' : '🔦 Torch'}</Text>
+                </TouchableOpacity>
+
+                {/* Instruction banner */}
+                <View style={styles.frameInstructions} pointerEvents="none">
+                  <Text style={styles.frameInstructionsText}>Point camera at product barcode</Text>
                 </View>
               </View>
             ) : (
@@ -406,10 +515,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             <Button
               title="📷 Scan Another Barcode"
               variant="outline"
-              onPress={() => {
-                setMode('barcode');
-                setScanned(false);
-              }}
+              onPress={resetScanner}
               fullWidth
             />
           </View>
@@ -629,15 +735,18 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           )}
           {/* Action Bar */}
           <View style={{ gap: 12, marginTop: 24 }}>
+            {product?.barcode && (
+              <Button
+                title={savingProduct ? "Saving..." : "🔖 Save to My Saved Products"}
+                onPress={handleSaveProduct}
+                loading={savingProduct}
+                fullWidth
+              />
+            )}
             <Button
               title="📷 Scan Another Food Item"
               variant="outline"
-              onPress={() => {
-                setMode('barcode');
-                setScanned(false);
-                setProduct(null);
-                setHealthAnalysis(null);
-              }}
+              onPress={resetScanner}
               fullWidth
             />
           </View>
@@ -769,12 +878,43 @@ const styles = StyleSheet.create({
   },
   cameraBox: {
     width: '100%',
-    height: 270,
+    height: 290,
     borderRadius: 16,
-    overflow: 'hidden',
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  torchBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    zIndex: 10,
+  },
+  torchBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  frameInstructions: {
+    position: 'absolute',
+    bottom: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 14,
+    zIndex: 10,
+  },
+  frameInstructionsText: {
+    color: '#F1F5F9',
+    fontSize: 11,
+    fontWeight: '600',
   },
   viewFinder: {
     width: 220,

@@ -93,7 +93,7 @@ function TabNavigator({ navigation }: any) {
             {...props}
             onReport={() => requireAuth(() => props.navigation.navigate('Report'))}
             onScan={() => props.navigation.navigate('Scan Food')}
-            onTrack={() => requireAuth(() => props.navigation.navigate('Track'))}
+            onTrack={() => props.navigation.navigate('Track')}
             onTransparency={() => requireAuth(() => props.navigation.navigate('Transparency'))}
             onLogin={() => props.navigation.navigate('Login')}
             onRegister={() => props.navigation.navigate('Register')}
@@ -139,96 +139,6 @@ function TabNavigator({ navigation }: any) {
 
 import { useLanguageStore } from './store/languageStore';
 
-// export default function App() {
-//   const [showSplash, setShowSplash] = useState(true);
-//   const loadAuth = useAuthStore((s) => s.loadAuth);
-//   const loadLanguage = useLanguageStore((s) => s.loadLanguage);
-
-//   useEffect(() => {
-//     loadAuth();
-//     loadLanguage();
-//   }, []);
-
-//   if (showSplash) {
-//     return <SplashScreen onDone={() => setShowSplash(false)} />;
-//   }
-
-//   return (
-//     <SafeAreaProvider>
-//       <NavigationContainer>
-//         <StatusBar style="dark" />
-//         <Stack.Navigator screenOptions={{ headerShown: false }}>
-//           {/* Main tab navigator */}
-//           <Stack.Screen name="MainTabs" component={TabNavigator} />
-
-//           {/* Auth Stack */}
-//           <Stack.Screen name="Login">
-//             {(props) => (
-//               <LoginScreen
-//                 {...props}
-//                 onNavigateRegister={() => props.navigation.navigate('Register')}
-//                 onNavigateForgotPassword={() => props.navigation.navigate('ForgotPassword')}
-//                 onNavigateOtp={() => props.navigation.navigate('Otp')}
-//               />
-//             )}
-//           </Stack.Screen>
-//           <Stack.Screen name="Register">
-//             {(props) => (
-//               <RegisterScreen
-//                 {...props}
-//                 onNavigateLogin={() => props.navigation.navigate('Login')}
-//                 onOtpVerify={(emailOrPhone: string) =>
-//                   props.navigation.navigate('Otp', { emailOrPhone })
-//                 }
-//               />
-//             )}
-//           </Stack.Screen>
-//           <Stack.Screen name="Otp">
-//             {(props) => (
-//               <OtpScreen
-//                 {...props}
-//                 emailOrPhone={(props.route?.params as any)?.emailOrPhone}
-//                 onBack={() => props.navigation.goBack()}
-//               />
-//             )}
-//           </Stack.Screen>
-//           <Stack.Screen name="ForgotPassword">
-//             {(props) => (
-//               <ForgotPasswordScreen
-//                 {...props}
-//                 onBack={() => props.navigation.goBack()}
-//                 onSuccess={() => props.navigation.navigate('Login')}
-//               />
-//             )}
-//           </Stack.Screen>
-
-//           {/* Feature Screens (auth-required at screen level with redirect) */}
-//           <Stack.Screen name="Transparency">
-//             {(props) => <TransparencyRegisterScreen {...props} />}
-//           </Stack.Screen>
-//           <Stack.Screen name="MyComplaints">
-//             {(props) => <MyComplaintsScreen {...props} />}
-//           </Stack.Screen>
-//           <Stack.Screen name="SavedProducts">
-//             {(props) => <SavedProductsScreen {...props} />}
-//           </Stack.Screen>
-//           <Stack.Screen name="Profile">
-//             {(props) => <ProfileScreen {...props} />}
-//           </Stack.Screen>
-//           <Stack.Screen name="Notifications">
-//             {(props) => <NotificationsScreen {...props} />}
-//           </Stack.Screen>
-//           <Stack.Screen name="Help">
-//             {(props) => <HelpScreen {...props} />}
-//           </Stack.Screen>
-//           <Stack.Screen name="About">
-//             {(props) => <AboutScreen {...props} />}
-//           </Stack.Screen>
-//         </Stack.Navigator>
-//       </NavigationContainer>
-//     </SafeAreaProvider>
-//   );
-// }
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
 
@@ -406,6 +316,19 @@ export default function App() {
             {(props) => (
               <ProfileScreen {...props} />
             )}
+          </Stack.Screen>
+
+          <Stack.Screen name="Track">
+            {(props) => (
+              <TrackComplaintScreen
+                {...props}
+                initialCode={(props.route?.params as any)?.initialCode}
+              />
+            )}
+          </Stack.Screen>
+
+          <Stack.Screen name="Report">
+            {(props) => <ReportComplaintScreen {...props} />}
           </Stack.Screen>
 
           <Stack.Screen name="Notifications">

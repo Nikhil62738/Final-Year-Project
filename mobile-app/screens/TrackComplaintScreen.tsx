@@ -899,6 +899,7 @@ const styles = StyleSheet.create({
 
   ratingCard: { backgroundColor: '#FFFBEB', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 12, padding: 16, marginTop: 16 },
   ratingTitle: { color: '#92400E', fontSize: 15, fontWeight: '800', marginBottom: 8 },
+  ratingStars: { color: '#F59E0B', fontSize: 20, marginBottom: 4 },
   ratingRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   ratingStar: { color: '#CBD5E1', fontSize: 30 },
   ratingStarActive: { color: '#F59E0B' },

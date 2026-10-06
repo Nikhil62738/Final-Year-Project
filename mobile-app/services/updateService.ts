@@ -51,7 +51,37 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
       throw new Error(`Update server returned ${response.status}`);
     }
 
-    const data: UpdateInfo = await response.json();
+    const data: Partial<UpdateInfo> = await response.json();
+
+    if (
+      typeof data.version !== 'string' ||
+      !/^\d+(\.\d+)*$/.test(data.version) ||
+      typeof data.apkUrl !== 'string' ||
+      !data.apkUrl.trim()
+    ) {
+      return null;
+    }
+
+    let apkUrl: URL;
+    try {
+      apkUrl = new URL(data.apkUrl);
+    } catch {
+      return null;
+    }
+
+    if (apkUrl.protocol !== 'https:') {
+      return null;
+    }
+
+    const update: UpdateInfo = {
+      version: data.version,
+      apkUrl: apkUrl.toString(),
+      forceUpdate: data.forceUpdate === true,
+      releaseNotes:
+        typeof data.releaseNotes === 'string'
+          ? data.releaseNotes
+          : undefined,
+    };
 
     const currentVersion =
       Application.nativeApplicationVersion || '1.0.0';
@@ -61,11 +91,11 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
 
     const comparison = compareVersions(
       currentVersion,
-      data.version
+      update.version
     );
 
     if (comparison < 0) {
-      return data;
+      return update;
     }
 
     return null;

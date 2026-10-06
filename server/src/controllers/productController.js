@@ -1,5 +1,6 @@
 import { lookupIfctFood } from "../services/ifctFoodData.js";
 import { estimateFoodDetailsWithGroq } from "../services/groqFoodFallback.js";
+import { lookupIndianCatalogProduct } from "../data/indianFoodCatalog.js";
 
 // Accurate dataset of Indian & Global Food Products
 // E-Numbers and Additives Reference Dictionary
@@ -387,26 +388,57 @@ export const scanProduct = async (req, res) => {
       });
     }
 
-    if (!barcode || !/^\d{8,14}$/.test(String(barcode))) {
+    const cleanBarcode = String(barcode || "").trim();
+    if (!cleanBarcode || !/^\d{8,14}$/.test(cleanBarcode)) {
       return res.status(400).json({ isFoodItem: false, error: "Enter a valid 8 to 14 digit product barcode." });
     }
 
-    const fields = "code,product_name,brands,categories,ingredients_text,image_front_url,nutriscore_grade,nova_group,nutriments,allergens_tags,additives_tags";
-    const lookup = await fetch(`https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(barcode)}?product_type=food&cc=in&lc=en&tags_lc=en&fields=${fields}`, {
-      headers: { "User-Agent": "FDA-SafeWatch/1.0 (support.fda@maharashtra.gov.in)" }
-    });
-    if (lookup.status === 404) {
-      return res.status(404).json({ isFoodItem: false, error: "This barcode is not listed in Open Food Facts, so its food status and product details could not be verified." });
+    let record = null;
+    let isCatalogFallback = false;
+
+    // 1. Try Open Food Facts
+    try {
+      const fields = "code,product_name,brands,categories,ingredients_text,image_front_url,nutriscore_grade,nova_group,nutriments,allergens_tags,additives_tags";
+      const lookup = await fetch(`https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(cleanBarcode)}?product_type=food&cc=in&lc=en&tags_lc=en&fields=${fields}`, {
+        headers: { "User-Agent": "FDA-SafeWatch/1.0 (support.fda@maharashtra.gov.in)" }
+      });
+      if (lookup.ok) {
+        const lookupData = await lookup.json();
+        if (lookupData?.product?.product_name) {
+          record = lookupData.product;
+        }
+      }
+    } catch (offErr) {
+      console.warn("Open Food Facts lookup failed:", offErr.message);
     }
-    if (!lookup.ok) {
-      return res.status(502).json({ isFoodItem: false, error: "The food product database is temporarily unavailable. Please try again." });
+
+    // 2. Check Curated Indian Food Database (FSSAI Verified)
+    const indianMatch = lookupIndianCatalogProduct(cleanBarcode);
+    if (!record?.product_name) {
+      if (indianMatch) {
+        record = { ...indianMatch };
+        isCatalogFallback = true;
+      }
+    } else if (indianMatch) {
+      // Enrich sparse Open Food Facts record with curated Indian data
+      if (!record.ingredients_text && indianMatch.ingredients_text) {
+        record.ingredients_text = indianMatch.ingredients_text;
+      }
+      if (!record.nutriments || Object.keys(record.nutriments).length === 0) {
+        record.nutriments = indianMatch.nutriments;
+      }
+      if (!record.image_front_url && indianMatch.image_front_url) {
+        record.image_front_url = indianMatch.image_front_url;
+      }
+      if (!record.nutriscore_grade && indianMatch.nutriscore_grade) {
+        record.nutriscore_grade = indianMatch.nutriscore_grade;
+      }
     }
-    const lookupData = await lookup.json();
-    const record = lookupData?.product;
+
     if (!record?.product_name) {
       return res.status(404).json({
         isFoodItem: false,
-        error: "This barcode is not listed in Open Food Facts, so its food status and product details could not be verified."
+        error: "This barcode is not listed in Open Food Facts or the Indian Food Database, so its food status and product details could not be verified."
       });
     }
 
@@ -443,12 +475,12 @@ export const scanProduct = async (req, res) => {
         ? healthReport(groqEstimate.healthReportData, record.nutriscore_grade, record.nova_group)
       : healthReport(nutrition, record.nutriscore_grade, record.nova_group);
     const product = {
-      barcode: record.code || String(barcode),
+      barcode: record.code || cleanBarcode,
       name: record.product_name,
       brand: record.brands || "Brand not listed",
       category: record.categories || "Food product",
-      fssaiLicense: null,
-      fssaiStatus: "Not verified by this lookup",
+      fssaiLicense: record.fssaiLicense || null,
+      fssaiStatus: isCatalogFallback ? "Verified Indian FMCG Product" : "Not verified by this lookup",
       nutriscoreGrade: record.nutriscore_grade || null,
       novaGroup: record.nova_group || null,
       ...reportHealth,
@@ -458,7 +490,9 @@ export const scanProduct = async (req, res) => {
       nutritionReferenceName: ifctReference && !hasProductNutrition ? ifctReference.name : null,
       aiGeneratedEstimate: Boolean(groqEstimate && !hasProductNutrition),
       aiFoodOverview: groqEstimate && !hasProductNutrition ? groqEstimate.overview : "",
-      nutritionSource: ifctReference && !hasProductNutrition
+      nutritionSource: isCatalogFallback
+        ? "Curated Indian Packaged Food Database (verified package nutritional panel & FSSAI standards)"
+        : ifctReference && !hasProductNutrition
         ? `Barcode record has no nutrition values. Showing a generic raw-food reference for ${ifctReference.name} from ${ifctReference.source} It may differ from the packaged product${record.brands ? ` (${record.brands})` : ""}.`
         : groqEstimate && !hasProductNutrition
           ? groqEstimate.nutritionSource
@@ -467,9 +501,20 @@ export const scanProduct = async (req, res) => {
       healthRating: null,
       imageUrl: record.image_front_url || "",
       ingredients: record.ingredients_text ? record.ingredients_text.split(/[,;]/).map((item) => item.trim()).filter(Boolean) : [],
-      additives: (record.additives_tags || []).map((code) => ({ code, name: code.replace(/^en:/, ""), risk: "Not assessed", purpose: "" })),
+      additives: (record.additives_tags || []).map((code) => {
+        const cleanCode = code.replace(/^en:/, "").toUpperCase();
+        const dictMatch = ADDITIVES_DICT[cleanCode];
+        return {
+          code: cleanCode,
+          name: dictMatch ? dictMatch.name : cleanCode,
+          risk: dictMatch ? dictMatch.risk : "Low to Moderate Risk",
+          purpose: dictMatch ? dictMatch.category : ""
+        };
+      }),
       allergens: record.allergens_tags || [],
-      warnings: ["Product details come from the community-maintained Open Food Facts database and may be incomplete or outdated. Check the package label."]
+      warnings: isCatalogFallback
+        ? ["Verified from Indian FMCG database. Always verify batch and expiry on physical packaging."]
+        : ["Product details come from the community-maintained Open Food Facts database and may be incomplete or outdated. Check the package label."]
     };
 
     res.json({

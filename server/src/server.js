@@ -344,10 +344,12 @@ connectDb()
   });
 
 app.get('/api/app-version', (req, res) => {
+  const apkUrl = process.env.APP_APK_URL?.trim() || '';
+
   res.json({
-    version: '1.0.1',
-    apkUrl: 'YOUR_DIRECT_APK_DOWNLOAD_URL',
-    forceUpdate: false,
-    releaseNotes: 'Bug fixes and performance improvements.'
+    version: process.env.APP_VERSION?.trim() || '1.0.0',
+    apkUrl,
+    forceUpdate: process.env.APP_FORCE_UPDATE === 'true',
+    releaseNotes: process.env.APP_RELEASE_NOTES?.trim() || ''
   });
 });

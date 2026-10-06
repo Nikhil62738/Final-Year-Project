@@ -43,6 +43,20 @@ Open `http://localhost:5173`. The backend is available separately at `http://loc
 2. Deploy the `client` folder as a static site with build command `npm run build` and publish directory `dist`.
 3. Before the frontend build, set `SAFEWATCH_API_BASE_URL` in `client/public/config.js` to the deployed API URL. Set the public Carto and Google client values there too if used.
 
+## Publish an Android app update
+
+The Android app checks `GET /api/app-version` at launch and offers to download and install a newer APK. To publish a release:
+
+1. Increment `expo.version` in `mobile-app/app.json` and build a new Android APK with EAS (for example, `eas build --platform android --profile production`).
+2. Upload the APK to a public HTTPS location that provides a direct file download.
+3. Set these environment variables on the deployed API service, then redeploy it:
+   - `APP_VERSION`: the same version as `expo.version` in the APK.
+   - `APP_APK_URL`: the direct HTTPS APK download URL.
+   - `APP_RELEASE_NOTES`: optional text shown in the update prompt.
+   - `APP_FORCE_UPDATE`: optional `true` to hide the Later action; defaults to `false`.
+
+With `APP_APK_URL` empty, the endpoint reports no installable update and the app will not show an update prompt. Android may ask users to allow FDA SafeWatch to install unknown apps before opening the downloaded APK. This APK flow applies to Android; iOS releases must go through the App Store.
+
 The client has no server secrets. Do not copy the backend `.env` file into it.
 
 ## Demo credentials

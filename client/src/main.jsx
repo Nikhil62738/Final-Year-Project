@@ -380,7 +380,11 @@ async function api(path, options = {}) {
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || data.message || "Request failed");
+  if (!response.ok) {
+    const error = new Error(data.error || data.message || "Request failed");
+    Object.assign(error, data);
+    throw error;
+  }
   return data;
 }
 
@@ -4561,7 +4565,11 @@ async function apiCall(path, options = {}) {
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || data.message || "Request failed");
+  if (!response.ok) {
+    const error = new Error(data.error || data.message || "Request failed");
+    Object.assign(error, data);
+    throw error;
+  }
   return data;
 }
 

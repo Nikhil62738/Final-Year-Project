@@ -2,7 +2,7 @@
   "expo": {
     "name": "FDA SafeWatch",
     "slug": "fda-safewatch",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,6 +13,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nikhil6273.fdasafewatch",
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -24,7 +25,13 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.nikhil6273.fdasafewatch",
+      "versionCode": 2,
       "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
         "REQUEST_INSTALL_PACKAGES"
       ]
     },
@@ -32,7 +39,10 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-camera",
+      "expo-location",
+      "expo-image-picker"
     ],
     "extra": {
       "eas": {

@@ -500,7 +500,7 @@ export default function TrackComplaintScreen({
                         complaint.createdAt ||
                         new Date().toISOString(),
                       publicNote:
-                        'Complaint registered and verified in FDA SafeWatch.',
+                        'Complaint registered and verified in Aaharmitra.',
                     },
                   ]
                 }

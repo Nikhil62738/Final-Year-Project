@@ -1,7 +1,6 @@
 const { useEffect, useMemo, useRef, useState } = React;
 
 const FLAG_IMG = window.FDA_ASSETS?.FLAG || "/flag.png";
-const EMBLEM_IMG = window.FDA_ASSETS?.EMBLEM || "/emblem.png";
 const FDA_LOGO_IMG = window.FDA_ASSETS?.FDA_LOGO || "/fda_logo.png";
 const HERO_BG_IMG = "/hero_bg.png";
 
@@ -210,7 +209,8 @@ const statuses = [
   ["under_review", "Under Review"],
   ["action_taken", "Action Taken"],
   ["resolved", "Resolved"],
-  ["closed", "Closed"]
+  ["closed", "Closed"],
+  ["fake", "Marked Fake"]
 ];
 
 const submitSteps = [
@@ -530,19 +530,13 @@ function App() {
           <div className="admin-white-header-inner">
             <div className="admin-white-header-left" onClick={() => navigate("home")}>
               <img
-                src={EMBLEM_IMG}
-                alt="National Emblem of India"
-                className="national-emblem"
-                onError={(e) => { e.target.onerror = null; e.target.src = "/emblem.png"; }}
-              />
-              <img
                 src={FDA_LOGO_IMG}
                 alt="FDA Maharashtra Logo"
                 className="fssai-logo"
                 onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
               />
               <div className="brand-titles">
-                <div className="brand-main-title">FDA SafeWatch</div>
+                <div className="brand-main-title">Aaharmitra</div>
                 <p className="brand-sub-title">Food Safety Complaint & Action Tracking Platform - Maharashtra</p>
               </div>
             </div>
@@ -578,14 +572,8 @@ function App() {
         <div className="brand-header-bar">
           <div className="brand-header-container">
             <div className="brand-header-left">
-              <img
-                src={EMBLEM_IMG}
-                alt="Emblem of India"
-                className="national-emblem"
-                onError={(e) => { e.target.onerror = null; e.target.src = "/emblem.png"; }}
-              />
               <div className="brand-titles" onClick={() => navigate("home")} style={{ cursor: "pointer" }}>
-                <div className="brand-main-title">{t("FDA SafeWatch")}</div>
+                <div className="brand-main-title">Aaharmitra</div>
                 <p className="brand-sub-title">{t("Food Safety Complaint & Action Tracking Platform - Maharashtra")}</p>
                 <p className="brand-tagline">{t("A step towards Safe Food, Healthier Maharashtra")}</p>
               </div>
@@ -749,7 +737,7 @@ function App() {
         <footer className="site-portal-footer">
           <div className="footer-container">
             <div className="footer-col">
-              <h3>{t("FDA SafeWatch")} - {t("Maharashtra State")}</h3>
+              <h3>Aaharmitra - {t("Maharashtra State")}</h3>
               <p>{t("Official platform for citizen complaint submission, automated duplicate checking, and public action tracking.")}</p>
             </div>
             <div className="footer-col">
@@ -781,6 +769,16 @@ function App() {
 }
 
 function Home({ navigate, citizen, t = (value) => value }) {
+  const [vendors, setVendors] = useState([]);
+  const [showAllVendors, setShowAllVendors] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/vendors/rankings?limit=50`)
+      .then((response) => response.ok ? response.json() : [])
+      .then((data) => setVendors(Array.isArray(data) ? data : []))
+      .catch(() => setVendors([]));
+  }, []);
+
   return (
     <div className="home-portal-wrap">
       {/* Hero Section */}
@@ -912,6 +910,23 @@ function Home({ navigate, citizen, t = (value) => value }) {
         </div>
       </section>
 
+      <section className="vendor-rankings-section">
+        <div className="vendor-rankings-heading">
+          <div><p className="eyebrow">Community insights</p><h2>Most Reported Vendors</h2></div>
+          {vendors.length > 3 && <button type="button" className="btn-view-dash" onClick={() => setShowAllVendors((visible) => !visible)}>{showAllVendors ? "Show less" : "View all vendors"}</button>}
+        </div>
+        <div className="vendor-rankings-list">
+          {(showAllVendors ? vendors : vendors.slice(0, 3)).map((vendor, index) => (
+            <div className="vendor-ranking-row" key={`${vendor.vendorName}-${index}`}>
+              <span className="vendor-ranking-number">{index + 1}</span>
+              <div><strong>{vendor.vendorName}</strong><span>{vendor.openCount} open complaint{vendor.openCount === 1 ? "" : "s"}</span></div>
+              <b>{vendor.complaintCount} reports</b>
+            </div>
+          ))}
+          {!vendors.length && <p className="empty-state">Vendor rankings will appear once complaints are received.</p>}
+        </div>
+      </section>
+
       {/* Feature Information Cards Section */}
       <section className="portal-info-section">
         <div className="info-grid-container">
@@ -936,7 +951,7 @@ function Home({ navigate, citizen, t = (value) => value }) {
               <h2>Public Register & Redacted Logs</h2>
             </div>
             <p className="info-desc">
-              FDA SafeWatch provides end-to-end transparency. Citizens track public-safe complaint progress while personal identity remains protected.
+              Aaharmitra provides end-to-end transparency. Citizens track public-safe complaint progress while personal identity remains protected.
             </p>
             <div className="status-steps-mini">
               <div className="step-tag tag-submitted">Submitted</div>
@@ -1758,6 +1773,7 @@ function UserProfile({ citizen, logout, onClose, onSave }) {
           </div>
           <h2 id="profile-dialog-title" style={{ fontSize: "1.8rem", color: "#0f172a", margin: "0 0 8px 0" }}>My Profile</h2>
           <p style={{ color: "#64748b", margin: 0 }}>Manage your citizen account details.</p>
+          <p style={{ color: "#92400e", margin: "10px 0 0", fontWeight: 800 }}>🏆 {citizen.rewardPoints || 0} reward points</p>
         </div>
 
         <form onSubmit={saveProfile} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "24px", marginBottom: "18px" }}>
@@ -2031,7 +2047,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
             <p className="auth-brand-sub">
               {isRegister
                 ? "Register to submit complaints, track progress and contribute towards safer food for everyone."
-                : "Join FDA SafeWatch to report food safety issues and help us build a healthier Maharashtra."}
+                : "Join Aaharmitra to report food safety issues and help us build a healthier Maharashtra."}
             </p>
 
             <div className="auth-features-list">
@@ -2186,7 +2202,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                   <span className="title-navy">Welcome </span>
                   <span className="title-green">Back</span>
                 </div>
-                <p className="swift-subtitle">Sign in to continue to FDA SafeWatch</p>
+                <p className="swift-subtitle">Sign in to continue to Aaharmitra</p>
               </>
             )}
 
@@ -2257,7 +2273,7 @@ function Login({ mode, loginRedirect, setCitizen, setOfficer, navigate, forceNav
                         📱 Login with Mobile / Email OTP
                       </button>
                       <div className="auth-footer-clean">
-                        New to FDA SafeWatch? <button type="button" onClick={() => { setCurrentMode("register"); navigate("register"); }}>Register</button>
+                        New to Aaharmitra? <button type="button" onClick={() => { setCurrentMode("register"); navigate("register"); }}>Register</button>
                       </div>
                     </>
                   )}
@@ -2789,15 +2805,27 @@ function Dashboard({ officer, setPage, onLogout }) {
 function TabOverview({ complaints, onViewAnalytics }) {
   const [filter, setFilter] = useState("today");
 
-  const total = complaints.length;
-  const resolved = complaints.filter(c => c.status === "resolved" || c.status === "closed").length;
+  const filteredComplaints = useMemo(() => {
+    if (filter === "all") return complaints;
+    const start = new Date();
+    if (filter === "today") start.setHours(0, 0, 0, 0);
+    if (filter === "weekly") {
+      start.setDate(start.getDate() - 6);
+      start.setHours(0, 0, 0, 0);
+    }
+    if (filter === "monthly") start.setDate(1);
+    return complaints.filter((complaint) => new Date(complaint.createdAt) >= start);
+  }, [complaints, filter]);
+
+  const total = filteredComplaints.length;
+  const resolved = filteredComplaints.filter(c => c.status === "resolved" || c.status === "closed").length;
   const resRate = total ? Math.round((resolved / total) * 100) : 0;
 
   const byDistrict = useMemo(() => {
     const map = {};
-    complaints.forEach((item) => { map[item.district || "Unassigned"] = (map[item.district || "Unassigned"] || 0) + 1; });
+    filteredComplaints.forEach((item) => { map[item.district || "Unassigned"] = (map[item.district || "Unassigned"] || 0) + 1; });
     return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  }, [complaints]);
+  }, [filteredComplaints]);
 
   return (
     <div>
@@ -2834,11 +2862,11 @@ function TabOverview({ complaints, onViewAnalytics }) {
             </div>
             <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
               <div style={{ color: "var(--gov-info)", fontSize: "0.75rem", fontWeight: "700" }}>DOING</div>
-              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{complaints.filter(c => c.status === "action_taken").length}</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{filteredComplaints.filter(c => c.status === "action_taken").length}</div>
             </div>
             <div style={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem 1rem", borderRadius: "8px", textAlign: "center" }}>
               <div style={{ color: "var(--gov-warning)", fontSize: "0.75rem", fontWeight: "700" }}>WAIT</div>
-              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{complaints.filter(c => c.status === "submitted" || c.status === "under_review").length}</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: "700" }}>{filteredComplaints.filter(c => c.status === "submitted" || c.status === "under_review").length}</div>
             </div>
           </div>
           <button className="gov-risk-action" type="button" onClick={onViewAnalytics}>

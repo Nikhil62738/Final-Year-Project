@@ -70,7 +70,7 @@ const complaintSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
-      enum: ["submitted", "under_review", "action_taken", "resolved", "closed"],
+      enum: ["submitted", "under_review", "action_taken", "resolved", "closed", "fake"],
       default: "submitted",
       index: true
     },
@@ -79,6 +79,7 @@ const complaintSchema = new mongoose.Schema(
     pendingDistrictUpdate: { type: Boolean, default: false },
     districtUpdated: { type: Boolean, default: false },
     superAdminFinalized: { type: Boolean, default: false },
+    rewardOutcome: { type: String, enum: ["valid", "fake"], default: null },
     actionNotes: [actionNoteSchema],
     statusHistory: [statusHistorySchema],
     upvotes: { type: Number, default: 0 },

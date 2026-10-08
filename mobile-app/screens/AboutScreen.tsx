@@ -20,7 +20,7 @@ export default function AboutScreen({ navigation }: AboutScreenProps = {}) {
 
       if (!update) {
         Alert.alert(
-          'FDA SafeWatch is Up to Date',
+          'Aaharmitra is Up to Date',
           `You are using the latest version (${currentVersion}). No updates are currently needed.`,
           [{ text: 'OK' }]
         );
@@ -64,7 +64,7 @@ export default function AboutScreen({ navigation }: AboutScreenProps = {}) {
             <Text style={styles.backArrow}>‹</Text>
           </TouchableOpacity>
         )}
-        <Text style={styles.headerTitle}>About FDA SafeWatch</Text>
+        <Text style={styles.headerTitle}>About Aaharmitra</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -76,7 +76,7 @@ export default function AboutScreen({ navigation }: AboutScreenProps = {}) {
             style={styles.logoImg}
             resizeMode="contain"
           />
-          <Text style={styles.appName}>FDA SafeWatch</Text>
+          <Text style={styles.appName}>Aaharmitra</Text>
           <Text style={styles.tagline}>Food Safety, Healthy India</Text>
           <View style={styles.versionPill}>
             <Text style={styles.versionText}>Version {currentVersion}</Text>
@@ -101,7 +101,7 @@ export default function AboutScreen({ navigation }: AboutScreenProps = {}) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Our Mission</Text>
           <Text style={styles.cardBody}>
-            FDA SafeWatch empowers citizens to report food safety violations directly to regulatory authorities.
+            Aaharmitra empowers citizens to report food safety violations directly to regulatory authorities.
             By bridging the gap between the public and the Food Safety & Standards Authority of India (FSSAI),
             we ensure faster resolution of food safety concerns across India.
           </Text>

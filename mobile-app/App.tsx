@@ -393,7 +393,7 @@ export default function App() {
             </View>
 
             <Text style={{ fontSize: 14, color: '#334155', lineHeight: 21, marginBottom: 14 }}>
-              A new version of FDA SafeWatch is ready to install with latest food safety features and improvements.
+              A new version of Aaharmitra is ready to install with latest food safety features and improvements.
             </Text>
 
             {updateInfo.releaseNotes ? (

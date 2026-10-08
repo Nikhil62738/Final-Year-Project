@@ -63,6 +63,7 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; icon:
   action_taken: { label: 'Action Taken', color: '#EF4444', icon: '⚡' },
   resolved: { label: 'Resolved', color: '#10B981', icon: '✅' },
   closed: { label: 'Closed', color: '#94A3B8', icon: '🔒' },
+  fake: { label: 'Marked Fake', color: '#B91C1C', icon: '⚠️' },
 };
 
 export const LANGUAGES = [

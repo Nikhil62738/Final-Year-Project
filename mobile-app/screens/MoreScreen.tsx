@@ -44,7 +44,7 @@ const MENU_SECTIONS: MenuSection[] = [
     title: 'App',
     items: [
       { icon: '❓', label: 'Help & Support', screen: 'Help' },
-      { icon: 'ℹ️', label: 'About FDA SafeWatch', screen: 'About' },
+      { icon: 'ℹ️', label: 'About Aaharmitra', screen: 'About' },
     ],
   },
 ];
@@ -131,7 +131,7 @@ export default function MoreScreen({ navigation }: MoreScreenProps = {}) {
 
         {/* App version footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>FDA SafeWatch v1.0 • Government of India Initiative</Text>
+          <Text style={styles.footerText}>Aaharmitra v1.0 • Government of India Initiative</Text>
           <Text style={styles.footerSub}>🏛️ Food Safety & Standards Authority</Text>
         </View>
 

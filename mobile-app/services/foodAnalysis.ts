@@ -281,7 +281,7 @@ export function validateIsFoodProduct(productData: any): { isFood: boolean; reas
     if (categories.includes(keyword) || mainCategory.includes(keyword) || name.includes(keyword)) {
       return {
         isFood: false,
-        reason: `Item recognized as non-food (${keyword}). FDA SafeWatch only analyzes edible food and beverages.`,
+        reason: `Item recognized as non-food (${keyword}). Aaharmitra only analyzes edible food and beverages.`,
       };
     }
   }

@@ -1,8 +1,9 @@
 import express from "express";
-import { getVendorProfile } from "../controllers/vendorController.js";
+import { getVendorProfile, listVendorRankings } from "../controllers/vendorController.js";
 
 const router = express.Router();
 
 router.get("/profile/:query", getVendorProfile);
+router.get("/rankings", listVendorRankings);
 
 export default router;

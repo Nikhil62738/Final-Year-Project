@@ -100,20 +100,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           },
         ]}
       >
-        {/* Ashoka Lion Capital Emblem (Official Image 3) */}
-        <Animated.View style={[styles.emblemContainer, { transform: [{ scale: pulseAnim }] }]}>
-          <Image
-            source={require('../assets/emblem.png')}
-            style={styles.emblemImage}
-            resizeMode="contain"
-          />
-        </Animated.View>
-
-        <Text style={styles.satyamevaText}>सत्यमेव जयते</Text>
-        <Text style={styles.govText}>Government of India</Text>
-
-        {/* FDA SafeWatch Main Title */}
-        <Text style={styles.titleText}>FDA SafeWatch</Text>
+        <Text style={styles.titleText}>Aaharmitra</Text>
         <Text style={styles.subtitleText}>Food Safety, Healthy India</Text>
 
         {/* Indian Tricolor Mini Accent Bar */}

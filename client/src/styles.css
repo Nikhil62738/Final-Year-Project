@@ -25,6 +25,8 @@
   --resolved-bg: #ecfdf5;
   --closed: #475569;
   --closed-bg: #f1f5f9;
+  --fake: #b91c1c;
+  --fake-bg: #fee2e2;
   --focus: #7c3aed;
 }
 
@@ -1071,6 +1073,11 @@ textarea {
 .status-closed {
   color: var(--closed);
   background: var(--closed-bg);
+}
+
+.status-fake {
+  color: var(--fake);
+  background: var(--fake-bg);
 }
 
 .dashboard {
@@ -3106,6 +3113,35 @@ body:has(.login-page) {
 /* ==========================================
    PORTAL INFO SECTION
    ========================================== */
+
+.vendor-rankings-section {
+  max-width: 1180px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+.vendor-rankings-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.vendor-rankings-heading h2 { margin: 4px 0 0; color: #0f172a; }
+.vendor-rankings-list { display: grid; gap: 10px; }
+.vendor-ranking-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.vendor-ranking-number { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #ecfdf5; color: #047857; font-weight: 800; }
+.vendor-ranking-row div { flex: 1; min-width: 0; }
+.vendor-ranking-row strong, .vendor-ranking-row span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vendor-ranking-row span { margin-top: 2px; color: #64748b; font-size: .82rem; }
+.vendor-ranking-row b { color: #b45309; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .vendor-rankings-section { margin: 24px auto; padding: 0 16px; }
+  .vendor-rankings-heading { align-items: flex-start; flex-direction: column; }
+  .vendor-ranking-row { padding: 12px; gap: 10px; }
+}
 
 .portal-info-section {
   max-width: 1240px;

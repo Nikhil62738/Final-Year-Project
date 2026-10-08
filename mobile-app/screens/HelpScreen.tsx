@@ -192,7 +192,7 @@ export default function HelpScreen({ navigation }: HelpScreenProps = {}) {
           {/* Contact Banner */}
           <View style={styles.contactBanner}>
             <Text style={styles.contactTitle}>Need Live Help?</Text>
-            <Text style={styles.contactSub}>Reach out to the FDA SafeWatch support team</Text>
+            <Text style={styles.contactSub}>Reach out to the Aaharmitra support team</Text>
             <View style={styles.contactRow}>
               <TouchableOpacity style={styles.contactBtn} onPress={() => Linking.openURL('tel:1800112100')}>
                 <Text style={styles.contactIcon}>📞</Text>
@@ -215,7 +215,7 @@ export default function HelpScreen({ navigation }: HelpScreenProps = {}) {
           ))}
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>FDA SafeWatch is an initiative of the</Text>
+            <Text style={styles.footerText}>Aaharmitra is an initiative of the</Text>
             <Text style={styles.footerBold}>Food Safety & Standards Authority of India (FSSAI)</Text>
           </View>
           <View style={{ height: 40 }} />

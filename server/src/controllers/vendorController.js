@@ -100,3 +100,27 @@ export const getVendorProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch vendor historical profile", error: err.message });
   }
 };
+
+export const listVendorRankings = async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
+    const vendors = await Complaint.aggregate([
+      { $match: { vendorName: { $type: "string", $ne: "" } } },
+      {
+        $group: {
+          _id: { $toLower: { $trim: { input: "$vendorName" } } },
+          vendorName: { $first: "$vendorName" },
+          complaintCount: { $sum: 1 },
+          openCount: { $sum: { $cond: [{ $in: ["$status", ["submitted", "under_review", "action_taken"]] }, 1, 0] } },
+          latestComplaintAt: { $max: "$createdAt" }
+        }
+      },
+      { $sort: { complaintCount: -1, latestComplaintAt: -1 } },
+      { $limit: limit },
+      { $project: { _id: 0, vendorName: 1, complaintCount: 1, openCount: 1, latestComplaintAt: 1 } }
+    ]);
+    res.json(vendors);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch vendor rankings" });
+  }
+};

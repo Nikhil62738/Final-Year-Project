@@ -88,12 +88,7 @@ export default function RegisterScreen({
             </TouchableOpacity>
           )}
           <View style={styles.centerBrand}>
-            <Image
-              source={require('../../assets/emblem.png')}
-              style={styles.emblemImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.brandTitle}>FDA SafeWatch</Text>
+            <Text style={styles.brandTitle}>Aaharmitra</Text>
             <Text style={styles.brandSub}>Food Safety, Healthy India</Text>
           </View>
         </View>

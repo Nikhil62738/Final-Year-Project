@@ -15,6 +15,7 @@ import safetyAlertRoutes from "./routes/safetyAlertRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import logRoutes from "./routes/logRoutes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
@@ -311,6 +312,7 @@ app.use("/api/alerts", safetyAlertRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/vendors", vendorRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/products", productRoutes);
 
 const downloadsDir = path.join(__dirname, "../public/downloads");
@@ -365,4 +367,3 @@ connectDb()
 
     process.exit(1);
   });
-

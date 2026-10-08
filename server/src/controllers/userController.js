@@ -40,6 +40,7 @@ export async function updateProfile(req, res) {
       phone: user.phone,
       avatar: user.avatar,
       preferredLanguage: user.preferredLanguage,
+      rewardPoints: user.rewardPoints,
       role: "user"
     });
   } catch (error) {

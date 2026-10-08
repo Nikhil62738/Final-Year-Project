@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
     authProvider: { type: String, default: "local" },
     active: { type: Boolean, default: true },
     preferredLanguage: { type: String, default: "en" },
+    rewardPoints: { type: Number, default: 0 },
     savedProducts: [savedProductSchema],
     otp: { type: String },
     otpExpires: { type: Date },

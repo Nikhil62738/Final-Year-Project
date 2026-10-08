@@ -10,6 +10,7 @@ interface User {
   phone?: string;
   role?: string;
   preferredLanguage?: string;
+  rewardPoints?: number;
 }
 
 interface AuthState {

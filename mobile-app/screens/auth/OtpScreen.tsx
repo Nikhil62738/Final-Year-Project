@@ -308,14 +308,8 @@ export default function OtpScreen({
 
         <View style={styles.centerBrand}>
 
-          <Image
-            source={require('../../assets/emblem.png')}
-            style={styles.emblemImage}
-            resizeMode="contain"
-          />
-
           <Text style={styles.brandTitle}>
-            FDA SafeWatch
+            Aaharmitra
           </Text>
 
           <Text style={styles.brandSub}>

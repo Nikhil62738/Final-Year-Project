@@ -21,6 +21,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps = {}) {
   const [language, setLanguage] = useState('en');
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [rewardPoints, setRewardPoints] = useState(user?.rewardPoints || 0);
 
   // Fetch full profile from server
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps = {}) {
         setName(data.name || '');
         setPhone(data.phone || '');
         setLanguage(data.preferredLanguage || 'en');
+        setRewardPoints(data.rewardPoints || 0);
       } catch {
         // fallback to cached store values
         setName(user?.name || '');
@@ -110,6 +112,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps = {}) {
           <Text style={styles.userName}>{name || user?.name}</Text>
           <View style={styles.rolePill}>
             <Text style={styles.roleText}>🏛️ Citizen</Text>
+          </View>
+          <View style={styles.pointsPill}>
+            <Text style={styles.pointsText}>🏆 {rewardPoints} reward points</Text>
           </View>
         </View>
 
@@ -240,6 +245,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full, borderWidth: 1, borderColor: '#D1E7DD',
   },
   roleText: { fontSize: 12, color: Colors.primary, fontWeight: '700' },
+  pointsPill: { marginTop: 10, backgroundColor: '#FEF3C7', paddingHorizontal: 14, paddingVertical: 5, borderRadius: Radius.full },
+  pointsText: { fontSize: 12, color: '#92400E', fontWeight: '800' },
   card: {
     backgroundColor: '#FFFFFF', borderRadius: Radius.lg,
     marginHorizontal: 16, marginTop: 16, padding: 16,

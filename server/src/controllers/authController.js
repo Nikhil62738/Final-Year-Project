@@ -174,6 +174,7 @@ export async function registerUser(req, res) {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      rewardPoints: user.rewardPoints,
       role: "user"
     }
   });
@@ -222,6 +223,7 @@ export async function loginUser(req, res) {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      rewardPoints: user.rewardPoints,
       role: "user"
     }
   });
@@ -526,6 +528,7 @@ export async function verifyOtp(req, res) {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      rewardPoints: user.rewardPoints,
       role: "user"
     }
   });

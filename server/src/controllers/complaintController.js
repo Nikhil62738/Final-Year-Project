@@ -1,5 +1,7 @@
 import Complaint from "../models/Complaint.js";
 import Officer from "../models/Officer.js";
+import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import { findDuplicateMatches, generateTrackingCode, haversineMeters, mapEvidence, publicComplaint } from "../utils/complaints.js";
 import { sendEmail } from "../utils/email.js";
 import { sendSMS } from "../utils/sms.js";
@@ -27,6 +29,30 @@ function requireCitizenFields(payload) {
     missing.push("complainantName/complainantPhone");
   }
   return missing;
+}
+
+async function createCitizenNotification(complaint, title, body, type = "status_update") {
+  if (!complaint.userId) return;
+  await Notification.create({
+    userId: complaint.userId,
+    complaintId: complaint._id,
+    trackingCode: complaint.trackingCode,
+    title,
+    body,
+    type
+  });
+}
+
+async function applyComplaintReward(complaint) {
+  const nextOutcome = complaint.status === "resolved" ? "valid" : complaint.status === "fake" ? "fake" : null;
+  if (!nextOutcome || !complaint.userId || complaint.rewardOutcome === nextOutcome) return 0;
+
+  const currentPoints = complaint.rewardOutcome === "valid" ? 10 : complaint.rewardOutcome === "fake" ? -10 : 0;
+  const nextPoints = nextOutcome === "valid" ? 10 : -10;
+  const change = nextPoints - currentPoints;
+  complaint.rewardOutcome = nextOutcome;
+  await User.findByIdAndUpdate(complaint.userId, { $inc: { rewardPoints: change } });
+  return change;
 }
 
 export async function checkDuplicates(req, res) {
@@ -106,6 +132,12 @@ export async function createComplaint(req, res) {
   });
 
   res.status(201).json({ mode: "created", trackingCode, complaint: publicComplaint(complaint) });
+
+  createCitizenNotification(
+    complaint,
+    `Complaint registered: ${trackingCode}`,
+    `Your complaint against ${complaint.vendorName} was received and is awaiting review.`
+  ).catch((err) => console.error("Complaint notification error:", err));
 
   // 1. Send SMS Confirmation to citizen's mobile number
   const citizenPhone = (req.user && req.user.phone) || complaint.complainantPhone;
@@ -206,6 +238,7 @@ export async function updateComplaintStatus(req, res) {
   }
 
   let { status, actionType, note, publicNote, workflowAction } = req.body;
+  const previousStatus = complaint.status;
 
   const isSuperAdmin = req.officer.role === "super_admin";
   if (!isSuperAdmin) {
@@ -215,7 +248,7 @@ export async function updateComplaintStatus(req, res) {
     if (workflowAction !== "submit_to_super_admin") {
       return res.status(403).json({ message: "District admins must submit inspection evidence for Super Admin review." });
     }
-    if (["resolved", "closed"].includes(status)) {
+    if (["resolved", "closed", "fake"].includes(status)) {
       return res.status(403).json({ message: "Only the Super Admin can finalize a complaint as resolved." });
     }
     const imageFiles = (req.files || []).filter((file) => file.mimetype?.startsWith("image/"));
@@ -305,8 +338,27 @@ export async function updateComplaintStatus(req, res) {
     });
   }
 
+  const rewardChange = await applyComplaintReward(complaint);
   await complaint.save();
   res.json(complaint);
+
+  if (complaint.status !== previousStatus) {
+    const statusLabel = complaint.status === "fake" ? "marked fake after verification" : complaint.status.replaceAll("_", " ");
+    createCitizenNotification(
+      complaint,
+      `Complaint update: ${complaint.trackingCode}`,
+      `Your complaint against ${complaint.vendorName} was ${statusLabel}.`
+    ).catch((err) => console.error("Citizen notification error:", err));
+  }
+  if (rewardChange) {
+    const earned = rewardChange > 0;
+    createCitizenNotification(
+      complaint,
+      earned ? "Reward points added" : "Reward points deducted",
+      earned ? `You earned ${rewardChange} points because your complaint was verified and resolved.` : `${Math.abs(rewardChange)} points were deducted because this complaint was marked fake after verification.`,
+      "reward"
+    ).catch((err) => console.error("Reward notification error:", err));
+  }
 
   if (emailDistAdminMessage && complaint.assignedOfficerId) {
     const Officer = (await import("../models/Officer.js")).default;
@@ -329,7 +381,6 @@ export async function updateComplaintStatus(req, res) {
   }
 
   if (emailCitizenMessage && (complaint.userId || complaint.complainantPhone)) {
-    const User = (await import("../models/User.js")).default;
     const user = complaint.userId ? await User.findById(complaint.userId) : null;
     const citizenPhone = (user && user.phone) || complaint.complainantPhone;
 

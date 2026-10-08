@@ -18,7 +18,7 @@ import { Colors, FontSizes, Radius, Spacing } from '../constants/colors';
 import { useAuthStore } from '../store/authStore';
 import { useLanguageStore } from '../store/languageStore';
 import { Language } from '../i18n/translations';
-import { userAPI } from '../services/api';
+import { userAPI, vendorsAPI } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -47,6 +47,8 @@ export default function HomeScreen({
   const [liveLocation, setLiveLocation] = useState<string>('Detecting location…');
   const [locLoading, setLocLoading] = useState<boolean>(true);
   const [showLangModal, setShowLangModal] = useState<boolean>(false);
+  const [vendors, setVendors] = useState<Array<{ vendorName: string; complaintCount: number; openCount: number }>>([]);
+  const [showAllVendors, setShowAllVendors] = useState(false);
 
   // Live GPS Location Detection
   useEffect(() => {
@@ -75,6 +77,10 @@ export default function HomeScreen({
         setLocLoading(false);
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    vendorsAPI.getRankings(50).then(({ data }) => setVendors(Array.isArray(data) ? data : [])).catch(() => setVendors([]));
   }, []);
 
   const handleSelectLanguage = async (newLang: Language) => {
@@ -180,11 +186,6 @@ export default function HomeScreen({
             <Text style={styles.brandTitle}>{t('brandTitle')}</Text>
             <Text style={styles.brandSubtitle}>{t('brandSubtitle')}</Text>
           </View>
-          <Image
-            source={require('../assets/emblem.png')}
-            style={styles.emblemImage}
-            resizeMode="contain"
-          />
         </View>
 
         {/* Hero Banner — Fresh Produce with Gradient Overlay */}
@@ -257,6 +258,21 @@ export default function HomeScreen({
           </View>
         </View>
 
+        <View style={styles.vendorSection}>
+          <View style={styles.vendorHeader}>
+            <Text style={styles.sectionTitle}>Most Reported Vendors</Text>
+            {vendors.length > 3 && <TouchableOpacity onPress={() => setShowAllVendors((visible) => !visible)}><Text style={styles.viewAll}>{showAllVendors ? 'Show less' : 'View all'}</Text></TouchableOpacity>}
+          </View>
+          {(showAllVendors ? vendors : vendors.slice(0, 3)).map((vendor, index) => (
+            <View key={`${vendor.vendorName}-${index}`} style={styles.vendorRow}>
+              <Text style={styles.vendorRank}>{index + 1}</Text>
+              <View style={{ flex: 1 }}><Text style={styles.vendorName} numberOfLines={1}>{vendor.vendorName}</Text><Text style={styles.vendorMeta}>{vendor.openCount} open complaint{vendor.openCount === 1 ? '' : 's'}</Text></View>
+              <Text style={styles.vendorCount}>{vendor.complaintCount}</Text>
+            </View>
+          ))}
+          {!vendors.length && <Text style={styles.vendorMeta}>No vendor complaints available yet.</Text>}
+        </View>
+
         {/* Why It Matters */}
         <View style={styles.whySection}>
           <Text style={styles.sectionTitle}>Why It Matters</Text>
@@ -295,7 +311,7 @@ export default function HomeScreen({
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
-            <Text style={styles.modalSub}>Choose your preferred language for FDA SafeWatch</Text>
+            <Text style={styles.modalSub}>Choose your preferred language for Aaharmitra</Text>
 
             <View style={{ gap: 10, marginVertical: 16 }}>
               {[
@@ -394,10 +410,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 8,
-  },
-  emblemImage: {
-    width: 22,
-    height: 36,
   },
   brandTitle: {
     fontSize: 18,
@@ -561,6 +573,14 @@ const styles = StyleSheet.create({
     height: 30,
     backgroundColor: '#E2E8F0',
   },
+  vendorSection: { marginHorizontal: 16, marginTop: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 14, padding: 14 },
+  vendorHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  viewAll: { fontSize: 12, fontWeight: '800', color: Colors.primary },
+  vendorRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  vendorRank: { width: 24, height: 24, borderRadius: 12, overflow: 'hidden', textAlign: 'center', paddingTop: 3, backgroundColor: '#EAF4F1', color: Colors.primary, fontSize: 12, fontWeight: '800' },
+  vendorName: { fontSize: 13, fontWeight: '800', color: '#1E293B' },
+  vendorMeta: { marginTop: 2, fontSize: 11, color: '#64748B' },
+  vendorCount: { fontSize: 16, fontWeight: '900', color: '#B45309' },
   whySection: {
     paddingHorizontal: 20,
     marginTop: 20,

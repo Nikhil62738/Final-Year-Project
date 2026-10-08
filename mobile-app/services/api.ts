@@ -110,4 +110,13 @@ export const userAPI = {
   removeSavedProduct: (id: string) => api.delete(`/api/users/me/saved-products/${id}`),
 };
 
+export const notificationsAPI = {
+  getMine: () => api.get('/api/notifications/me'),
+  markRead: (id: string) => api.patch(`/api/notifications/${id}/read`),
+};
+
+export const vendorsAPI = {
+  getRankings: (limit = 10) => api.get('/api/vendors/rankings', { params: { limit } }),
+};
+
 export default api;

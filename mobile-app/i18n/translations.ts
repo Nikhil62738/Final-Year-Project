@@ -3,7 +3,7 @@ export type Language = 'en' | 'hi' | 'mr';
 export const TRANSLATIONS = {
   en: {
     // Top & Brand
-    brandTitle: 'FDA SafeWatch',
+    brandTitle: 'Aaharmitra',
     brandSubtitle: 'Food Safety, Healthy India',
     locationDetecting: 'Detecting location…',
     defaultLocation: 'Mumbai, Maharashtra',
@@ -42,7 +42,7 @@ export const TRANSLATIONS = {
     savedProducts: 'Saved Products',
     notifications: 'Notifications',
     help: 'Help & Support',
-    about: 'About FDA SafeWatch',
+    about: 'About Aaharmitra',
     language: 'Language',
     selectLanguage: 'Select Preferred Language',
     saveLanguage: 'Save Language',

@@ -227,14 +227,14 @@ export async function updateComplaintStatus(req, res) {
     const inspectionLng = Number(req.body.inspectionLng);
     const accuracyMeters = Number(req.body.inspectionAccuracyMeters);
     if (!Number.isFinite(inspectionLat) || !Number.isFinite(inspectionLng) || !Number.isFinite(complaint.lat) || !Number.isFinite(complaint.lng)) {
-      return res.status(400).json({ message: "The complaint and inspection must both have GPS coordinates to verify the 10 m radius." });
+      return res.status(400).json({ message: "The complaint and inspection must both have GPS coordinates to verify the 500 m radius." });
     }
     if (!Number.isFinite(accuracyMeters) || accuracyMeters > 10) {
       return res.status(403).json({ message: "GPS accuracy must be 10 m or better. Improve the location signal and try again." });
     }
     const distanceMeters = haversineMeters(complaint.lat, complaint.lng, inspectionLat, inspectionLng);
-    if (distanceMeters === null || distanceMeters > 10) {
-      return res.status(403).json({ message: `Inspection location is ${distanceMeters === null ? "unknown" : `${Math.round(distanceMeters)} m`} from the complaint. The required radius is 10 m.` });
+    if (distanceMeters === null || distanceMeters > 500) {
+      return res.status(403).json({ message: `Inspection location is ${distanceMeters === null ? "unknown" : `${Math.round(distanceMeters)} m`} from the complaint. The required radius is 500 m.` });
     }
 
     const uploadedProof = mapEvidence(req.files, req);
@@ -252,10 +252,10 @@ export async function updateComplaintStatus(req, res) {
     const hasVerifiedOnSitePhoto = complaint.resolutionProof.some((proof) =>
       proof.mimetype?.startsWith("image/") &&
       Number.isFinite(proof.inspectionLocation?.distanceMeters) &&
-      proof.inspectionLocation.distanceMeters <= 10
+      proof.inspectionLocation.distanceMeters <= 500
     );
     if (!hasVerifiedOnSitePhoto) {
-      return res.status(409).json({ message: "This assigned complaint needs a district-admin inspection photo verified within 10 m before approval." });
+      return res.status(409).json({ message: "This assigned complaint needs a district-admin inspection photo verified within 500 m before approval." });
     }
   }
 
@@ -525,4 +525,3 @@ export async function getOfficerWorkload(req, res) {
     res.status(500).json({ message: "Failed to calculate officer workloads", error: err.message });
   }
 }
-

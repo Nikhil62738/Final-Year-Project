@@ -4254,7 +4254,7 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
     if (!isDistrictAdmin) return submitUpdate(event, selectedFiles);
 
     if (!Number.isFinite(Number(selected.lat)) || !Number.isFinite(Number(selected.lng))) {
-      alert("This complaint has no saved location coordinates, so its 10 m inspection radius cannot be verified.");
+      alert("This complaint has no saved location coordinates, so its 500 m inspection radius cannot be verified.");
       return;
     }
     if (!selectedFiles.some((file) => file.type?.startsWith("image/"))) {
@@ -4280,7 +4280,7 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
         }, "submit_to_super_admin");
       },
       (error) => alert(error.code === 1
-        ? "Allow location access to verify that you are within 10 m of the complaint site."
+        ? "Allow location access to verify that you are within 500 m of the complaint site."
         : "Could not get your current location. Move to the complaint site and try again."),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
     );
@@ -4503,7 +4503,7 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
             <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "#334155", display: "block", marginBottom: "6px" }}>
               📷 UPLOAD RESOLUTION PROOF (PHOTOS / INSPECTION REPORTS)
             </label>
-            {isDistrictAdmin && <p style={{ margin: "0 0 8px", color: "#475569", fontSize: "0.8rem" }}>At least one inspection photo and current location within 10 m of the reported site are required. Allow location access when you submit.</p>}
+            {isDistrictAdmin && <p style={{ margin: "0 0 8px", color: "#475569", fontSize: "0.8rem" }}>At least one inspection photo and current location within 500 m of the reported site are required. Allow location access when you submit.</p>}
             <input
               type="file"
               multiple

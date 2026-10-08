@@ -134,7 +134,24 @@ export async function downloadAndInstallUpdate(
     throw new Error('APK download failed. Please check your internet connection.');
   }
 
-  console.log('APK successfully downloaded:', result.uri);
+  if (result.status && (result.status < 200 || result.status >= 300)) {
+    // Clean up invalid downloaded error page
+    await FileSystem.deleteAsync(result.uri, { idempotent: true });
+    throw new Error(
+      `APK download failed (HTTP ${result.status}). The release file was not found or is in a private repository.`
+    );
+  }
+
+  // Validate that the file is an actual APK (greater than 1MB)
+  const fileInfo = await FileSystem.getInfoAsync(result.uri);
+  if (fileInfo.exists && typeof fileInfo.size === 'number' && fileInfo.size < 1024 * 1024) {
+    await FileSystem.deleteAsync(result.uri, { idempotent: true });
+    throw new Error(
+      `Downloaded file is corrupted or an error page (${Math.round(fileInfo.size / 1024)} KB). Please verify the APK URL.`
+    );
+  }
+
+  console.log('APK successfully downloaded:', result.uri, 'Size:', fileInfo.exists ? fileInfo.size : 'unknown');
 
   try {
     const contentUri = await FileSystem.getContentUriAsync(result.uri);

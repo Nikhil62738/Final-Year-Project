@@ -1245,7 +1245,7 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
 
     map.on('click', (e) => {
       if (!isInsideBounds(e.latlng)) {
-        setBoundsWarning("\u26a0\ufe0f You can only place the pin inside the selected district/taluka area.");
+        setBoundsWarning("\u26a0\ufe0f You can only place the pin inside the selected district.");
         setTimeout(() => setBoundsWarning(""), 3000);
         return;
       }
@@ -1285,7 +1285,6 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
     markerInstance.current.setLatLng(position);
   }, [lat, lng]);
 
-  // Auto-zoom + set bounds restriction when district/taluka changes
   useEffect(() => {
     if (!mapInstance.current) return;
 
@@ -1303,14 +1302,9 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
     const coords = districtCoords[district];
     if (!coords) return;
 
-    // Immediately zoom to district center
-    const zoomLevel = taluka ? 13 : coords.zoom;
-    mapInstance.current.flyTo([coords.lat, coords.lng], zoomLevel, { duration: 1.0 });
+    mapInstance.current.flyTo([coords.lat, coords.lng], coords.zoom, { duration: 1.0 });
 
-    // Fetch precise bounding box from geocode proxy
-    const locationQuery = taluka
-      ? `${taluka}, ${district}, Maharashtra, India`
-      : `${district}, Maharashtra, India`;
+    const locationQuery = `${district}, Maharashtra, India`;
 
     const fetchBounds = async () => {
       try {
@@ -1350,7 +1344,7 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
       }
     };
     setTimeout(fetchBounds, 150);
-  }, [district, taluka]);
+  }, [district]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -1362,7 +1356,7 @@ function GoogleMapPicker({ lat, lng, address, district, taluka, onPick }) {
       )}
       {district && (
         <div style={{ position: "absolute", top: "10px", right: "10px", background: "rgba(14, 165, 233, 0.9)", color: "white", padding: "4px 10px", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "700", zIndex: 1000 }}>
-          📍 Restricted to: {taluka ? `${taluka}, ${district}` : district}
+          📍 Complaint location: {district}{taluka ? ` · Taluka: ${taluka}` : ""}
         </div>
       )}
     </div>

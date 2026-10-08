@@ -100,6 +100,11 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           },
         ]}
       >
+        <Image
+          source={require('../assets/aaharmitra_logo.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.titleText}>Aaharmitra</Text>
         <Text style={styles.subtitleText}>Food Safety, Healthy India</Text>
 
@@ -193,6 +198,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 28,
     marginTop: 6,
+  },
+  logoImage: {
+    width: 106,
+    height: 106,
+    marginBottom: -10,
   },
   emblemContainer: {
     alignItems: 'center',

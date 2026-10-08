@@ -2,9 +2,14 @@
   "expo": {
     "name": "Aaharmitra",
     "slug": "fda-safewatch",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/aaharmitra-app-icon.png",
+    "splash": {
+      "image": "./assets/aaharmitra-splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FCFCF9"
+    },
     "userInterfaceStyle": "light",
     "updates": {
       "enabled": false,
@@ -13,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.nikhil6273.fdasafewatch",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -21,11 +26,11 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FCFCF9",
-        "foregroundImage": "./assets/android-icon-foreground.png"
+        "foregroundImage": "./assets/aaharmitra-app-icon.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.nikhil6273.fdasafewatch",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "CAMERA",
         "ACCESS_FINE_LOCATION",
@@ -36,7 +41,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/aaharmitra-app-icon.png"
     },
     "plugins": [
       "expo-secure-store",

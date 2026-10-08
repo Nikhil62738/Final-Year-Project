@@ -1,7 +1,7 @@
 const { useEffect, useMemo, useRef, useState } = React;
 
-const FLAG_IMG = window.FDA_ASSETS?.FLAG || "/flag.png";
-const FDA_LOGO_IMG = window.FDA_ASSETS?.FDA_LOGO || "/fda_logo.png";
+const FLAG_IMG = window.APP_ASSETS?.FLAG || "/flag.png";
+const AAHARMITRA_LOGO_IMG = "/aaharmitra_logo.png?v=1";
 const HERO_BG_IMG = "/hero_bg.png";
 
 const SITE_TRANSLATIONS = {
@@ -392,7 +392,7 @@ function readPageFromHash() {
   const raw = window.location.hash.replace(/^#\/?/, "").toLowerCase();
   if (!raw || raw === "home") return "home";
   if (raw === "admin") return "admin";
-  if (["submit", "track", "history", "login", "register", "alerts", "ingredients", "scanner"].includes(raw)) return raw;
+  if (["submit", "track", "history", "vendors", "login", "register", "alerts", "ingredients", "scanner"].includes(raw)) return raw;
   return "home";
 }
 
@@ -530,10 +530,10 @@ function App() {
           <div className="admin-white-header-inner">
             <div className="admin-white-header-left" onClick={() => navigate("home")}>
               <img
-                src={FDA_LOGO_IMG}
-                alt="FDA Maharashtra Logo"
+                src={AAHARMITRA_LOGO_IMG}
+                alt="Aaharmitra logo"
                 className="fssai-logo"
-                onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
+                onError={(e) => { e.target.onerror = null; e.target.src = "/aaharmitra_logo.png"; }}
               />
               <div className="brand-titles">
                 <div className="brand-main-title">Aaharmitra</div>
@@ -592,10 +592,10 @@ function App() {
                 <option value="mr">{"\u092e\u0930\u093e\u0920\u0940"}</option>
               </select>
               <img
-                src={FDA_LOGO_IMG}
-                alt="FDA Maharashtra Logo"
+                src={AAHARMITRA_LOGO_IMG}
+                alt="Aaharmitra logo"
                 className="fssai-logo"
-                onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
+                onError={(e) => { e.target.onerror = null; e.target.src = "/aaharmitra_logo.png"; }}
               />
               <button
                 type="button"
@@ -639,6 +639,10 @@ function App() {
               <button className={`nav-link-item ${page === "history" ? "active" : ""}`} onClick={() => navigate("history")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
                 {t("My Complaint")}
+              </button>
+              <button className={`nav-link-item ${page === "vendors" ? "active" : ""}`} onClick={() => navigate("vendors")}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 21h18" /><path d="M5 21V8l7-4 7 4v13" /><path d="M9 21v-5h6v5" /><path d="M9 11h.01M15 11h.01" /></svg>
+                Vendors
               </button>
               <button className={`nav-link-item ${page === "scanner" ? "active" : ""}`} onClick={() => navigate("scanner")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3"/></svg>
@@ -688,6 +692,7 @@ function App() {
       <div className={`site-language-shell lang-${siteLanguage}`}>
       <main className="main-content-area" data-site-language={siteLanguage}>
         {page === "home" && <Home navigate={navigate} citizen={citizen} t={t} />}
+        {page === "vendors" && <VendorDirectory />}
         {page === "scanner" && <FoodScannerView navigate={navigate} t={t} language={siteLanguage} />}
         {page === "admin" && !officer && <AdminLogin setOfficer={setOfficer} setPage={navigate} />}
         {page === "submit" && (
@@ -769,16 +774,6 @@ function App() {
 }
 
 function Home({ navigate, citizen, t = (value) => value }) {
-  const [vendors, setVendors] = useState([]);
-  const [showAllVendors, setShowAllVendors] = useState(false);
-
-  useEffect(() => {
-    fetch(`${API_BASE}/api/vendors/rankings?limit=50`)
-      .then((response) => response.ok ? response.json() : [])
-      .then((data) => setVendors(Array.isArray(data) ? data : []))
-      .catch(() => setVendors([]));
-  }, []);
-
   return (
     <div className="home-portal-wrap">
       {/* Hero Section */}
@@ -910,23 +905,6 @@ function Home({ navigate, citizen, t = (value) => value }) {
         </div>
       </section>
 
-      <section className="vendor-rankings-section">
-        <div className="vendor-rankings-heading">
-          <div><p className="eyebrow">Community insights</p><h2>Most Reported Vendors</h2></div>
-          {vendors.length > 3 && <button type="button" className="btn-view-dash" onClick={() => setShowAllVendors((visible) => !visible)}>{showAllVendors ? "Show less" : "View all vendors"}</button>}
-        </div>
-        <div className="vendor-rankings-list">
-          {(showAllVendors ? vendors : vendors.slice(0, 3)).map((vendor, index) => (
-            <div className="vendor-ranking-row" key={`${vendor.vendorName}-${index}`}>
-              <span className="vendor-ranking-number">{index + 1}</span>
-              <div><strong>{vendor.vendorName}</strong><span>{vendor.openCount} open complaint{vendor.openCount === 1 ? "" : "s"}</span></div>
-              <b>{vendor.complaintCount} reports</b>
-            </div>
-          ))}
-          {!vendors.length && <p className="empty-state">Vendor rankings will appear once complaints are received.</p>}
-        </div>
-      </section>
-
       {/* Feature Information Cards Section */}
       <section className="portal-info-section">
         <div className="info-grid-container">
@@ -966,6 +944,40 @@ function Home({ navigate, citizen, t = (value) => value }) {
         </div>
       </section>
     </div>
+  );
+}
+
+function VendorDirectory() {
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/vendors/rankings?limit=100`)
+      .then((response) => response.ok ? response.json() : [])
+      .then((data) => setVendors(Array.isArray(data) ? data : []))
+      .catch(() => setVendors([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <section className="page vendor-directory-page">
+      <div className="vendor-rankings-section">
+        <div className="vendor-rankings-heading">
+          <div><p className="eyebrow">Community insights</p><h1>Most Reported Vendors</h1><p className="vendor-directory-intro">Vendors are ranked by the number of complaints received.</p></div>
+        </div>
+        <div className="vendor-rankings-list">
+          {loading && <p className="empty-state">Loading vendors…</p>}
+          {!loading && vendors.map((vendor, index) => (
+            <div className="vendor-ranking-row" key={`${vendor.vendorName}-${index}`}>
+              <span className="vendor-ranking-number">{index + 1}</span>
+              <div><strong>{vendor.vendorName}</strong><span>{vendor.openCount} open complaint{vendor.openCount === 1 ? "" : "s"}</span></div>
+              <b>{vendor.complaintCount} reports</b>
+            </div>
+          ))}
+          {!loading && !vendors.length && <p className="empty-state">No vendor complaints available yet.</p>}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -2567,10 +2579,10 @@ function AdminLogin({ setOfficer, setPage }) {
 
           <div style={{ textAlign: "center", marginBottom: "16px" }}>
             <img
-              src={FDA_LOGO_IMG}
-              alt="Food and Drug Administration Maharashtra Logo"
+              src={AAHARMITRA_LOGO_IMG}
+              alt="Aaharmitra logo"
               className="admin-split-fda-logo"
-              onError={(e) => { e.target.onerror = null; e.target.src = "/fda_logo.png"; }}
+              onError={(e) => { e.target.onerror = null; e.target.src = "/aaharmitra_logo.png"; }}
             />
           </div>
 
@@ -5544,7 +5556,7 @@ function HelpChatbot({ navigate, openVendorProfile }) {
       const data = await api("/api/assistant/ask", { method: "POST", body: JSON.stringify({ question: value, language: voiceLanguage || "en-IN" }) });
       setMessages((prev) => [...prev, { sender: "bot", text: data.answer }]);
     } catch (_error) {
-      setMessages((prev) => [...prev, { sender: "bot", text: "I couldn't reach the SafeWatch help service. Please try again." }]);
+      setMessages((prev) => [...prev, { sender: "bot", text: "I couldn't reach the Aaharmitra help service. Please try again." }]);
     } finally {
       setAsking(false);
     }
@@ -5569,7 +5581,7 @@ function HelpChatbot({ navigate, openVendorProfile }) {
           </div>
           <form onSubmit={(event) => { event.preventDefault(); handleAsk(); }} style={{ display: "flex", gap: "6px", padding: "10px", background: "#fff", borderTop: "1px solid #e2e8f0" }}>
             <div style={{ minWidth: 0, flex: 1, display: "flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "7px", paddingRight: "5px", background: "#fff" }}>
-              <input aria-label="Ask SafeWatch" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Type or speak your question?" style={{ minWidth: 0, flex: 1, padding: "9px 10px", border: 0, outline: "none", background: "transparent" }} />
+              <input aria-label="Ask Aaharmitra" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Type or speak your question?" style={{ minWidth: 0, flex: 1, padding: "9px 10px", border: 0, outline: "none", background: "transparent" }} />
               <button type="button" onClick={toggleVoiceInput} aria-label={isListening ? "Stop voice input" : "Speak your question"} aria-pressed={isListening} title={isListening ? "Listening - click to stop" : "Speak your question"} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "34px", height: "34px", flexShrink: 0, border: 0, borderRadius: "6px", background: isListening ? "#fee2e2" : "transparent", color: isListening ? "#b91c1c" : "#164e3b", padding: "5px", cursor: "pointer" }}>{isListening ? <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg> : <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3" stroke="currentColor" strokeWidth="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4m-3 0h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>}</button>
             </div>
             <button type="submit" disabled={asking || !question.trim()} style={{ border: 0, borderRadius: "7px", background: "#047857", color: "white", padding: "8px 12px", fontWeight: 700 }}>{asking ? "?" : "Ask"}</button>

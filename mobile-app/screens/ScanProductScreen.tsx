@@ -427,7 +427,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
             <View style={styles.foodOnlyNotice}>
               <Text style={styles.foodOnlyIcon}>🥗</Text>
               <Text style={styles.foodOnlyText}>
-                SafeWatch scanner is specialized for <Text style={{ fontWeight: '800' }}>Food & Beverage</Text> products only. Non-food items (notebooks, stationery, electronics) are automatically rejected.
+                Aaharmitra scanner is specialized for <Text style={{ fontWeight: '800' }}>Food & Beverage</Text> products only. Non-food items (notebooks, stationery, electronics) are automatically rejected.
               </Text>
             </View>
 
@@ -501,7 +501,7 @@ export default function ScanProductScreen({ navigation }: { navigation?: any } =
           <Text style={styles.notFoodDesc}>{nonFoodMessage}</Text>
 
           <View style={styles.notFoodAdviceBox}>
-            <Text style={styles.adviceHeading}>💡 SafeWatch Guidelines:</Text>
+            <Text style={styles.adviceHeading}>💡 Aaharmitra Guidelines:</Text>
             <Text style={styles.advicePoint}>• Only edible food & beverages under FSSAI purview can be analyzed.</Text>
             <Text style={styles.advicePoint}>• Stationeries, notebooks, clothes, and electronics do not contain nutrition data.</Text>
             <Text style={styles.advicePoint}>• For unbranded or fresh cooked foods, use the Photo Food Scanner.</Text>

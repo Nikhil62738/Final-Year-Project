@@ -229,9 +229,6 @@ export async function updateComplaintStatus(req, res) {
     if (!Number.isFinite(inspectionLat) || !Number.isFinite(inspectionLng) || !Number.isFinite(complaint.lat) || !Number.isFinite(complaint.lng)) {
       return res.status(400).json({ message: "The complaint and inspection must both have GPS coordinates to verify the 500 m radius." });
     }
-    if (!Number.isFinite(accuracyMeters) || accuracyMeters > 10) {
-      return res.status(403).json({ message: "GPS accuracy must be 10 m or better. Improve the location signal and try again." });
-    }
     const distanceMeters = haversineMeters(complaint.lat, complaint.lng, inspectionLat, inspectionLng);
     if (distanceMeters === null || distanceMeters > 500) {
       return res.status(403).json({ message: `Inspection location is ${distanceMeters === null ? "unknown" : `${Math.round(distanceMeters)} m`} from the complaint. The required radius is 500 m.` });

@@ -4269,10 +4269,6 @@ function CaseFile({ selected, update, setUpdate, submitUpdate, officer }) {
     event.persist?.();
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (position.coords.accuracy > 10) {
-          alert(`Current GPS accuracy is ${Math.round(position.coords.accuracy)} m. Move to an open area and retry; accuracy must be 10 m or better.`);
-          return;
-        }
         submitUpdate(event, selectedFiles, {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,

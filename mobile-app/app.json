@@ -2,7 +2,7 @@
   "expo": {
     "name": "Aaharmitra",
     "slug": "fda-safewatch",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/aaharmitra-app-icon.png",
     "splash": {
